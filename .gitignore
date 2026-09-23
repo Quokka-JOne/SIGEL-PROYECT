@@ -1,0 +1,44 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Builds
+dist/
+build/
+.vite/
+frontend/dev-dist/
+
+# Variables de entorno — los valores reales nunca se suben (README §18)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Prisma
+# Las migraciones SÍ se versionan. El cliente generado vive en node_modules,
+# que ya está ignorado arriba.
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editores y sistema operativo
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Vercel
+.vercel/
+
+# Cobertura y pruebas
+coverage/
+.nyc_output/
