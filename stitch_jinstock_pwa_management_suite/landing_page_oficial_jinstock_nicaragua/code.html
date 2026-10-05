@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>JINStock - Sistema POS e Inventario Offline-First para Librerías y Papelerías</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container-highest": "#d3e4fe", "on-secondary": "#ffffff", "on-error-container": "#93000a", "primary-fixed": "#dce1ff", "surface-container": "#e5eeff", "on-tertiary-container": "#88a9ff", "on-tertiary-fixed": "#001847", "on-secondary-fixed": "#23005c", "surface-variant": "#d3e4fe", "secondary-fixed": "#e9ddff", "on-surface": "#0b1c30", "primary": "#00236f", "on-primary": "#ffffff", "on-secondary-container": "#43218a", "on-surface-variant": "#444651", "surface-tint": "#4059aa", "tertiary-container": "#003a91", "secondary-fixed-dim": "#d0bcff", "on-primary-fixed": "#00164e", "primary-fixed-dim": "#b6c4ff", "surface-container-high": "#dce9ff", "secondary": "#694bb2", "error": "#ba1a1a", "tertiary-fixed-dim": "#b1c5ff", "background": "#f8f9ff", "primary-container": "#1e3a8a", "on-secondary-fixed-variant": "#513199", "tertiary": "#002664", "error-container": "#ffdad6", "outline-variant": "#c5c5d3", "tertiary-fixed": "#dae2ff", "on-primary-fixed-variant": "#264191", "on-primary-container": "#90a8ff", "surface-container-low": "#eff4ff", "surface-bright": "#f8f9ff", "on-error": "#ffffff", "surface-dim": "#cbdbf5", "secondary-container": "#b091fe", "surface": "#f8f9ff", "inverse-on-surface": "#eaf1ff", "on-tertiary-fixed-variant": "#00409f", "on-tertiary": "#ffffff", "inverse-surface": "#213145", "outline": "#757682", "on-background": "#0b1c30", "surface-container-lowest": "#ffffff", "inverse-primary": "#b6c4ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1rem", "space-lg": "1.5rem", "gutter-tablet": "1.25rem", "gutter-desktop": "1.5rem", "margin-desktop": "2rem", "space-sm": "0.5rem", "margin-tablet": "1.5rem", "margin": "1rem", "space-md": "1rem", "space-xs": "0.25rem", "space-xl": "2rem" }, "fontFamily": { "label-lg": [ "Inter" ], "numeric-pos": [ "Inter" ], "label-md": [ "Inter" ], "headline-xl": [ "Plus Jakarta Sans" ], "headline-sm": [ "Plus Jakarta Sans" ], "headline-lg": [ "Plus Jakarta Sans" ], "body-md": [ "Plus Jakarta Sans" ], "headline-md": [ "Plus Jakarta Sans" ], "headline-xl-mobile": [ "Plus Jakarta Sans" ], "body-sm": [ "Plus Jakarta Sans" ], "label-sm": [ "Inter" ], "headline-lg-mobile": [ "Plus Jakarta Sans" ], "body-lg": [ "Plus Jakarta Sans" ] }, "fontSize": { "label-lg": [ "14px", { "lineHeight": "20px", "fontWeight": "600" } ], "numeric-pos": [ "24px", { "lineHeight": "28px", "fontWeight": "700" } ], "label-md": [ "12px", { "lineHeight": "16px", "fontWeight": "600" } ], "headline-xl": [ "36px", { "lineHeight": "44px", "fontWeight": "800" } ], "headline-sm": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "headline-lg": [ "28px", { "lineHeight": "36px", "fontWeight": "700" } ], "body-md": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "headline-md": [ "22px", { "lineHeight": "28px", "fontWeight": "600" } ], "headline-xl-mobile": [ "28px", { "lineHeight": "36px", "fontWeight": "800" } ], "body-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "400" } ], "label-sm": [ "11px", { "lineHeight": "14px", "fontWeight": "600" } ], "headline-lg-mobile": [ "24px", { "lineHeight": "32px", "fontWeight": "700" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ] } } } }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 w-full max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><a class="flex items-center gap-space-sm group" data-path="landing-page" href="#"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm group-hover:bg-primary transition-colors"><span class="material-symbols-outlined text-[24px]">auto_stories</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-primary leading-none">JINStock</span><span class="font-label-sm text-label-sm text-secondary leading-tight mt-0.5">POS • Nicaragua</span></div></a></div><nav class="hidden xl:flex items-center gap-space-xs p-1 bg-surface-container-low/70 rounded-full" data-active-classes="bg-surface-container-high text-primary font-bold rounded-full"><a class="px-space-md py-space-sm rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="caracteristicas" href="#">Características</a><a class="px-space-md py-space-sm rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="modulos" href="#">Módulos</a><a class="px-space-md py-space-sm rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="pwa-offline" href="#">PWA Offline</a><a class="px-space-md py-space-sm rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="ia-predictiva" href="#">IA Predictiva</a><a class="px-space-md py-space-sm rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all" data-path="precios" href="#">Precios</a></nav><div class="flex items-center gap-space-sm"><div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-primary font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span>NIO / USD</span></div><a class="hidden md:inline-flex items-center px-4 py-2.5 rounded-xl font-label-md text-label-md text-primary hover:bg-surface-container-high transition-colors" data-path="login" href="#">Iniciar Sesión</a><a class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-all shadow-[0_4px_12px_rgba(30,58,138,0.15)] active:scale-[0.98]" data-path="registro" href="#">Comenzar Gratis</a><div class="pl-1 flex items-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-surface-container" src="https://lh3.googleusercontent.com/aida/AEtjO1UKFwhFaPYT_71R6K5nK10Q8h_XzW_T7vOcE8ZgNcU3U1i2OUQh23XWBRKdGefjvHF9JL0NW8FvCMjw4A-NoQlMzqaAJoVRQ7-yH45WOQIvoFSy2tyVVhj0fXZU_r49kUGi8NYcsC2w3ACEMD2kSR2hqnP0rc_8xp47KzblB4VUKc7BGY5BBi22v2lbDiMYduJCW-cOrzx0eq_eYLH5OzIEfkDiBfrLfj_03K5E721X8vylApKUV8rNB4y132UNqFCmEdPvrRLUL4k"/></div></div></div></header><main class="w-full pt-20 bg-surface"><div class="flex flex-col w-full">
+<!-- Top Ambient Glow Scrim -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[980px] h-[480px] bg-gradient-to-b from-secondary-fixed/40 via-surface-container-highest/20 to-transparent blur-3xl pointer-events-none -z-10"></div>
+<!-- 1. HERO SECTION -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 pt-8 lg:pt-14 pb-20">
+<!-- Trust & Readiness Micro-Badges -->
+<div class="flex flex-wrap items-center justify-center gap-2.5 mb-8">
+<span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm text-on-surface text-label-sm font-label-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          100% Funcional sin Internet (IndexedDB)
+        </span>
+<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm text-primary text-label-sm font-label-sm">
+<span>🇳🇮</span>
+          Adaptado a DGI &amp; Multidivisa NIO/USD
+        </span>
+<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">bolt</span>
+          Factura en 3 segundos
+        </span>
+</div>
+<!-- Main Headline & Subtitle -->
+<div class="max-w-4xl mx-auto text-center flex flex-col items-center">
+<h1 class="font-headline-xl text-headline-xl text-primary tracking-tight leading-tight mb-6">
+          El sistema POS e Inventario inteligente que <span class="text-secondary">nunca se detiene</span> por caídas de internet.
+        </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-10 leading-relaxed">
+          Diseñado a la medida para librerías, papelerías escolares y suministros en Nicaragua. Facturación ultrarrápida, PWA Offline-First con IndexedDB, kardex por resmas o unidades y sugerencias con IA para la temporada escolar.
+        </p>
+<!-- Dual CTA -->
+<div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-14">
+<a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg shadow-lg hover:shadow-xl hover:bg-primary-container transition-all active:scale-[0.98]" href="#precios">
+<span>Probar 14 días gratis</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</a>
+<a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-surface-container-lowest text-primary font-label-lg text-label-lg shadow-sm hover:bg-surface-container-low transition-all" href="#demo">
+<span class="material-symbols-outlined text-[20px] text-secondary">play_circle</span>
+<span>Ver Demo en Vivo</span>
+</a>
+</div>
+<div class="flex items-center justify-center gap-6 text-on-surface-variant text-label-sm font-label-sm">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+            Sin tarjeta de crédito
+          </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+            Instalación en 1 clic en cualquier PC o tablet
+          </span>
+</div>
+</div>
+<!-- Interactive Hero POS Preview Mockup -->
+<div class="relative mt-14 max-w-5xl mx-auto">
+<!-- Floating Micro-Card 1: Offline Sync -->
+<div class="absolute -top-6 -left-4 sm:left-4 z-20 max-w-xs bg-surface-container-lowest/95 backdrop-blur-md p-4 rounded-2xl shadow-xl flex items-start gap-3 transition-transform hover:-translate-y-1">
+<div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+<span class="material-symbols-outlined text-[20px]">wifi_off</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 mb-0.5">
+<span class="font-label-sm text-label-sm text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">PWA Offline Activa</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface">42 ventas registradas sin luz ni internet</p>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Sucursal Managua Centro • Cola en cola</span>
+</div>
+</div>
+<!-- Floating Micro-Card 2: IA Prediction -->
+<div class="absolute -bottom-8 right-2 sm:right-6 z-20 max-w-sm bg-surface-container-lowest/95 backdrop-blur-md p-4 rounded-2xl shadow-xl flex items-start gap-3 transition-transform hover:-translate-y-1">
+<div class="w-9 h-9 rounded-xl bg-secondary-fixed flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2 mb-0.5">
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded-full">IA JINStock Copilot</span>
+<span class="text-on-surface-variant text-[11px]">Hoy 08:30 AM</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface">Alerta: pedir 120 resmas Chamex Carta</p>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Pico de demanda en 9 días por inicio escolar</span>
+</div>
+</div>
+<!-- Floating Micro-Card 3: Cash balance -->
+<div class="hidden md:flex absolute top-1/2 -right-8 -translate-y-1/2 z-20 bg-surface-container-lowest/95 backdrop-blur-md p-4 rounded-2xl shadow-xl flex-col gap-1.5">
+<div class="flex items-center justify-between gap-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Arqueo de Caja Activo</span>
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+</div>
+<div class="font-numeric-pos text-numeric-pos text-primary">C$ 48,250.00 <span class="text-label-md text-on-surface-variant font-normal">NIO</span></div>
+<div class="font-label-md text-label-md text-secondary font-bold">$1,320.00 USD <span class="text-[11px] font-normal text-on-surface-variant">(Tasa BCN: 36.55)</span></div>
+</div>
+<!-- Central Terminal Mockup Screen -->
+<div class="bg-surface-container-lowest rounded-3xl shadow-2xl p-4 sm:p-6 overflow-hidden">
+<!-- Terminal Header Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 bg-surface-container-low/60 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 py-3.5">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-error/70"></span>
+<span class="w-3 h-3 rounded-full bg-amber-400"></span>
+<span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold ml-2">JINStock POS • Terminal 01 (Librería Central)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-label-sm font-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Local DB Ready (0ms latency)
+              </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface text-label-sm font-label-sm">Cajero: Mario V.</span>
+</div>
+</div>
+<!-- Split POS Layout Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+<!-- Left: Catalog & Search (7 cols) -->
+<div class="lg:col-span-7 flex flex-col gap-4">
+<!-- Search & Barcode -->
+<div class="flex items-center gap-2 p-2 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-primary text-[22px] ml-2">barcode_scanner</span>
+<input class="bg-transparent w-full text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-on-surface-variant" placeholder="Escanear código de barra (F2) o buscar cuaderno, lápiz..." readonly="" type="text" value="Cuaderno Universitario Loro 100 Hojas"/>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant rounded text-label-sm font-label-sm">ENTER</span>
+</div>
+<!-- Quick Categories Pills -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1">
+<button class="px-3 py-1.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm shrink-0">Todos</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm shrink-0">Cuadernos</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm shrink-0">Resmas &amp; Papelería</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm shrink-0">Escritura &amp; Lápices</button>
+<button class="px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm shrink-0">Arte &amp; Foamy</button>
+</div>
+<!-- Product Quick Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+<!-- Item 1 -->
+<div class="p-3 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-primary font-label-sm text-label-sm">Caja 24u</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">add_circle</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface line-clamp-2">Lápiz Grafito Mongol #2</h4>
+<div class="font-numeric-pos text-[18px] text-primary mt-1">C$ 12.00 <span class="font-normal text-[11px] text-on-surface-variant">/ u</span></div>
+<span class="text-[11px] text-emerald-700 font-label-sm">Stock: 480 u (20 caj)</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-primary font-label-sm text-label-sm">Paquete 5u</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">add_circle</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface line-clamp-2">Cuaderno Loro Cosido 200p</h4>
+<div class="font-numeric-pos text-[18px] text-primary mt-1">C$ 75.00</div>
+<span class="text-[11px] text-emerald-700 font-label-sm">Stock: 94 u</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-3 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-label-sm text-label-sm">Bajo Stock</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">add_circle</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface line-clamp-2">Resma Papel Chamex Carta</h4>
+<div class="font-numeric-pos text-[18px] text-primary mt-1">C$ 185.00</div>
+<span class="text-[11px] text-amber-700 font-label-sm">Stock: 8 resmas</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Current Bill / Ticket Cart (5 cols) -->
+<div class="lg:col-span-5 bg-surface-container-low p-4 rounded-2xl flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3 mb-3 bg-surface-container-lowest/80 -mx-4 -mt-4 px-4 py-3 rounded-t-2xl">
+<div>
+<span class="font-label-md text-label-md text-primary font-bold">Ticket #004829</span>
+<span class="block text-[11px] text-on-surface-variant">Cliente: Colegio Bautista (Crédito Escolar)</span>
+</div>
+<span class="px-2 py-0.5 bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm rounded-full">Lista Escolar</span>
+</div>
+<!-- Bill Items -->
+<div class="flex flex-col gap-2.5 max-h-56 overflow-y-auto pr-1">
+<div class="flex items-center justify-between bg-surface-container-lowest p-2 rounded-xl">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Cuaderno Loro Cosido 200p</span>
+<span class="text-[11px] text-on-surface-variant">10 unidades × C$ 75.00</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">C$ 750.00</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-lowest p-2 rounded-xl">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Lápiz Grafito Mongol #2 (Caja)</span>
+<span class="text-[11px] text-on-surface-variant">2 cajas × C$ 260.00</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">C$ 520.00</span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-lowest p-2 rounded-xl">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Resma Chamex Bond Carta</span>
+<span class="text-[11px] text-on-surface-variant">3 resmas × C$ 185.00</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">C$ 555.00</span>
+</div>
+</div>
+</div>
+<!-- Cart Summary & Fast Checkout Action -->
+<div class="pt-4 mt-4 bg-surface-container-lowest p-3 rounded-xl flex flex-col gap-2">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant">
+<span>Subtotal:</span>
+<span>C$ 1,825.00</span>
+</div>
+<div class="flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant">
+<span>Exoneración Escolar / IVA (0%):</span>
+<span>C$ 0.00</span>
+</div>
+<div class="flex justify-between items-baseline pt-2">
+<span class="font-label-lg text-label-lg text-primary font-bold">Total a Cobrar:</span>
+<div class="text-right">
+<div class="font-numeric-pos text-numeric-pos text-primary leading-none">C$ 1,825.00</div>
+<span class="font-label-sm text-label-sm text-secondary">$ 49.93 USD</span>
+</div>
+</div>
+<!-- Pay Button (F12) -->
+<button class="w-full mt-2 py-3 px-4 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 hover:bg-primary-container transition-all">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>Cobrar e Imprimir Ticket (F12)</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- 2. SOCIAL PROOF / MARQUEE OF TRUST -->
+<section class="w-full bg-surface-container-low py-14">
+<div class="max-w-7xl mx-auto px-6 lg:px-12 text-center">
+<p class="font-label-md text-label-md text-secondary uppercase tracking-wider mb-6">
+        Empoderando a más de 180 librerías, papelerías y distribuidoras en Managua, León, Matagalpa y Estelí
+      </p>
+<!-- Trust Badges & Retailers Grid -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+<div class="p-4 bg-surface-container-lowest rounded-2xl shadow-sm flex items-center justify-center gap-2 hover:shadow transition-all">
+<span class="material-symbols-outlined text-primary text-[20px]">book</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Librería Hispamer C.</span>
+</div>
+<div class="p-4 bg-surface-container-lowest rounded-2xl shadow-sm flex items-center justify-center gap-2 hover:shadow transition-all">
+<span class="material-symbols-outlined text-primary text-[20px]">school</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Papelería El Estudiante</span>
+</div>
+<div class="p-4 bg-surface-container-lowest rounded-2xl shadow-sm flex items-center justify-center gap-2 hover:shadow transition-all">
+<span class="material-symbols-outlined text-primary text-[20px]">inventory_2</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Distribuidora Suyen</span>
+</div>
+<div class="p-4 bg-surface-container-lowest rounded-2xl shadow-sm flex items-center justify-center gap-2 hover:shadow transition-all">
+<span class="material-symbols-outlined text-primary text-[20px]">storefront</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Comercial Escolar Norte</span>
+</div>
+<div class="col-span-2 md:col-span-1 p-4 bg-surface-container-lowest rounded-2xl shadow-sm flex items-center justify-center gap-2 hover:shadow transition-all">
+<span class="material-symbols-outlined text-primary text-[20px]">local_library</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Suministros UNAN</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. KEY VALUE PILLARS (3-Column Grid) -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 py-24">
+<div class="max-w-3xl mb-16">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Tres pilares de resiliencia</span>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight mt-2">
+        Creado para la realidad operativa del comercio nicaragüense.
+      </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-3">
+        Eliminamos la lentitud en cajas y las pérdidas de inventario por falta de control de unidades sueltas o desconexión del servidor.
+      </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Pillar 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between hover:shadow-lg transition-all group">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-surface-container-highest flex items-center justify-center text-primary mb-6 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">wifi_off</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">01. Offline-First Nativo</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1 mb-3">Vende sin interrupciones, con o sin energía</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            La luz y las operadoras de internet fallan con frecuencia en Nicaragua. JINStock almacena cada factura localmente en el navegador mediante IndexedDB. Tu cajero nunca se detiene; todo sincroniza automáticamente al volver la señal.
+          </p>
+</div>
+<div class="mt-8 pt-6 bg-surface-container-low/60 -mx-8 -mb-8 px-8 py-4 rounded-b-3xl flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-bold">Cero pérdida de tickets</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">verified</span>
+</div>
+</div>
+<!-- Pillar 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between hover:shadow-lg transition-all group">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-secondary-fixed flex items-center justify-center text-secondary mb-6 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">inventory</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">02. Kardex Multidimensional</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1 mb-3">Gestión exacta de útiles, paquetes y unidades</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Vende una caja de lapiceros entera o uno individual sin descuadrar el almacén. Conversión automática de bultos a resmas, pliegos de foamy, cartulinas y cuadernos grapados o espiral con código de barras dual.
+          </p>
+</div>
+<div class="mt-8 pt-6 bg-surface-container-low/60 -mx-8 -mb-8 px-8 py-4 rounded-b-3xl flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-bold">Control por unidad y mayoreo</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">fact_check</span>
+</div>
+</div>
+<!-- Pillar 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between hover:shadow-lg transition-all group">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-primary-fixed flex items-center justify-center text-primary mb-6 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">insights</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">03. IA Predictiva Escolar</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1 mb-3">Anticípate al pico crítico de enero y febrero</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Nuestra IA analiza tu rotación histórica y listas de colegios nicaragüenses. Genera pedidos sugeridos a importadores antes de que los mayoristas agoten producto o incrementen sus tarifas estacionales.
+          </p>
+</div>
+<div class="mt-8 pt-6 bg-surface-container-low/60 -mx-8 -mb-8 px-8 py-4 rounded-b-3xl flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-bold">+28% ganancia estacional</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">trending_up</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. INTERACTIVE FEATURE SHOWCASE / BENTO GRID -->
+<section class="w-full bg-surface-container-low py-24" id="demo">
+<div class="max-w-7xl mx-auto px-6 lg:px-12">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Potencia sin complicaciones</span>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight mt-2">
+          Diseñado para el ritmo frenético de la temporada escolar
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">
+          Herramientas pensadas para que tus colaboradores atiendan filas enteras en minutos y sin equivocarse.
+        </p>
+</div>
+<!-- Bento Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Feature 1: POS Relámpago (8 cols) -->
+<div class="lg:col-span-8 bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Módulo de Facturación</span>
+<h3 class="font-headline-md text-headline-md text-primary mt-1">Punto de Venta Relámpago con Tasa BCN en Vivo</h3>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">Lector USB • Bluetooth • Cámara</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">
+            Cobra en Córdobas (NIO) y Dólares (USD) simultáneamente en el mismo ticket. Aplica exoneraciones tributarias escolares de ley y asigna crédito directo a colegios o empresas con límite de endeudamiento controlado.
+          </p>
+<!-- Interactive UI snippet -->
+<div class="bg-surface-container-low p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">currency_exchange</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Conversión Instantánea Multidivisa</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total: C$ 3,655 NIO = $ 100.00 USD (Cambio exacto en córdobas)</span>
+</div>
+</div>
+<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm shrink-0">
+              Venta sin errores de cambio
+            </span>
+</div>
+</div>
+<!-- Feature 2: Copilot IA & Chat (4 cols) -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-secondary-fixed flex items-center justify-center text-secondary mb-4">
+<span class="material-symbols-outlined text-[24px]">chat_spark</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Asistente Inteligente</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1 mb-2">JINStock Copilot</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">
+              Pregúntale a tu inventario mediante texto o voz sin navegar decenas de reportes:
+            </p>
+<!-- Chat Bubble Mockup -->
+<div class="bg-surface-container-low p-3.5 rounded-2xl mb-3 flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-secondary font-bold">¿Cuáles son los 3 útiles con más ganancia hoy?</span>
+<p class="font-body-sm text-body-sm text-on-surface">
+                "1. Marcador Permanente Sharpie (+48% margen), 2. Cuaderno Loro Cosido, 3. Silicona líquida 250ml."
+              </p>
+</div>
+</div>
+<div class="pt-2">
+<span class="inline-flex items-center gap-1.5 text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">arrow_back_ios_new</span>
+              Entrenado con patrones comerciales locales
+            </span>
+</div>
+</div>
+<!-- Feature 3: Roles blindados (6 cols) -->
+<div class="lg:col-span-6 bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-[24px]">shield_person</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Seguridad Operativa</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1 mb-2">Roles Blindados &amp; Arqueos Ciegos</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Tus cajeros no ven el saldo esperado del sistema hasta que ingresan el conteo físico de billetes y monedas. Bloqueo de descuentos no autorizados y registro de auditoría de cada modificación de precio.
+            </p>
+</div>
+<div class="mt-6 flex items-center gap-3">
+<span class="px-3 py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-primary">Cajero</span>
+<span class="px-3 py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-primary">Bodeguero</span>
+<span class="px-3 py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-primary">Auditor</span>
+<span class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm">Admin General</span>
+</div>
+</div>
+<!-- Feature 4: Paquetes y Listas Escolares (6 cols) -->
+<div class="lg:col-span-6 bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-secondary-fixed flex items-center justify-center text-secondary mb-4">
+<span class="material-symbols-outlined text-[24px]">checklist</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Especialización Librería</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1 mb-2">Carga Automática de Listas Escolares</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Guarda las listas oficiales de colegios (Primaria Colegio Alemán, Secundaria Loyola, etc.). Con un solo clic, el POS añade los 14 cuadernos, juegos de compás y témperas al carrito, listos para empaque y cobro.
+            </p>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<span class="text-on-surface font-label-md text-label-md font-bold">Tiempo promedio por lista: <span class="text-secondary">45 segundos</span></span>
+<span class="material-symbols-outlined text-secondary text-[24px]">speed</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. ROI & COMPARISON TABLE (SaaS Moderno vs Sistema Tradicional) -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 py-24">
+<div class="text-center max-w-3xl mx-auto mb-16">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">¿Por qué migrar a JINStock?</span>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight mt-2">
+        La brecha entre perder ventas y liderar tu zona comercial
+      </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">
+        Compara las hojas de Excel o software contable antiguo frente a la arquitectura de alta velocidad 2026 de JINStock.
+      </p>
+</div>
+<!-- Comparison Table Card -->
+<div class="bg-surface-container-lowest rounded-3xl shadow-md overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface font-label-md text-label-md">
+<th class="py-5 px-6 font-bold">Capacidad Operativa</th>
+<th class="py-5 px-6 text-on-surface-variant font-medium">Sistemas Antiguos / Excel</th>
+<th class="py-5 px-6 text-primary font-bold bg-primary-fixed/20">JINStock Nicaragua (2026)</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors">
+<td class="py-4 px-6 font-label-md text-label-md text-primary">Corte de Energía o Caída de Internet</td>
+<td class="py-4 px-6 text-on-surface-variant">
+<span class="inline-flex items-center gap-1 text-error text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+                  El sistema se congela o no permite facturar
+                </span>
+</td>
+<td class="py-4 px-6 bg-primary-fixed/10 font-bold text-primary">
+<span class="inline-flex items-center gap-1 text-emerald-700 text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                  Facturación ininterrumpida (IndexedDB local)
+                </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors">
+<td class="py-4 px-6 font-label-md text-label-md text-primary">Control de Unidades Sueltas vs Paquete</td>
+<td class="py-4 px-6 text-on-surface-variant">
+                Confusión frecuente al romper cajas o paquetes de resmas.
+              </td>
+<td class="py-4 px-6 bg-primary-fixed/10 font-bold text-primary">
+                Desagregación automática y kardex exacto por milímetro/unidad.
+              </td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors">
+<td class="py-4 px-6 font-label-md text-label-md text-primary">Previsión de Compras Escolares</td>
+<td class="py-4 px-6 text-on-surface-variant">
+                A ciegas o por intuición del dueño, con compras excesivas o faltantes.
+              </td>
+<td class="py-4 px-6 bg-primary-fixed/10 font-bold text-primary">
+                IA Predictiva que proyecta demanda 3 semanas antes del inicio de clases.
+              </td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors">
+<td class="py-4 px-6 font-label-md text-label-md text-primary">Instalación y Mantenimiento</td>
+<td class="py-4 px-6 text-on-surface-variant">
+                Instalación de servidores locales pesados, cables y licencias por máquina.
+              </td>
+<td class="py-4 px-6 bg-primary-fixed/10 font-bold text-primary">
+                PWA instantánea: Abre en Chrome o Edge en tu laptop, tablet o PC en 1 minuto.
+              </td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors">
+<td class="py-4 px-6 font-label-md text-label-md text-primary">Gestión de Doble Moneda</td>
+<td class="py-4 px-6 text-on-surface-variant">
+                Cálculo manual en calculadora de mostrador, sujeto a equivocaciones del cajero.
+              </td>
+<td class="py-4 px-6 bg-primary-fixed/10 font-bold text-primary">
+                Conversión en tiempo real con tasa de cambio oficial BCN integrada.
+              </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- 6. TESTIMONIALS SECTION -->
+<section class="w-full bg-surface-container-low py-24">
+<div class="max-w-7xl mx-auto px-6 lg:px-12">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Voces de éxito en Nicaragua</span>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight mt-2">
+          Libreros y papeleros que transformaron su negocio
+        </h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Testimonial 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-amber-500 mb-4">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-6">
+              "En enero del año pasado la fila doblaba la esquina y se nos fue el internet por 4 horas. Con JINStock seguimos cobrando como si nada hubiera pasado. Al volver la señal, las 180 facturas se sincronizaron solas."
+            </p>
+</div>
+<div class="flex items-center gap-3 pt-4 bg-surface-container-low/40 -mx-8 -mb-8 px-8 py-4 rounded-b-3xl">
+<div class="w-11 h-11 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-label-md">
+              DR
+            </div>
+<div>
+<span class="font-label-md text-label-md text-primary font-bold block">Don Roberto Solórzano</span>
+<span class="text-[11px] text-on-surface-variant">Librería El Saber • Managua (Mercado Roberto Huembes)</span>
+</div>
+</div>
+</div>
+<!-- Testimonial 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-amber-500 mb-4">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-6">
+              "El kardex de resmas y unidades es una maravilla. Antes teníamos faltantes constantes de lápices y borradores sueltos. Con los arqueos ciegos redujimos las mermas a cero absoluto este trimestre."
+            </p>
+</div>
+<div class="flex items-center gap-3 pt-4 bg-surface-container-low/40 -mx-8 -mb-8 px-8 py-4 rounded-b-3xl">
+<div class="w-11 h-11 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold text-label-md">
+              LG
+            </div>
+<div>
+<span class="font-label-md text-label-md text-primary font-bold block">Lic. Gabriela Morales</span>
+<span class="text-[11px] text-on-surface-variant">Papelería Minerva • León</span>
+</div>
+</div>
+</div>
+<!-- Testimonial 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-amber-500 mb-4">
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-6">
+              "La sugerencia con IA para cuadernos cosidos Loro y Norma fue exacta: compramos 400 unidades extra antes de que el distribuidor subiera 15% el precio en diciembre. Ganamos C$ 38,000 netos adicionales."
+            </p>
+</div>
+<div class="flex items-center gap-3 pt-4 bg-surface-container-low/40 -mx-8 -mb-8 px-8 py-4 rounded-b-3xl">
+<div class="w-11 h-11 rounded-full bg-tertiary-container text-on-primary flex items-center justify-center font-bold text-label-md">
+              CT
+            </div>
+<div>
+<span class="font-label-md text-label-md text-primary font-bold block">Carlos Toruño</span>
+<span class="text-[11px] text-on-surface-variant">Distribuidora Escolar El Norte • Matagalpa</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. PRICING / PLANES CLAROS -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 py-24" id="precios">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider">Inversión clara en moneda nacional</span>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight mt-2">
+        Planes transparentes pensados para tu rentabilidad
+      </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">
+        Prueba cualquier plan por 14 días sin compromiso. Cancela cuando quieras.
+      </p>
+<!-- Toggle Monthly / Annual -->
+<div class="inline-flex items-center p-1 bg-surface-container rounded-full mt-6">
+<button class="px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-lowest text-primary shadow-sm" id="toggleMonthly">Facturación Mensual</button>
+<button class="px-5 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface" id="toggleAnnual">Anual (2 meses gratis)</button>
+</div>
+</div>
+<!-- Pricing Cards Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+<!-- Plan 1: Emprendedor -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Librería Pequeña</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1">Emprendedor</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2 mb-6">
+            Ideal para una tienda de barrio o papelería escolar de 1 caja.
+          </p>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="font-numeric-pos text-numeric-pos text-primary">C$ 650</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ mes</span>
+</div>
+<div class="flex flex-col gap-3 font-body-sm text-body-sm text-on-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>1 Caja registradora / POS</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Modo Offline completo (IndexedDB)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Kardex por paquetes y unidades</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Moneda dual Córdobas &amp; Dólares</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Tickets térmicos en formato 58mm / 80mm</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6">
+<a class="w-full py-3.5 px-4 rounded-xl bg-surface-container text-primary font-label-md text-label-md flex items-center justify-center hover:bg-surface-container-high transition-all" href="#contacto">
+            Comenzar con Emprendedor
+          </a>
+</div>
+</div>
+<!-- Plan 2: Librería Pro (RECOMENDADO) -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-xl flex flex-col justify-between relative ring-2 ring-secondary">
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-secondary text-on-secondary px-4 py-1 rounded-full font-label-sm text-label-sm shadow-md">
+          Más Popular para Temporada Escolar
+        </div>
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase mt-2 block">Librerías Consolidadas</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1">Librería Pro</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2 mb-6">
+            Para negocios con alto flujo que buscan automatizar compras e inventarios.
+          </p>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="font-numeric-pos text-numeric-pos text-primary">C$ 1,450</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ mes</span>
+</div>
+<div class="flex flex-col gap-3 font-body-sm text-body-sm text-on-surface">
+<div class="flex items-center gap-2 font-semibold text-primary">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Hasta 3 Cajas simultáneas</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>IA Predictiva para compras escolares</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Copilot Chat de inventario y márgenes</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Gestión y carga rápida de Listas Escolares</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Arqueos ciegos y auditoría de cajeros</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Soporte prioritario por WhatsApp</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6">
+<a class="w-full py-3.5 px-4 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center shadow-lg hover:bg-primary-container transition-all" href="#contacto">
+            Probar Pro Gratis 14 Días
+          </a>
+</div>
+</div>
+<!-- Plan 3: Corporativo / Distribuidora -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Distribuidoras &amp; Cadenas</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mt-1">Corporativo Escolar</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2 mb-6">
+            Múltiples sucursales, bodegas centrales y venta mayorista.
+          </p>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="font-numeric-pos text-numeric-pos text-primary">C$ 2,900</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ mes</span>
+</div>
+<div class="flex flex-col gap-3 font-body-sm text-body-sm text-on-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Cajas y sucursales ilimitadas</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Transferencias entre bodegas con despacho</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Precios diferenciados: Detalle, Colegios y Mayorista</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Integración contable &amp; Reportes DGI</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+<span>Capacitación presencial al equipo</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6">
+<a class="w-full py-3.5 px-4 rounded-xl bg-surface-container text-primary font-label-md text-label-md flex items-center justify-center hover:bg-surface-container-high transition-all" href="#contacto">
+            Contactar Asesor Corporativo
+          </a>
+</div>
+</div>
+</div>
+</section>
+<!-- 8. FINAL CONVERSION CTA BANNER -->
+<section class="max-w-7xl mx-auto px-6 lg:px-12 pb-24" id="contacto">
+<div class="relative bg-primary rounded-3xl p-8 sm:p-14 overflow-hidden shadow-2xl">
+<!-- Decorative background swirls -->
+<div class="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-secondary-fixed/10 blur-2xl pointer-events-none"></div>
+<div class="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-tertiary-container/30 blur-2xl pointer-events-none"></div>
+<div class="relative z-10 max-w-3xl">
+<span class="px-3.5 py-1.5 rounded-full bg-secondary text-on-secondary text-label-sm font-label-sm mb-4 inline-block">
+          Prepárate antes de la temporada escolar
+        </span>
+<h2 class="font-headline-xl text-headline-xl text-on-primary tracking-tight mb-4">
+          Moderniza tu librería hoy mismo y no pierdas ni una venta por cortes de señal.
+        </h2>
+<p class="font-body-lg text-body-lg text-on-primary/80 mb-8 max-w-2xl">
+          Instalación guiada en 15 minutos. Te ayudamos a migrar tu inventario desde Excel sin costo adicional.
+        </p>
+<!-- Fast Contact / Demo Request Input -->
+<form class="flex flex-col sm:flex-row items-stretch gap-3 max-w-xl" onsubmit="event.preventDefault(); alert('¡Gracias! Un asesor de JINStock Nicaragua te contactará por WhatsApp en breve.');">
+<input class="px-5 py-4 rounded-xl bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none w-full placeholder:text-on-surface-variant shadow-inner" placeholder="Número de WhatsApp o correo (Ej. 8888-0000)" required="" type="text"/>
+<button class="px-8 py-4 rounded-xl bg-secondary text-on-secondary font-label-lg text-label-lg whitespace-nowrap hover:bg-secondary/90 transition-all shadow-md active:scale-98" type="submit">
+            Solicitar Demo
+          </button>
+</form>
+<div class="flex flex-wrap items-center gap-6 text-on-primary/70 font-label-sm text-label-sm mt-6">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+            Migración de datos incluida
+          </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+            Atención local en Nicaragua
+          </span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Interactive Client-side Script for Demo/Toggle behaviors -->
+<script>
+  (function() {
+    const btnMonthly = document.getElementById('toggleMonthly');
+    const btnAnnual = document.getElementById('toggleAnnual');
+
+    if (btnMonthly && btnAnnual) {
+      btnAnnual.addEventListener('click', function() {
+        btnAnnual.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+        btnAnnual.classList.remove('text-on-surface-variant');
+        btnMonthly.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+        btnMonthly.classList.add('text-on-surface-variant');
+      });
+
+      btnMonthly.addEventListener('click', function() {
+        btnMonthly.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+        btnMonthly.classList.remove('text-on-surface-variant');
+        btnAnnual.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+        btnAnnual.classList.add('text-on-surface-variant');
+      });
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-lowest shadow-[0_-1px_12px_rgba(0,0,0,0.02)] pt-16 pb-12"><div class="max-w-7xl mx-auto px-6 lg:px-12"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-xl mb-12"><div class="lg:col-span-2 flex flex-col gap-space-md"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center text-on-primary"><span class="material-symbols-outlined text-[20px]">auto_stories</span></div><span class="font-headline-md text-headline-md text-primary">JINStock</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-sm">El sistema operativo de punto de venta e inventarios offline-first de alta velocidad para librerías, papelerías y comercios escolares en Nicaragua.</p><div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-secondary text-[18px]">location_on</span><span>Managua, León y cobertura nacional en Nicaragua</span></div><div class="flex items-center gap-3 pt-2"><div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-secondary text-[16px]">wifi_off</span><span>100% Offline-Ready</span></div><div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-primary text-[16px]">lock</span><span>Cifrado Local Seguro</span></div></div></div><div class="flex flex-col gap-space-sm"><span class="font-label-lg text-label-lg text-primary">Plataforma</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="caracteristicas" href="#">POS de Alta Velocidad</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="modulos" href="#">Módulo Escolar &amp; Listas</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="pwa-offline" href="#">PWA &amp; Motor IndexedDB</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="ia-predictiva" href="#">IA de Reabastecimiento</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="precios" href="#">Planes y Licenciamiento</a></div><div class="flex flex-col gap-space-sm"><span class="font-label-lg text-label-lg text-primary">Negocios &amp; Sectores</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Papelerías y Útiles</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Librerías y Editoriales</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Tiendas de Arte y Manualidades</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Sucursales Múltiples</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Temporada Escolar NiCa</a></div><div class="flex flex-col gap-space-sm"><span class="font-label-lg text-label-lg text-primary">Soporte &amp; Contacto</span><div class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px]">call</span>+505 2278-0000</div><div class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px]">mail</span>contacto@jinstock.ni</div><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Centro de Ayuda PWA</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Documentación Técnica</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="landing-page" href="#">Estado del Servicio (DGI / Cloud)</a></div></div><div class="pt-8 mt-8 border-t border-surface-container flex flex-col md:flex-row items-center justify-between gap-4"><p class="font-label-sm text-label-sm text-on-surface-variant">© 2025 JINStock Nicaragua. Todos los derechos reservados. Desarrollado para comercio resiliente.</p><div class="flex items-center gap-space-md font-label-sm text-label-sm text-on-surface-variant"><a class="hover:text-primary transition-colors" data-path="landing-page" href="#">Privacidad</a><a class="hover:text-primary transition-colors" data-path="landing-page" href="#">Términos de Servicio</a><a class="hover:text-primary transition-colors" data-path="landing-page" href="#">Facturación DGI</a></div></div></div></footer></body></html>
