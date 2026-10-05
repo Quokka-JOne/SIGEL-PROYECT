@@ -22,13 +22,8 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       {/* ── TOP HEADER ───────────────────────────────────────── */}
       <header style={{ padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, background: 'linear-gradient(135deg, #6b4cff, #ff4c61)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 20 }}>menu_book</span>
-          </div>
+          <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 32 }} />
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>
-              <span style={{ color: '#fff' }}>JIN</span><span style={{ color: '#ffbd2e' }}>Stock</span>
-            </div>
             <div style={{ fontSize: 13, color: '#9ca3af' }}>Good evening, {user?.nombre?.split(' ')[0] || 'User'}</div>
           </div>
         </div>
