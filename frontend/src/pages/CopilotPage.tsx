@@ -298,7 +298,7 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
                       <span className="font-bold text-error">8 unidades</span>
                     </div>
                     <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span class="text-on-surface-variant block text-label-sm">Ventas 30 días:</span>
+                      <span className="text-on-surface-variant block text-label-sm">Ventas 30 días:</span>
                       <span className="font-bold text-on-surface">47 unidades</span>
                     </div>
                     <div className="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
