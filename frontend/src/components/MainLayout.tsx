@@ -4,10 +4,10 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 const NAV_ITEMS = [
   { label: 'Inicio',      path: '/dashboard',  icon: 'grid_view' },
-  { label: 'Productos',   path: '/inventario', icon: 'menu_book' },
-  { label: 'POS',         path: '/pos',        icon: 'point_of_sale' },
-  { label: 'Ventas',      path: '/ventas',     icon: 'bar_chart' },
-  { label: 'Ajustes',     path: '/ajustes',    icon: 'settings' },
+  { label: 'JIN Copilot', path: '/copilot',    icon: 'smart_toy' },
+  { label: 'Productos',   path: '/inventario', icon: 'inventory_2' },
+  { label: 'Compras',     path: '/compras',    icon: 'local_shipping' },
+  { label: 'Usuarios',    path: '/usuarios',   icon: 'group' },
 ];
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
