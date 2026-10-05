@@ -88,12 +88,7 @@ export const LandingPage: React.FC = () => {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #6b4cff, #ff4c61)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 18, fontVariationSettings: "'FILL' 1" }}>menu_book</span>
-            </div>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>
-               <span style={{ color: '#fff' }}>JIN</span><span style={{ color: '#ffbd2e' }}>Stock</span>
-            </div>
+            <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 32 }} />
           </div>
           {/* Nav links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 32, fontSize: 14, color: '#d1d5db', fontWeight: 500 }} className="hidden md:flex">
@@ -125,17 +120,14 @@ export const LandingPage: React.FC = () => {
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: '#000',
               background: '#fff', padding: '14px 28px', borderRadius: 30, textDecoration: 'none', transition: 'transform 0.2s'
             }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-              Solicitar Demo
+              Iniciar Sesión
             </Link>
-            <a href="#demo" style={{
+            <Link to="/auth" style={{
               display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 600, color: '#fff',
               background: 'rgba(255,255,255,0.05)', padding: '12px 24px', borderRadius: 30, textDecoration: 'none', transition: 'background 0.2s', border: '1px solid rgba(255,255,255,0.1)'
             }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#fff', fontVariationSettings: "'FILL' 1", marginLeft: 2 }}>play_arrow</span>
-              </div>
-              Ver cómo funciona
-            </a>
+              Crear Cuenta
+            </Link>
           </div>
         </div>
       </section>
@@ -193,16 +185,15 @@ export const LandingPage: React.FC = () => {
       {/* ── CTA SECTION ─────────────────────────────────────── */}
       <section style={{ maxWidth: 1000, margin: '80px auto 120px', padding: '0 24px' }}>
         <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 32, padding: '60px 40px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 16 }}>¿Lista para modernizar tu librería?</h2>
+          <h2 style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 16 }}>¿Listo para gestionar tu librería?</h2>
           <p style={{ fontSize: 16, color: '#9ca3af', marginBottom: 40, maxWidth: 500, lineHeight: 1.5 }}>
-            Agenda una demo personalizada y descubre cómo JINStock puede ayudarte a vender más y gestionar mejor.
+            Ingresa ahora y descubre cómo JINStock puede ayudarte a vender más y gestionar mejor.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 400 }}>
-            <input type="email" placeholder="Tu correo electrónico" style={{ width: '100%', padding: '16px 20px', borderRadius: 24, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 15, outline: 'none' }} />
-            <button style={{ width: '100%', padding: '16px', borderRadius: 24, background: 'linear-gradient(90deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: 15, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-              Solicitar Demo Gratuita
-            </button>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Sin compromiso · Sin tarjeta de crédito</div>
+            <Link to="/auth" style={{ width: '100%', padding: '16px', borderRadius: 24, background: 'linear-gradient(90deg, #8b5cf6, #6366f1)', color: '#fff', fontSize: 15, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'opacity 0.2s', textAlign: 'center', textDecoration: 'none', display: 'block' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
+              Comenzar Ahora
+            </Link>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Acceso inmediato y seguro</div>
           </div>
         </div>
       </section>
