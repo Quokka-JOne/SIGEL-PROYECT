@@ -1,0 +1,16 @@
+{
+  "short_name": "JINStock",
+  "name": "JINStock - Sistema de Gestión PWA para Librería & Papelería",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/dashboard",
+  "background_color": "#F8F9FF",
+  "theme_color": "#1E3A8A",
+  "display": "standalone",
+  "orientation": "any"
+}
