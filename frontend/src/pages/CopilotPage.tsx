@@ -202,20 +202,20 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
           
           {/* Critical Warning Pill/Card (Coral tone: high out-of-stock risk) */}
           <div className="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
-            <div className="w-2 absolute left-0 top-0 bottom-0 bg-error"></div>
-            <div className="w-10 h-10 rounded-xl bg-error-container text-error flex items-center justify-center shrink-0">
+            <div className="w-2 absolute left-0 top-0 bottom-0 bg-[#FF6B6B]"></div>
+            <div className="w-10 h-10 rounded-xl bg-[#FF6B6B]/15 text-[#FF6B6B] flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
             </div>
             <div className="flex-1 flex flex-col gap-1">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-label-md text-label-md uppercase tracking-wider text-error font-bold">Alerta Preventiva de Quiebre</span>
-                <span className="bg-error-container text-on-error-container font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">{criticalItems || 8} Artículos Críticos</span>
+                <span className="font-label-md text-label-md uppercase tracking-wider text-[#FF6B6B] font-bold">Alerta Preventiva de Quiebre</span>
+                <span className="bg-[#FF6B6B]/15 text-[#FF6B6B] font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">{criticalItems || 8} Artículos Críticos</span>
               </div>
               <p className="font-body-md text-body-md text-on-surface">
                 <strong>{criticalItems || 8} productos</strong> presentan alto riesgo de agotamiento antes de fin de mes según la demanda histórica y el ritmo de ventas acelerado de los últimos 14 días.
               </p>
               <div className="mt-2 flex items-center gap-space-sm flex-wrap">
-                <button className="font-label-sm text-label-sm bg-error-container hover:bg-error text-error hover:text-on-error px-3 py-1.5 rounded-lg transition-colors font-bold flex items-center gap-1.5">
+                <button className="font-label-sm text-label-sm bg-[#FF6B6B]/15 hover:bg-[#FF6B6B] text-[#FF6B6B] hover:text-on-error px-3 py-1.5 rounded-lg transition-colors font-bold flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-body-sm">assignment_late</span>
                   Ver lista de quiebres inminentes
                 </button>
@@ -280,14 +280,14 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
             
             {/* Card 1: Cuaderno Universitario Espiral (Urgente / Reposición) */}
             <div className="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
-              <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-error"></div>
+              <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-[#FF6B6B]"></div>
               <div className="flex items-start gap-space-md flex-1 min-w-0">
                 <div className="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center shrink-0 shadow-sm text-primary">
                   <span className="material-symbols-outlined text-headline-lg">book</span>
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-error-container text-error font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Riesgo Inminente</span>
+                    <span className="bg-[#FF6B6B]/15 text-[#FF6B6B] font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Riesgo Inminente</span>
                     <span className="font-label-sm text-label-sm text-on-surface-variant">EAN: 7412093821</span>
                   </div>
                   <h3 className="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Cuaderno Universitario Espiral 100 Hojas Rayado</h3>
@@ -295,7 +295,7 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
                     <div className="bg-surface-container-low px-2 py-1 rounded-lg">
                       <span className="text-on-surface-variant block text-label-sm">Stock Actual:</span>
-                      <span className="font-bold text-error">8 unidades</span>
+                      <span className="font-bold text-[#FF6B6B]">8 unidades</span>
                     </div>
                     <div className="bg-surface-container-low px-2 py-1 rounded-lg">
                       <span className="text-on-surface-variant block text-label-sm">Ventas 30 días:</span>
@@ -303,7 +303,7 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
                     </div>
                     <div className="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
                       <span className="text-on-surface-variant block text-label-sm">Agotamiento en:</span>
-                      <span className="font-bold text-error">~4.5 días</span>
+                      <span className="font-bold text-[#FF6B6B]">~4.5 días</span>
                     </div>
                   </div>
                   
@@ -590,7 +590,7 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
               ¿Venta promedio por cajero hoy?
             </button>
             <button className="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onClick={() => fillPrompt('¿Qué artículos no se venden hace 60 días?')}>
-              <span className="material-symbols-outlined text-body-sm text-error">hourglass_bottom</span>
+              <span className="material-symbols-outlined text-body-sm text-[#FF6B6B]">hourglass_bottom</span>
               ¿Sin rotación hace 60 días?
             </button>
             <button className="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onClick={() => fillPrompt('Predecir demanda para la próxima semana')}>
