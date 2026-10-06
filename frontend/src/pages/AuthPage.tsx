@@ -83,12 +83,7 @@ export const AuthPage: React.FC = () => {
 
   const Logo = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: activeTab === 'login' ? 12 : 32, justifyContent: activeTab === 'login' ? 'center' : 'flex-start' }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #6b4cff, #ff4c61)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 18, fontVariationSettings: "'FILL' 1" }}>menu_book</span>
-      </div>
-      <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: '-0.5px' }}>
-         <span style={{ color: '#fff' }}>JIN</span><span style={{ color: '#ffbd2e' }}>Stock</span>
-      </div>
+      <img src="https://i.ibb.co/LdXv0jQG/1.png" alt="JINSTOCK" style={{ height: 32, objectFit: 'contain' }} />
     </div>
   );
 
@@ -137,13 +132,13 @@ export const AuthPage: React.FC = () => {
                 <span style={{ fontSize: 13, color: '#9ca3af' }}>Recordarme por 30 días</span>
               </label>
 
-              <button disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(90deg, #8b5cf6, #ec4899)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8 }}>
+              <button disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8 }}>
                 {loading ? 'Cargando...' : 'Entrar al Sistema'}
               </button>
             </form>
 
             <div style={{ textAlign: 'center', marginTop: 24, fontSize: 14, color: '#9ca3af' }}>
-              ¿No tienes una cuenta? <button onClick={() => { setActiveTab('register'); setErrorMessage(null); }} style={{ background: 'none', border: 'none', color: '#ffbd2e', fontWeight: 700, cursor: 'pointer', padding: 0 }}>Regístrate gratis</button>
+              ¿No tienes una cuenta? <button onClick={() => { setActiveTab('register'); setErrorMessage(null); }} style={{ background: 'none', border: 'none', color: '#FDDB35', fontWeight: 700, cursor: 'pointer', padding: 0 }}>Regístrate gratis</button>
             </div>
           </div>
           
@@ -243,7 +238,7 @@ export const AuthPage: React.FC = () => {
                   <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="Mínimo 8 caracteres" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />
                 </div>
 
-                <button disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: 12, background: 'linear-gradient(90deg, #8b5cf6, #ec4899, #f43f5e)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <button disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4, #5F8FFF)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {loading ? 'Procesando...' : 'Siguiente Paso'} 
                   {!loading && <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>}
                 </button>
