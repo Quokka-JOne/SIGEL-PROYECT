@@ -89,24 +89,24 @@ export const DashboardPage: React.FC = () => {
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Ventas del Mes</h3>
             <p style={{ margin: 0, fontSize: 24, color: '#fff', marginTop: 4, fontWeight: 'bold' }}>{formatMoney(metrics.monthSalesTotal)}</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(107,76,255,0.1)', border: '1px solid rgba(107,76,255,0.2)', color: '#a855f7', padding: '4px 10px', borderRadius: 16, fontSize: 12, fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(167, 136, 244, 0.1)', border: '1px solid rgba(167, 136, 244, 0.2)', color: '#A788F4', padding: '4px 10px', borderRadius: 16, fontSize: 12, fontWeight: 700 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>trending_up</span> Activo
           </div>
         </div>
         {/* Chart Mockup */}
-        <div style={{ height: 180, position: 'relative' }}>
-          <svg viewBox="0 0 500 150" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-            <path d="M0,130 C30,130 50,110 80,130 C120,150 140,80 180,100 C220,120 240,60 280,40 C320,20 340,60 380,40 C420,20 460,0 500,10" fill="none" stroke="#a855f7" strokeWidth="3" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 4 }}>
+          <svg viewBox="0 0 500 150" style={{ width: '100%', height: 150, overflow: 'visible' }}>
+            <path d="M0,130 C30,130 50,110 80,130 C120,150 140,80 180,100 C220,120 240,60 280,40 C320,20 340,60 380,40 C420,20 460,0 500,10" fill="none" stroke="#A788F4" strokeWidth="3" />
             {[
               {cx:0, cy:130}, {cx:80, cy:130}, {cx:180, cy:100}, {cx:280, cy:40}, {cx:380, cy:40}, {cx:500, cy:10}
             ].map((p,i) => (
-              <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#fff" stroke="#a855f7" strokeWidth="2" />
+              <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#fff" stroke="#A788F4" strokeWidth="2" />
             ))}
             {[20, 70, 120].map((y,i) => (
               <line key={i} x1="0" y1={y} x2="500" y2={y} stroke="#33323c" strokeWidth="1" />
             ))}
           </svg>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9ca3af', marginTop: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9ca3af' }}>
             <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dic</span>
           </div>
         </div>
