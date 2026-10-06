@@ -20,36 +20,54 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
     <div style={{ backgroundColor: '#100f14', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter', sans-serif" }}>
       
       {/* ── TOP HEADER ───────────────────────────────────────── */}
-      <header className="px-4 py-4 md:px-8 md:py-6 flex flex-wrap justify-between items-center gap-4 border-b border-surface-container-low/50">
-        {/* Logo & Welcome */}
-        <div className="flex items-center gap-4 shrink-0">
-          <img src="/JINSTOCK.png" alt="JINStock" className="h-7 md:h-8" />
-          <div className="text-xs md:text-sm text-on-surface-variant hidden sm:block">
-            Hola, {user?.nombre?.split(' ')[0] || 'Administrador'}
+      <header className="px-4 py-4 md:px-8 md:py-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-surface-container-low/50">
+        
+        {/* Mobile Top Row: Logo & Profile */}
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div className="flex items-center gap-4 shrink-0">
+            <img src="/JINSTOCK.png" alt="JINStock" className="h-7 md:h-8" />
+            <div className="text-xs md:text-sm text-on-surface-variant hidden sm:block">
+              Hola, {user?.nombre?.split(' ')[0] || 'Administrador'}
+            </div>
+          </div>
+          
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-3 shrink-0">
+            <button className="w-9 h-9 rounded-full bg-surface-container-lowest border border-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+               <span className="material-symbols-outlined text-xl">notifications</span>
+            </button>
+            <div className="relative">
+              <img onClick={() => setShowDropdown(!showDropdown)} src={`https://ui-avatars.com/api/?name=${user?.nombre || 'U'}&background=4A148C&color=fff`} className="w-9 h-9 rounded-full cursor-pointer border-2 border-surface-container transition-transform hover:scale-105" alt="Profile" />
+              {showDropdown && (
+                <div className="absolute right-0 top-12 bg-surface-container-lowest border border-surface-container rounded-xl p-2 z-50 shadow-lg min-w-[150px]">
+                  <button onClick={() => { logout(); navigate('/auth'); }} className="w-full text-left px-4 py-2 text-error hover:bg-error-container rounded-lg font-label-md text-label-md transition-colors">Cerrar sesión</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Actions (Notifications & Profile) */}
-        <div className="order-2 md:order-3 flex items-center gap-3 md:gap-6 shrink-0 ml-auto md:ml-0">
-          <button className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-surface-container-lowest border border-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
-             <span className="material-symbols-outlined text-xl md:text-2xl">notifications</span>
+        {/* Search Bar - Full width on mobile */}
+        <div className="w-full md:w-auto md:flex-1 md:max-w-md mx-auto">
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-4 top-2.5 md:top-3 text-on-surface-variant text-lg md:text-xl pointer-events-none">search</span>
+            <input type="text" placeholder="Buscar Producto" className="w-full pl-11 pr-4 py-2.5 md:py-3 bg-surface-container-lowest border border-surface-container rounded-full text-on-surface focus:outline-none focus:ring-2 focus:ring-primary text-sm shadow-sm transition-all" />
+          </div>
+        </div>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-6 shrink-0">
+          <button className="w-11 h-11 rounded-full bg-surface-container-lowest border border-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+             <span className="material-symbols-outlined text-2xl">notifications</span>
           </button>
           
           <div className="relative">
-            <img onClick={() => setShowDropdown(!showDropdown)} src={`https://ui-avatars.com/api/?name=${user?.nombre || 'U'}&background=4A148C&color=fff`} className="w-9 h-9 md:w-11 md:h-11 rounded-full cursor-pointer border-2 border-surface-container transition-transform hover:scale-105" alt="Profile" />
+            <img onClick={() => setShowDropdown(!showDropdown)} src={`https://ui-avatars.com/api/?name=${user?.nombre || 'U'}&background=4A148C&color=fff`} className="w-11 h-11 rounded-full cursor-pointer border-2 border-surface-container transition-transform hover:scale-105" alt="Profile" />
             {showDropdown && (
-              <div className="absolute right-0 top-12 md:top-14 bg-surface-container-lowest border border-surface-container rounded-xl p-2 z-50 shadow-lg min-w-[150px]">
+              <div className="absolute right-0 top-14 bg-surface-container-lowest border border-surface-container rounded-xl p-2 z-50 shadow-lg min-w-[150px]">
                 <button onClick={() => { logout(); navigate('/auth'); }} className="w-full text-left px-4 py-2 text-error hover:bg-error-container rounded-lg font-label-md text-label-md transition-colors">Cerrar sesión</button>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Search Bar - Full width on mobile, auto on desktop */}
-        <div className="order-3 w-full md:order-2 md:w-auto flex-1 md:flex-none">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-2.5 md:top-3 text-on-surface-variant text-lg md:text-xl pointer-events-none">search</span>
-            <input type="text" placeholder="Buscar libros, ISBN..." className="w-full md:w-80 pl-11 pr-4 py-2.5 md:py-3 bg-surface-container-lowest border border-surface-container rounded-full text-on-surface focus:outline-none focus:ring-2 focus:ring-primary text-sm shadow-sm transition-all" />
           </div>
         </div>
       </header>

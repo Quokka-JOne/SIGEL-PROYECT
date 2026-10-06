@@ -163,14 +163,14 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
             <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
               <h1 className="font-headline-md text-headline-md text-primary font-extrabold tracking-tight">JINStock Intelligence</h1>
-              <span className="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <span className="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-2.5 py-0.5 rounded-full flex items-center gap-1 self-start sm:self-auto shrink-0">
                 <span className="material-symbols-outlined text-body-sm text-secondary">auto_awesome</span>
                 Algoritmo v4.2 Neuronal
               </span>
             </div>
-            <p className="font-body-md text-body-md text-on-surface-variant truncate">Modelo Predictivo & Asistente Cognitivo para Librerías y Papelerías</p>
+            <p className="font-body-md text-body-md text-on-surface-variant mt-1.5 line-clamp-2 sm:line-clamp-1 sm:truncate whitespace-normal leading-snug">Modelo Predictivo & Asistente Cognitivo para Librerías y Papelerías</p>
           </div>
         </div>
 
