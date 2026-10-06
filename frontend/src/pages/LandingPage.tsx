@@ -160,7 +160,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ── SPLIT SECTION ───────────────────────────────────── */}
-      <section style={{ maxWidth: 1200, margin: '80px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="lg:grid-cols-2 grid-cols-1">
+      <section style={{ maxWidth: 1200, margin: '80px auto', padding: '0 24px' }} className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         <div>
           <h2 style={{ fontSize: 40, fontWeight: 800, color: '#fff', lineHeight: 1.2, marginBottom: 24 }}>Hecho para librerías<br/>de cualquier tamaño</h2>
           <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.6, marginBottom: 40 }}>
