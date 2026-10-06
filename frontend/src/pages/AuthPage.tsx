@@ -83,7 +83,7 @@ export const AuthPage: React.FC = () => {
 
   const Logo = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: activeTab === 'login' ? 12 : 32, justifyContent: activeTab === 'login' ? 'center' : 'flex-start' }}>
-      <img src="https://i.ibb.co/LdXv0jQG/1.png" alt="JINSTOCK" style={{ height: 32, objectFit: 'contain' }} />
+      <img src="/JINSTOCK.png" alt="JINSTOCK" style={{ height: 32, objectFit: 'contain' }} />
     </div>
   );
 
