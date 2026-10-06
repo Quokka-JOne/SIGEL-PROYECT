@@ -395,7 +395,7 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
                   </div>
                   <h3 className="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Paquete de Papel Lustre Surtido 50 Pliegos</h3>
 
-                  <div className="grid grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
                     <div className="bg-surface-container-low px-2 py-1 rounded-lg">
                       <span className="text-on-surface-variant block text-label-sm">Stock Inmóvil:</span>
                       <span className="font-bold text-on-surface">62 paquetes</span>

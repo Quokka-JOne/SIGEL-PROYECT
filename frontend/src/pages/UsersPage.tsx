@@ -150,7 +150,7 @@ export const UsersPage: React.FC = () => {
       </div>
 
       {/* Quick Stats Metric Band */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
         <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
           <div className="flex flex-col">
             <span className="font-label-sm text-label-sm text-on-surface-variant">Colaboradores Activos</span>
