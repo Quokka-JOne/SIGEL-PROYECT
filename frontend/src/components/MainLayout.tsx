@@ -20,37 +20,42 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
     <div style={{ backgroundColor: '#100f14', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter', sans-serif" }}>
       
       {/* ── TOP HEADER ───────────────────────────────────────── */}
-      <header style={{ padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 32 }} />
-          <div>
-            <div style={{ fontSize: 13, color: '#9ca3af' }}>Good evening, {user?.nombre?.split(' ')[0] || 'User'}</div>
+      <header className="px-4 py-4 md:px-8 md:py-6 flex flex-wrap justify-between items-center gap-4 border-b border-surface-container-low/50">
+        {/* Logo & Welcome */}
+        <div className="flex items-center gap-4 shrink-0">
+          <img src="/JINSTOCK.png" alt="JINStock" className="h-7 md:h-8" />
+          <div className="text-xs md:text-sm text-on-surface-variant hidden sm:block">
+            Hola, {user?.nombre?.split(' ')[0] || 'Administrador'}
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <div style={{ position: 'relative' }}>
-            <span className="material-symbols-outlined" style={{ position: 'absolute', left: 16, top: 12, color: '#6b7280', fontSize: 20 }}>search</span>
-            <input type="text" placeholder="Search books, ISBN, authors..." style={{ width: 320, padding: '12px 16px 12px 48px', background: '#1c1b22', border: '1px solid #2d2c35', borderRadius: 24, color: '#fff', outline: 'none', fontSize: 14 }} />
-          </div>
-          
-          <button style={{ background: '#1c1b22', border: '1px solid #2d2c35', width: 44, height: 44, borderRadius: '50%', color: '#d1d5db', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <span className="material-symbols-outlined" style={{ fontSize: 22 }}>notifications</span>
+        {/* Actions (Notifications & Profile) */}
+        <div className="order-2 md:order-3 flex items-center gap-3 md:gap-6 shrink-0 ml-auto md:ml-0">
+          <button className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-surface-container-lowest border border-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+             <span className="material-symbols-outlined text-xl md:text-2xl">notifications</span>
           </button>
           
-          <div style={{ position: 'relative' }}>
-            <img onClick={() => setShowDropdown(!showDropdown)} src={`https://ui-avatars.com/api/?name=${user?.nombre || 'U'}&background=6b4cff&color=fff`} style={{ width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', border: '2px solid #2d2c35' }} alt="Profile" />
+          <div className="relative">
+            <img onClick={() => setShowDropdown(!showDropdown)} src={`https://ui-avatars.com/api/?name=${user?.nombre || 'U'}&background=4A148C&color=fff`} className="w-9 h-9 md:w-11 md:h-11 rounded-full cursor-pointer border-2 border-surface-container transition-transform hover:scale-105" alt="Profile" />
             {showDropdown && (
-              <div style={{ position: 'absolute', right: 0, top: 50, background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, padding: 8, zIndex: 10 }}>
-                <button onClick={() => { logout(); navigate('/auth'); }} style={{ background: 'none', border: 'none', color: '#ef4444', padding: '8px 16px', cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 8 }}>Cerrar sesión</button>
+              <div className="absolute right-0 top-12 md:top-14 bg-surface-container-lowest border border-surface-container rounded-xl p-2 z-50 shadow-lg min-w-[150px]">
+                <button onClick={() => { logout(); navigate('/auth'); }} className="w-full text-left px-4 py-2 text-error hover:bg-error-container rounded-lg font-label-md text-label-md transition-colors">Cerrar sesión</button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Search Bar - Full width on mobile, auto on desktop */}
+        <div className="order-3 w-full md:order-2 md:w-auto flex-1 md:flex-none">
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-4 top-2.5 md:top-3 text-on-surface-variant text-lg md:text-xl pointer-events-none">search</span>
+            <input type="text" placeholder="Buscar libros, ISBN..." className="w-full md:w-80 pl-11 pr-4 py-2.5 md:py-3 bg-surface-container-lowest border border-surface-container rounded-full text-on-surface focus:outline-none focus:ring-2 focus:ring-primary text-sm shadow-sm transition-all" />
           </div>
         </div>
       </header>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────── */}
-      <main style={{ flex: 1, padding: '0 32px 100px 32px' }}>
+      <main className="flex-1 px-4 md:px-8 pb-[100px]">
         {children}
       </main>
 
