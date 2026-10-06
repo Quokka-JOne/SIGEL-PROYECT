@@ -37,12 +37,16 @@ export const AuthPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await login(loginEmail, loginPassword);
+      const res = await login(loginEmail, loginPassword) as any;
       if (res.success) {
         setSuccessMessage('¡Acceso exitoso! Redirigiendo...');
         setTimeout(() => {
           navigate('/dashboard');
         }, 500);
+      } else if (res.requireVerification) {
+        setVerificationEmail(res.email || loginEmail);
+        setIsVerifying(true);
+        setErrorMessage(res.message);
       } else {
         setErrorMessage(res.message || 'Error al iniciar sesión. Intente de nuevo.');
       }
@@ -104,7 +108,7 @@ export const AuthPage: React.FC = () => {
   const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
@@ -115,17 +119,19 @@ export const AuthPage: React.FC = () => {
       });
       const res = await response.json();
       
-      if (res.success) {
+      if (res.success && res.data) {
         setSuccessMessage('Verificación exitosa. Iniciando sesión...');
-        loginContext(res.data.usuario, res.data.token);
+        // Store token and user data
+        localStorage.setItem('jinstock_token', res.data.token);
+        localStorage.setItem('jinstock_user', JSON.stringify(res.data.usuario));
         setTimeout(() => {
-          navigate('/dashboard');
+          window.location.href = '/dashboard';
         }, 600);
       } else {
-        setError(res.message || 'Error al verificar el código.');
+        setErrorMessage(res.message || 'Error al verificar el código.');
       }
     } catch (err) {
-      setError('Error de conexión al verificar.');
+      setErrorMessage('Error de conexión al verificar.');
     } finally {
       setLoading(false);
     }

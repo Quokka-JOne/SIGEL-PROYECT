@@ -143,6 +143,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
     const assignedRol: Rol = rol === 'CAJERO' ? 'CAJERO' : 'ADMINISTRADOR';
 
     if (assignedRol === 'ADMINISTRADOR' && adminCode !== 'JINSTOCK-ADMIN-2026') {
@@ -153,9 +154,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
     const passwordHash = await bcrypt.hash(password, 10);
-    const assignedRol: Rol = rol === 'CAJERO' ? 'CAJERO' : 'ADMINISTRADOR';
+    const codigoConfirmacion = Math.floor(100000 + Math.random() * 900000).toString();
 
     let newUser: any = null;
 
@@ -171,10 +171,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         });
         return;
       }
-
-      const cleanEmail = email.trim().toLowerCase();
-      const passwordHash = await bcrypt.hash(password, 10);
-      const codigoConfirmacion = Math.floor(100000 + Math.random() * 900000).toString();
 
       newUser = await prisma.usuario.create({
         data: {

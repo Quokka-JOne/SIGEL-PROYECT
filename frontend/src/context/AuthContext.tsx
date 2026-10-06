@@ -63,10 +63,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, message: res.message };
     }
 
-    return { success: false, message: res.message || 'Error al iniciar sesión' };
+    return { success: false, message: res.message || 'Error al iniciar sesión', ...(res as any) };
   };
 
-  const handleRegister = async (data: { nombre: string; email: string; password: string; rol?: Rol }) => {
+  const handleRegister = async (data: { nombre: string; email: string; password: string; rol?: Rol; adminCode?: string }) => {
     const res = await apiFetch<{ token: string; usuario: UserProfile }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -80,7 +80,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, message: res.message };
     }
 
-    return { success: false, message: res.message || 'Error al registrar la cuenta' };
+    // Handle requireVerification response (no token/data, but success=true)
+    if (res.success) {
+      return { success: true, message: res.message, requireVerification: (res as any).requireVerification, email: (res as any).email };
+    }
+
+    return { success: false, message: res.message || 'Error al registrar la cuenta', requireVerification: (res as any).requireVerification, email: (res as any).email };
   };
 
   const handleLogout = () => {

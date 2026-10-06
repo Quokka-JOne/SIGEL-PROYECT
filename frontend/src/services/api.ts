@@ -47,6 +47,7 @@ export const apiFetch = async <T = any>(
       return {
         success: false,
         message: data.message || `Error ${response.status}: ${response.statusText}`,
+        ...data,
       };
     }
 
