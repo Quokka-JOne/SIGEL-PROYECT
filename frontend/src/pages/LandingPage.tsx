@@ -105,12 +105,12 @@ export const LandingPage: React.FC = () => {
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 24px', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 800 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', color: '#d1d5db', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 20, marginBottom: 32, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E28C3E' }} />
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#A788F4' }} />
             SOFTWARE SAAS PARA LIBRERÍAS
           </div>
           <h1 style={{ fontSize: 'clamp(40px, 6vw, 64px)', fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 24, letterSpacing: '-0.02em' }}>
             Gestiona tu librería con <br/>
-            <span style={{ background: 'linear-gradient(90deg, #E28C3E, #F6D6B9, #075C51)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>inteligencia</span> y diseño
+            <span style={{ background: 'linear-gradient(90deg, #A788F4, #5F8FFF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>inteligencia</span> y diseño
           </h1>
           <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.6, marginBottom: 40, maxWidth: 540 }}>
             JINStock centraliza inventario, ventas y fidelización en una plataforma moderna diseñada para librerías independientes y cadenas que quieren crecer.
@@ -190,7 +190,7 @@ export const LandingPage: React.FC = () => {
             Ingresa ahora y descubre cómo JINStock puede ayudarte a vender más y gestionar mejor.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 400 }}>
-            <Link to="/auth" style={{ width: '100%', padding: '16px', borderRadius: 24, background: 'linear-gradient(90deg, #E28C3E, #9D5B25)', color: '#fff', fontSize: 15, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'opacity 0.2s', textAlign: 'center', textDecoration: 'none', display: 'block' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
+            <Link to="/auth" style={{ width: '100%', padding: '16px', borderRadius: 24, background: 'linear-gradient(90deg, #4A148C, #A788F4)', color: '#fff', fontSize: 15, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'opacity 0.2s', textAlign: 'center', textDecoration: 'none', display: 'block' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
               Comenzar Ahora
             </Link>
             <div style={{ fontSize: 12, color: '#6b7280' }}>Acceso inmediato y seguro</div>

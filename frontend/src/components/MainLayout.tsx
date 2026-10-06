@@ -65,7 +65,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           );
         })}
         <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
-        <Link to="/pos" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #E28C3E, #9D5B25)', color: '#fff', textDecoration: 'none', boxShadow: '0 4px 12px rgba(226,140,62,0.4)' }}>
+        <Link to="/pos" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #4A148C, #A788F4)', color: '#fff', textDecoration: 'none', boxShadow: '0 4px 12px rgba(74, 20, 140, 0.4)' }}>
            <span className="material-symbols-outlined" style={{ fontSize: 24 }}>add</span>
         </Link>
       </nav>

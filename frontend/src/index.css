@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-error: #ffb4ab;
+  --color-error: #FF6B6B;
   --color-on-background: #ffffff;
-  --color-tertiary-fixed: #dae2ff;
+  --color-tertiary-fixed: #FDDB35;
   --color-on-surface: #ffffff;
-  --color-on-tertiary: #002664;
-  --color-tertiary: #a8c8ff;
-  --color-on-primary-container: #dce1ff;
+  --color-on-tertiary: #111111;
+  --color-tertiary: #FDDB35;
+  --color-on-primary-container: #ffffff;
   --color-outline-variant: #444651;
-  --color-on-secondary-container: #e9ddff;
-  --color-on-tertiary-fixed: #001847;
+  --color-on-secondary-container: #ffffff;
+  --color-on-tertiary-fixed: #111111;
   --color-inverse-surface: #eaf1ff;
   --color-tertiary-container: #003a91;
   --color-inverse-on-surface: #eaf1ff;
@@ -22,15 +22,15 @@
   --color-primary-fixed: #dce1ff;
   --color-on-error-container: #ffdad6;
   --color-surface-bright: #33323c;
-  --color-secondary: #075C51;
-  --color-surface-tint: #E28C3E;
+  --color-secondary: #5F8FFF;
+  --color-surface-tint: #4A148C;
   --color-surface-container-high: #2d2c35;
-  --color-error-container: #93000a;
-  --color-on-error: #690005;
-  --color-primary-fixed-dim: #F6D6B9;
+  --color-error-container: #690005;
+  --color-on-error: #ffffff;
+  --color-primary-fixed-dim: #A788F4;
   --color-surface: #100f14;
-  --color-secondary-fixed: #075C51;
-  --color-primary-container: #9D5B25;
+  --color-secondary-fixed: #5F8FFF;
+  --color-primary-container: #4A148C;
   --color-on-secondary-fixed: #ffffff;
   --color-on-primary-fixed: #ffffff;
   --color-outline: #8f9099;
@@ -39,15 +39,15 @@
   --color-surface-variant: #444651;
   --color-surface-dim: #100f14;
   --color-on-secondary: #ffffff;
-  --color-inverse-primary: #F6D6B9;
-  --color-secondary-container: #043831;
+  --color-inverse-primary: #A788F4;
+  --color-secondary-container: #231247;
   --color-tertiary-fixed-dim: #b1c5ff;
-  --color-secondary-fixed-dim: #075C51;
+  --color-secondary-fixed-dim: #5F8FFF;
   --color-on-primary: #ffffff;
   --color-surface-container-highest: #33323c;
-  --color-primary: #E28C3E;
-  --color-on-primary-fixed-variant: #9D5B25;
-  --color-on-secondary-fixed-variant: #043831;
+  --color-primary: #A788F4;
+  --color-on-primary-fixed-variant: #4A148C;
+  --color-on-secondary-fixed-variant: #4A148C;
 
   --radius-DEFAULT: 0.25rem;
   --radius-lg: 0.5rem;
