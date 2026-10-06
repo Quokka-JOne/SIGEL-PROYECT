@@ -8,6 +8,7 @@ import saleRoutes from './routes/sale.routes';
 import supplierRoutes from './routes/supplier.routes';
 import purchaseRoutes from './routes/purchase.routes';
 import userRoutes from './routes/user.routes';
+import { prisma } from './config/prisma';
 
 dotenv.config();
 
@@ -62,6 +63,16 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Start Server
 app.listen(PORT, () => {
   console.log(`🚀 JINStock Backend corriendo en http://localhost:${PORT}`);
+  
+  // Neon Keep-Alive (Ping every 3 minutes to prevent Auto-Suspend)
+  setInterval(async () => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('✅ [Keep-Alive] Neon DB pinged successfully.');
+    } catch (error) {
+      console.warn('⚠️ [Keep-Alive] Error al hacer ping a Neon:', error);
+    }
+  }, 3 * 60 * 1000); // 3 minutes
 });
 
 export default app;

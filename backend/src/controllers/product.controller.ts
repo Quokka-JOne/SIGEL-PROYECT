@@ -117,13 +117,16 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       unidadMedida,
     } = req.body;
 
-    if (!nombre || !categoriaId || precioVenta === undefined || costo === undefined) {
+    if (!nombre || precioVenta === undefined || costo === undefined) {
       res.status(400).json({
         success: false,
-        message: 'Nombre, categoría, precio de venta y costo son obligatorios.',
+        message: 'Nombre, precio de venta y costo son obligatorios.',
       });
       return;
     }
+    
+    // Fallback if categoriaId is empty
+    const finalCategoriaId = categoriaId || 'cat-demo-1';
 
     const initialStock = Number(stock || 0);
     const minStock = Number(stockMinimo || 5);
@@ -149,7 +152,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
             sku: sku ? sku.trim() : null,
             descripcion: descripcion ? descripcion.trim() : null,
             imagenUrl: imagenUrl ? imagenUrl.trim() : null,
-            categoriaId,
+            categoriaId: finalCategoriaId,
             precioVenta: salePrice,
             costo: costPrice,
             stock: initialStock,
@@ -183,7 +186,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         nombre: nombre.trim(),
         descripcion: descripcion || null,
         imagenUrl: imagenUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80',
-        categoriaId,
+        categoriaId: finalCategoriaId,
         categoriaNombre: 'General',
         precioVenta: salePrice,
         costo: costPrice,

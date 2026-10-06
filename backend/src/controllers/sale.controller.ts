@@ -165,6 +165,9 @@ export const createSale = async (req: Request, res: Response): Promise<void> => 
         fecha: new Date().toISOString(),
         total: grandTotal,
         metodoPago: metodoPago || 'EFECTIVO',
+        montoPagadoNIO: montoPagadoNIO ? Number(montoPagadoNIO) : null,
+        montoPagadoUSD: montoPagadoUSD ? Number(montoPagadoUSD) : null,
+        cambioNIO: cambioNIO ? Number(cambioNIO) : null,
         detalles,
         synced: true,
       };

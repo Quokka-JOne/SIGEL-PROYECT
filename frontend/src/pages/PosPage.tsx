@@ -618,7 +618,7 @@ export const PosPage: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-inverse-surface/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div 
             id="receipt-ticket-printable"
-            className="bg-surface-container-lowest w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 p-6 space-y-4 animate-in fade-in zoom-in duration-200"
+            className="bg-surface-container-lowest w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-outline-variant/30 p-6 space-y-4 animate-in fade-in zoom-in duration-200 print:shadow-none print:border-none print:overflow-visible"
           >
             {/* Header Ticket */}
             <div className="text-center space-y-1 pb-3 border-b border-dashed border-outline-variant">
@@ -639,7 +639,7 @@ export const PosPage: React.FC = () => {
             </div>
 
             {/* Items Table */}
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 print:max-h-none print:overflow-visible">
               {completedSale.detalles?.map((det: any, idx: number) => (
                 <div key={idx} className="flex justify-between font-body-sm text-body-sm">
                   <div className="flex-1 pr-2">

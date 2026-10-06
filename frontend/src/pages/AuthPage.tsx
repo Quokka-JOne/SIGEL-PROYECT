@@ -22,6 +22,13 @@ export const AuthPage: React.FC = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regStore, setRegStore] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regRole, setRegRole] = useState<'ADMINISTRADOR' | 'CAJERO'>('ADMINISTRADOR');
+  const [adminCode, setAdminCode] = useState('');
+
+  // Verificación de correo
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationEmail, setVerificationEmail] = useState('');
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +70,21 @@ export const AuthPage: React.FC = () => {
         nombre: regName + ' ' + regLastName || regStore || 'Usuario Librería',
         email: regEmail,
         password: regPassword,
-        rol: 'ADMINISTRADOR',
+        rol: regRole,
+        adminCode: regRole === 'ADMINISTRADOR' ? adminCode : undefined,
       });
 
       if (res.success) {
-        setSuccessMessage('¡Cuenta creada exitosamente! Ingresando...');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 600);
+        if (res.requireVerification) {
+          setSuccessMessage(res.message);
+          setVerificationEmail(res.email || regEmail);
+          setIsVerifying(true);
+        } else {
+          setSuccessMessage('¡Cuenta creada exitosamente!');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 600);
+        }
       } else {
         setErrorMessage(res.message || 'Error al crear la cuenta.');
       }
@@ -87,6 +101,36 @@ export const AuthPage: React.FC = () => {
     </div>
   );
 
+  const handleVerifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000/api'}/auth/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verificationEmail, code: verificationCode })
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setSuccessMessage('Verificación exitosa. Iniciando sesión...');
+        loginContext(res.data.usuario, res.data.token);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 600);
+      } else {
+        setError(res.message || 'Error al verificar el código.');
+      }
+    } catch (err) {
+      setError('Error de conexión al verificar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: '#100f14', minHeight: '100vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
       
@@ -94,7 +138,7 @@ export const AuthPage: React.FC = () => {
       <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(74,85,221,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: '20%', right: '-10%', width: '60%', height: '60%', background: 'radial-gradient(circle, rgba(221,74,104,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
       
-      {activeTab === 'login' ? (
+      {activeTab === 'login' && !isVerifying ? (
         // --- LOGIN VIEW ---
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 1 }}>
           <Logo />
@@ -119,7 +163,7 @@ export const AuthPage: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Contraseña</label>
-                  <a href="#" style={{ fontSize: 12, color: '#8b5cf6', textDecoration: 'none' }}>¿Olvidaste la clave?</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); alert("Se ha enviado un correo con las instrucciones para recuperar su contraseña."); }} style={{ fontSize: 12, color: '#8b5cf6', textDecoration: 'none' }}>¿Olvidaste la clave?</a>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: 16, top: 14, color: '#6b7280', fontSize: 20 }}>lock</span>
@@ -148,6 +192,29 @@ export const AuthPage: React.FC = () => {
             <span style={{ cursor: 'pointer' }}>Estado</span>
           </div>
 
+        </div>
+      ) : isVerifying ? (
+        // --- VERIFY VIEW ---
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 1 }}>
+          <Logo />
+          <div style={{ background: '#24232b', border: '1px solid #33323c', borderRadius: 24, padding: '40px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Verifica tu correo</h2>
+            <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>Hemos enviado un código de 6 dígitos a <strong>{verificationEmail}</strong>.</p>
+            
+            {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
+            {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
+
+            <form onSubmit={handleVerifySubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Código de Verificación</label>
+                <input type="text" value={verificationCode} onChange={e => setVerificationCode(e.target.value)} placeholder="123456" maxLength={6} style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 24, letterSpacing: 8, textAlign: 'center' }} required />
+              </div>
+              <button disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8 }}>
+                {loading ? 'Verificando...' : 'Verificar y Entrar'}
+              </button>
+              <button type="button" onClick={() => setIsVerifying(false)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', fontSize: 14, cursor: 'pointer', marginTop: 8, textDecoration: 'underline' }}>Volver</button>
+            </form>
+          </div>
         </div>
       ) : (
         // --- REGISTER VIEW ---
@@ -237,6 +304,21 @@ export const AuthPage: React.FC = () => {
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Contraseña</label>
                   <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="Mínimo 8 caracteres" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />
                 </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rol</label>
+                  <select value={regRole} onChange={e => setRegRole(e.target.value as any)} style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }}>
+                    <option value="CAJERO">Cajero (Personal de Venta)</option>
+                    <option value="ADMINISTRADOR">Administrador (Control Total)</option>
+                  </select>
+                </div>
+
+                {regRole === 'ADMINISTRADOR' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#ffbd2e', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Código Secreto del Sistema</label>
+                    <input type="password" value={adminCode} onChange={e => setAdminCode(e.target.value)} placeholder="Autorización requerida" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #ffbd2e', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} required />
+                  </div>
+                )}
 
                 <button disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4, #5F8FFF)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {loading ? 'Procesando...' : 'Siguiente Paso'} 

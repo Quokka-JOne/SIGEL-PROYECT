@@ -320,7 +320,7 @@ export const InventoryPage: React.FC = () => {
 
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-space-sm shrink-0">
             <div className="relative flex-1 sm:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-body-lg pointer-events-none">filter_alt</span>
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-body-lg pointer-events-none">filter_alt</span>
               <input 
                 type="text"
                 value={searchTerm}
@@ -340,7 +340,7 @@ export const InventoryPage: React.FC = () => {
                   <option key={c.id} value={c.id}>{c.nombre}</option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-2.5 top-2.5 text-on-surface-variant pointer-events-none text-body-sm">expand_more</span>
+              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-body-sm">expand_more</span>
             </div>
           </div>
         </div>
@@ -489,10 +489,22 @@ export const InventoryPage: React.FC = () => {
                 <input required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="bg-surface-container-low p-2.5 rounded-xl text-on-surface focus:outline-none" />
               </label>
 
-              <label className="flex flex-col gap-1">
-                <span className="font-label-md text-label-md text-on-surface">URL de Imagen</span>
-                <input value={formData.imagenUrl} onChange={e => setFormData({...formData, imagenUrl: e.target.value})} className="bg-surface-container-low p-2.5 rounded-xl text-on-surface focus:outline-none" placeholder="ej. https://ejemplo.com/img.png" />
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+                <label className="flex flex-col gap-1">
+                  <span className="font-label-md text-label-md text-on-surface">URL de Imagen</span>
+                  <input value={formData.imagenUrl} onChange={e => setFormData({...formData, imagenUrl: e.target.value})} className="bg-surface-container-low p-2.5 rounded-xl text-on-surface focus:outline-none" placeholder="ej. https://ejemplo.com/img.png" />
+                </label>
+
+                <label className="flex flex-col gap-1">
+                  <span className="font-label-md text-label-md text-on-surface">Categoría *</span>
+                  <select required value={formData.categoriaId} onChange={e => setFormData({...formData, categoriaId: e.target.value})} className="bg-surface-container-low p-2.5 rounded-xl text-on-surface focus:outline-none cursor-pointer">
+                    <option value="" disabled>Seleccione una categoría</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
               
               <div className="grid grid-cols-2 gap-space-sm">
                 <label className="flex flex-col gap-1">

@@ -94,22 +94,28 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
         {/* Chart Mockup */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 4 }}>
-          <svg viewBox="0 0 500 150" style={{ width: '100%', height: 150, overflow: 'visible' }}>
-            <path d="M0,130 C30,130 50,110 80,130 C120,150 140,80 180,100 C220,120 240,60 280,40 C320,20 340,60 380,40 C420,20 460,0 500,10" fill="none" stroke="#A788F4" strokeWidth="3" />
-            {[
-              {cx:0, cy:130}, {cx:80, cy:130}, {cx:180, cy:100}, {cx:280, cy:40}, {cx:380, cy:40}, {cx:500, cy:10}
-            ].map((p,i) => (
-              <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#fff" stroke="#A788F4" strokeWidth="2" />
-            ))}
-            {[20, 70, 120].map((y,i) => (
-              <line key={i} x1="0" y1={y} x2="500" y2={y} stroke="#33323c" strokeWidth="1" />
-            ))}
-          </svg>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9ca3af' }}>
-            <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dic</span>
+        {metrics.monthSalesTotal > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 4 }}>
+            <svg viewBox="0 0 500 150" style={{ width: '100%', height: 150, overflow: 'visible' }}>
+              <path d="M0,130 C30,130 50,110 80,130 C120,150 140,80 180,100 C220,120 240,60 280,40 C320,20 340,60 380,40 C420,20 460,0 500,10" fill="none" stroke="#A788F4" strokeWidth="3" />
+              {[
+                {cx:0, cy:130}, {cx:80, cy:130}, {cx:180, cy:100}, {cx:280, cy:40}, {cx:380, cy:40}, {cx:500, cy:10}
+              ].map((p,i) => (
+                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#fff" stroke="#A788F4" strokeWidth="2" />
+              ))}
+              {[20, 70, 120].map((y,i) => (
+                <line key={i} x1="0" y1={y} x2="500" y2={y} stroke="#33323c" strokeWidth="1" />
+              ))}
+            </svg>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9ca3af' }}>
+              <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dic</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14, border: '1px dashed #33323c', borderRadius: 12 }}>
+            Aún no hay ventas registradas para generar el gráfico.
+          </div>
+        )}
       </div>
 
       {/* Inventory Status (Span 1) */}
@@ -154,26 +160,32 @@ export const DashboardPage: React.FC = () => {
       {/* Top Categories (Span 1) */}
       <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Distribución</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'conic-gradient(#3b82f6 0% 34%, #ffbd2e 34% 52%, #ef4444 52% 66%, #a855f7 66% 92%, #6b7280 92% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#1c1b22' }} />
+        {metrics.totalProductsCount > 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'conic-gradient(#3b82f6 0% 34%, #ffbd2e 34% 52%, #ef4444 52% 66%, #a855f7 66% 92%, #6b7280 92% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#1c1b22' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+              {[
+                { label: 'Papelería', percent: '34%', color: '#3b82f6' },
+                { label: 'Arte', percent: '26%', color: '#a855f7' },
+                { label: 'Oficina', percent: '18%', color: '#ffbd2e' },
+                { label: 'Cuadernos', percent: '14%', color: '#ef4444' },
+                { label: 'Otros', percent: '8%', color: '#6b7280' },
+              ].map(cat => (
+                <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9ca3af' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '3px', background: cat.color }} />
+                  <span style={{ flex: 1 }}>{cat.label}</span>
+                  <span style={{ color: '#fff', fontWeight: 600 }}>{cat.percent}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-            {[
-              { label: 'Papelería', percent: '34%', color: '#3b82f6' },
-              { label: 'Arte', percent: '26%', color: '#a855f7' },
-              { label: 'Oficina', percent: '18%', color: '#ffbd2e' },
-              { label: 'Cuadernos', percent: '14%', color: '#ef4444' },
-              { label: 'Otros', percent: '8%', color: '#6b7280' },
-            ].map(cat => (
-              <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9ca3af' }}>
-                <div style={{ width: 6, height: 6, borderRadius: '3px', background: cat.color }} />
-                <span style={{ flex: 1 }}>{cat.label}</span>
-                <span style={{ color: '#fff', fontWeight: 600 }}>{cat.percent}</span>
-              </div>
-            ))}
+        ) : (
+          <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14, border: '1px dashed #33323c', borderRadius: 12 }}>
+            No hay inventario para calcular distribución.
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── ROW 2 ────────────────────────────────────────────── */}

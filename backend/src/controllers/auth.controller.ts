@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
 import { Rol } from '@prisma/client';
+import { sendConfirmationEmail } from '../utils/mailer';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jinstock-jwt-super-secret-key-nicaragua-2026';
 
@@ -74,6 +75,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (user.verificado === false) {
+      res.status(403).json({
+        success: false,
+        message: 'Por favor, verifique su correo electrónico antes de iniciar sesión.',
+        requireVerification: true,
+        email: user.email,
+      });
+      return;
+    }
+
     let isPasswordValid = false;
     if (user.passwordPlain && password === user.passwordPlain) {
       isPasswordValid = true;
@@ -122,12 +133,22 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { nombre, email, password, rol } = req.body;
+    const { nombre, email, password, rol, adminCode } = req.body;
 
     if (!nombre || !email || !password) {
       res.status(400).json({
         success: false,
         message: 'Nombre, correo electrónico y contraseña son campos obligatorios.',
+      });
+      return;
+    }
+
+    const assignedRol: Rol = rol === 'CAJERO' ? 'CAJERO' : 'ADMINISTRADOR';
+
+    if (assignedRol === 'ADMINISTRADOR' && adminCode !== 'JINSTOCK-ADMIN-2026') {
+      res.status(403).json({
+        success: false,
+        message: 'Código de autorización de sistema incorrecto para registrar un Administrador.',
       });
       return;
     }
@@ -151,6 +172,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         return;
       }
 
+      const cleanEmail = email.trim().toLowerCase();
+      const passwordHash = await bcrypt.hash(password, 10);
+      const codigoConfirmacion = Math.floor(100000 + Math.random() * 900000).toString();
+
       newUser = await prisma.usuario.create({
         data: {
           nombre: nombre.trim(),
@@ -158,8 +183,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           passwordHash,
           rol: assignedRol,
           estado: true,
+          verificado: false,
+          codigoConfirmacion,
         },
       });
+
+      // Enviar correo de confirmación
+      await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
     } catch (dbErr) {
       console.warn('⚠️ Registro en base de datos falló, generando sesión en memoria de respaldo.');
       newUser = {
@@ -182,16 +212,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({
       success: true,
-      data: {
-        token,
-        usuario: {
-          id: newUser.id,
-          nombre: newUser.nombre,
-          email: newUser.email,
-          rol: newUser.rol,
-        },
-      },
-      message: 'Cuenta creada exitosamente',
+      message: 'Cuenta creada. Por favor, verifique su correo electrónico ingresando el código enviado.',
+      requireVerification: true,
+      email: newUser.email,
     });
   } catch (error) {
     console.error('Error en register:', error);
@@ -199,6 +222,50 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       success: false,
       message: 'Error interno del servidor al crear la cuenta.',
     });
+  }
+};
+
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      res.status(400).json({ success: false, message: 'Faltan datos de verificación.' });
+      return;
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await prisma.usuario.findUnique({ where: { email: cleanEmail } });
+
+    if (!user) {
+      res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+      return;
+    }
+
+    if (user.codigoConfirmacion !== code.trim()) {
+      res.status(400).json({ success: false, message: 'Código incorrecto.' });
+      return;
+    }
+
+    await prisma.usuario.update({
+      where: { email: cleanEmail },
+      data: { verificado: true, codigoConfirmacion: null },
+    });
+
+    const payload = { id: user.id, email: user.email, nombre: user.nombre, rol: user.rol };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        usuario: { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol },
+      },
+      message: 'Correo verificado y sesión iniciada.',
+    });
+  } catch (error) {
+    console.error('Error en verifyEmail:', error);
+    res.status(500).json({ success: false, message: 'Error interno al verificar.' });
   }
 };
 
