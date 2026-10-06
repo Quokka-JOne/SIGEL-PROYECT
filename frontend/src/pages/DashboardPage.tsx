@@ -79,11 +79,11 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, paddingBottom: 60 }}>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-16">
       
       {/* ── ROW 1 ────────────────────────────────────────────── */}
       {/* Revenue Overview (Span 2) */}
-      <div style={{ gridColumn: 'span 2', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
+      <div className="col-span-1 md:col-span-2 lg:col-span-2" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Ventas del Mes</h3>
@@ -113,7 +113,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Inventory Status (Span 1) */}
-      <div style={{ gridColumn: 'span 1', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20, display: 'flex', flexDirection: 'column' }}>
+      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Estado de Inventario</h3>
           <span className="material-symbols-outlined" style={{ color: '#9ca3af', fontSize: 20 }}>inventory_2</span>
@@ -152,7 +152,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Top Categories (Span 1) */}
-      <div style={{ gridColumn: 'span 1', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
+      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Distribución</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'conic-gradient(#3b82f6 0% 34%, #ffbd2e 34% 52%, #ef4444 52% 66%, #a855f7 66% 92%, #6b7280 92% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -179,7 +179,7 @@ export const DashboardPage: React.FC = () => {
       {/* ── ROW 2 ────────────────────────────────────────────── */}
       
       {/* Recent Sales (Span 2) */}
-      <div style={{ gridColumn: 'span 2', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24, maxHeight: 340, overflowY: 'auto' }}>
+      <div className="col-span-1 md:col-span-2 lg:col-span-2" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24, maxHeight: 340, overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Ventas Recientes</h3>
           <Link to="/ventas" style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'none' }}>Ver todas</Link>
@@ -207,7 +207,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Best Sellers (Span 2) */}
-      <div style={{ gridColumn: 'span 2', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24 }}>
+      <div className="col-span-1 md:col-span-2 lg:col-span-2" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Productos Destacados</h3>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -237,7 +237,7 @@ export const DashboardPage: React.FC = () => {
       {/* ── ROW 3 ────────────────────────────────────────────── */}
       
       {/* Quick Actions (Span 1) */}
-      <div style={{ gridColumn: 'span 1', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24 }}>
+      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Acciones Rápidas</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Link to="/inventario" style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#fff', textDecoration: 'none' }}>
@@ -268,7 +268,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Sync Status / Offline Readiness (Span 1) */}
-      <div style={{ gridColumn: 'span 1', background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24, display: 'flex', flexDirection: 'column' }}>
+      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24, display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Disponibilidad Local</h3>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'relative', width: 160, height: 160, borderRadius: '50%', background: 'conic-gradient(#a855f7 0% 100%, #2d2c35 100% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
