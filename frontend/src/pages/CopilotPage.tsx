@@ -201,28 +201,45 @@ Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes
         <section className="lg:col-span-7 flex flex-col gap-space-md">
           
           {/* Critical Warning Pill/Card (Coral tone: high out-of-stock risk) */}
-          <div className="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
-            <div className="w-2 absolute left-0 top-0 bottom-0 bg-[#FF6B6B]"></div>
-            <div className="w-10 h-10 rounded-xl bg-[#FF6B6B]/15 text-[#FF6B6B] flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
-            </div>
-            <div className="flex-1 flex flex-col gap-1">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-label-md text-label-md uppercase tracking-wider text-[#FF6B6B] font-bold">Alerta Preventiva de Quiebre</span>
-                <span className="bg-[#FF6B6B]/15 text-[#FF6B6B] font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">{criticalItems || 8} Artículos Críticos</span>
+          {criticalItems > 0 ? (
+            <div className="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
+              <div className="w-2 absolute left-0 top-0 bottom-0 bg-[#FF6B6B]"></div>
+              <div className="w-10 h-10 rounded-xl bg-[#FF6B6B]/15 text-[#FF6B6B] flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
               </div>
-              <p className="font-body-md text-body-md text-on-surface">
-                <strong>{criticalItems || 8} productos</strong> presentan alto riesgo de agotamiento antes de fin de mes según la demanda histórica y el ritmo de ventas acelerado de los últimos 14 días.
-              </p>
-              <div className="mt-2 flex items-center gap-space-sm flex-wrap">
-                <button className="font-label-sm text-label-sm bg-[#FF6B6B]/15 hover:bg-[#FF6B6B] text-[#FF6B6B] hover:text-on-error px-3 py-1.5 rounded-lg transition-colors font-bold flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-body-sm">assignment_late</span>
-                  Ver lista de quiebres inminentes
-                </button>
-                <span className="font-body-sm text-body-sm text-on-surface-variant">Impacto potencial estimado: <span className="font-bold text-on-surface">C$ 34,250 NIO</span> en ventas perdidas</span>
+              <div className="flex-1 flex flex-col gap-1">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="font-label-md text-label-md uppercase tracking-wider text-[#FF6B6B] font-bold">Alerta Preventiva de Quiebre</span>
+                  <span className="bg-[#FF6B6B]/15 text-[#FF6B6B] font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">{criticalItems} Artículos Críticos</span>
+                </div>
+                <p className="font-body-md text-body-md text-on-surface">
+                  <strong>{criticalItems} productos</strong> presentan alto riesgo de agotamiento antes de fin de mes según la demanda histórica y el ritmo de ventas.
+                </p>
+                <div className="mt-2 flex items-center gap-space-sm flex-wrap">
+                  <button className="font-label-sm text-label-sm bg-[#FF6B6B]/15 hover:bg-[#FF6B6B] text-[#FF6B6B] hover:text-on-error px-3 py-1.5 rounded-lg transition-colors font-bold flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-body-sm">assignment_late</span>
+                    Ver lista de quiebres inminentes
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
+              <div className="w-2 absolute left-0 top-0 bottom-0 bg-[#5F8FFF]"></div>
+              <div className="w-10 h-10 rounded-xl bg-[#5F8FFF]/15 text-[#5F8FFF] flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              </div>
+              <div className="flex-1 flex flex-col gap-1">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="font-label-md text-label-md uppercase tracking-wider text-[#5F8FFF] font-bold">Estado de Inventario</span>
+                  <span className="bg-[#5F8FFF]/15 text-[#5F8FFF] font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">0 Artículos Críticos</span>
+                </div>
+                <p className="font-body-md text-body-md text-on-surface">
+                  Tu inventario se encuentra en óptimas condiciones. Ningún producto presenta riesgo inminente de agotamiento.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Precision KPIs & Seasonal Velocity Micro-Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
