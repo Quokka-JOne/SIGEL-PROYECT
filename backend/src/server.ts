@@ -57,6 +57,11 @@ app.get('/api/health', (req: Request, res: Response) => {
     message: 'Servidor JINStock Backend operativo',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
+    smtp: {
+      userConfigured: !!process.env.SMTP_USER,
+      passConfigured: !!process.env.SMTP_PASS,
+      userHint: process.env.SMTP_USER ? process.env.SMTP_USER.substring(0, 4) + '***' : 'NOT SET',
+    },
   });
 });
 

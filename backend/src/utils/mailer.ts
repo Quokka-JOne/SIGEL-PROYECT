@@ -1,16 +1,34 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.SMTP_USER || 'tu_correo@gmail.com',
-    pass: process.env.SMTP_PASS || 'tu_app_password',
-  },
-});
+// Create the transporter lazily so environment variables are guaranteed to be loaded
+let _transporter: any = null;
+
+function getTransporter() {
+  if (!_transporter) {
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+
+    console.log(`📧 Inicializando SMTP transporter. SMTP_USER configurado: ${!!user}, SMTP_PASS configurado: ${!!pass}`);
+
+    _transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: user || '', pass: pass || '' },
+    });
+  }
+  return _transporter;
+}
 
 export const sendConfirmationEmail = async (to: string, code: string) => {
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  if (!smtpUser || !smtpPass) {
+    console.warn(`⚠️ SMTP no configurado (SMTP_USER=${!!smtpUser}, SMTP_PASS=${!!smtpPass}). Código para ${to}: ${code}`);
+    return;
+  }
+
   const mailOptions = {
-    from: `"JINStock App" <${process.env.SMTP_USER || 'no-reply@jinstock.ni'}>`,
+    from: `"JINStock App" <${smtpUser}>`,
     to,
     subject: 'Código de Confirmación - JINStock',
     html: `
@@ -29,13 +47,11 @@ export const sendConfirmationEmail = async (to: string, code: string) => {
   };
 
   try {
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-      await transporter.sendMail(mailOptions);
-      console.log(`✉️ Correo de confirmación enviado a ${to}`);
-    } else {
-      console.log(`⚠️ SMTP no configurado. Código de confirmación para ${to} es: ${code}`);
-    }
-  } catch (error) {
-    console.error('Error enviando correo:', error);
+    const transporter = getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✉️ Correo de confirmación enviado a ${to}. MessageId: ${info.messageId}`);
+  } catch (error: any) {
+    console.error(`❌ Error enviando correo a ${to}:`, error.message || error);
+    console.error('Detalles completos del error SMTP:', JSON.stringify(error, null, 2));
   }
 };
