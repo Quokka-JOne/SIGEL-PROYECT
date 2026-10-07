@@ -49,7 +49,7 @@ export const createSale = async (req: Request, res: Response): Promise<void> => 
         }
 
         // 2. Prepare sales details & calculate totals
-        const saleDetailsData = [];
+        const saleDetailsData: any[] = [];
         for (const item of detalles) {
           const product = await tx.producto.findUnique({ where: { id: item.productoId } });
           const price = product!.precioVenta;

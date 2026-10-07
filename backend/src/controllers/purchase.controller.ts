@@ -35,7 +35,7 @@ export const createPurchase = async (req: Request, res: Response): Promise<void>
         }
 
         let grandTotal = 0;
-        const purchaseDetailsData = [];
+        const purchaseDetailsData: any[] = [];
 
         for (const item of detalles) {
           const product = await tx.producto.findUnique({ where: { id: item.productoId } });
