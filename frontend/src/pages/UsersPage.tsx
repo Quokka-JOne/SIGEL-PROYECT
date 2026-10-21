@@ -32,6 +32,7 @@ export const UsersPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -330,15 +331,28 @@ export const UsersPage: React.FC = () => {
 
               <div>
                 <label className="text-gray-400 font-semibold block mb-1">Contraseña Inicial *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Mínimo 6 caracteres..."
-                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Mínimo 6 caracteres..."
+                    className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? 'visibility_off' : 'visibility'}
+                    </span>
+                  </button>
+                </div>
               </div>
 
               {/* M-02: Selector de Rol (Exclusivamente ADMINISTRADOR o CAJERO) */}

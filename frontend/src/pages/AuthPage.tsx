@@ -15,6 +15,7 @@ export const AuthPage: React.FC = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberDevice, setRememberDevice] = useState(true);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Register form state (creates standard Cajero / Staff; Admins created via seed or admin panel)
   const [regName, setRegName] = useState('');
@@ -22,6 +23,7 @@ export const AuthPage: React.FC = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regStore, setRegStore] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
   // Verificación de correo
   const [isVerifying, setIsVerifying] = useState(false);
@@ -176,7 +178,48 @@ export const AuthPage: React.FC = () => {
                 </div>
                 <div style={{ position: 'relative' }}>
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: 16, top: 14, color: '#6b7280', fontSize: 20 }}>lock</span>
-                  <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="••••••••" style={{ width: '100%', padding: '14px 16px 14px 48px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15, letterSpacing: 2 }} />
+                  <input
+                    type={showLoginPassword ? 'text' : 'password'}
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    placeholder={showLoginPassword ? 'Ingresa tu contraseña' : '••••••••'}
+                    style={{
+                      width: '100%',
+                      padding: '14px 44px 14px 48px',
+                      background: '#1c1b22',
+                      border: '1px solid #33323c',
+                      borderRadius: 12,
+                      color: '#fff',
+                      outline: 'none',
+                      fontSize: 15,
+                      letterSpacing: showLoginPassword ? 'normal' : 2
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    title={showLoginPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    aria-label={showLoginPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: showLoginPassword ? '#a78bfa' : '#9ca3af',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 6,
+                      borderRadius: 8,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                      {showLoginPassword ? 'visibility_off' : 'visibility'}
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -311,7 +354,50 @@ export const AuthPage: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Contraseña</label>
-                  <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="Mínimo 8 caracteres" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showRegPassword ? 'text' : 'password'}
+                      value={regPassword}
+                      onChange={e => setRegPassword(e.target.value)}
+                      placeholder={showRegPassword ? 'Ingresa tu contraseña' : 'Mínimo 8 caracteres'}
+                      style={{
+                        width: '100%',
+                        padding: '14px 44px 14px 16px',
+                        background: '#1c1b22',
+                        border: '1px solid #33323c',
+                        borderRadius: 12,
+                        color: '#fff',
+                        outline: 'none',
+                        fontSize: 15,
+                        letterSpacing: showRegPassword ? 'normal' : 1
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      title={showRegPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      aria-label={showRegPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      style={{
+                        position: 'absolute',
+                        right: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: showRegPassword ? '#a78bfa' : '#9ca3af',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 6,
+                        borderRadius: 8,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                        {showRegPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ background: 'rgba(167, 136, 244, 0.08)', border: '1px solid rgba(167, 136, 244, 0.2)', padding: '12px 16px', borderRadius: 12, fontSize: 13, color: '#c4b5fd' }}>
