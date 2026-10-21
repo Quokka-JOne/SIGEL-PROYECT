@@ -105,8 +105,12 @@ export const AuthPage: React.FC = () => {
   };
 
   const Logo = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: activeTab === 'login' ? 12 : 32, justifyContent: activeTab === 'login' ? 'center' : 'flex-start' }}>
-      <img src="/JINSTOCK.png" alt="JINSTOCK" style={{ height: 32, objectFit: 'contain' }} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: activeTab === 'login' ? 16 : 32, justifyContent: activeTab === 'login' ? 'center' : 'flex-start' }}>
+      <img src="/JINSTOCK.png" alt="JINSTOCK" style={{ height: 44, width: 'auto', objectFit: 'contain', borderRadius: 10 }} />
+      <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+        <span style={{ fontWeight: 800, fontSize: 20, color: '#fff', letterSpacing: 0.5, lineHeight: 1.1 }}>JINStock</span>
+        <span style={{ fontSize: 11, color: '#A788F4', fontWeight: 600 }}>Librería Bendición de Dios</span>
+      </div>
     </div>
   );
 

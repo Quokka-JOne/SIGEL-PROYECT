@@ -88,7 +88,11 @@ export const LandingPage: React.FC = () => {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 32 }} />
+            <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 40, width: 'auto', objectFit: 'contain', borderRadius: 8 }} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontWeight: 800, fontSize: 18, color: '#fff', lineHeight: 1.1 }}>JINStock</span>
+              <span style={{ fontSize: 10, color: '#A788F4', fontWeight: 600 }}>Librería Bendición de Dios</span>
+            </div>
           </div>
           {/* Nav links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 32, fontSize: 14, color: '#d1d5db', fontWeight: 500 }} className="hidden md:flex">
