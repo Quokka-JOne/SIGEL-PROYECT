@@ -223,10 +223,27 @@ export const AuthPage: React.FC = () => {
                 </div>
               </div>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer' }}>
-                <input type="checkbox" checked={rememberDevice} onChange={e => setRememberDevice(e.target.checked)} style={{ accentColor: '#8b5cf6', width: 16, height: 16 }} />
-                <span style={{ fontSize: 13, color: '#9ca3af' }}>Recordarme por 30 días</span>
-              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={showLoginPassword}
+                    onChange={e => setShowLoginPassword(e.target.checked)}
+                    style={{ accentColor: '#8b5cf6', width: 16, height: 16, cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: 13, color: '#9ca3af' }}>Mostrar contraseña</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberDevice}
+                    onChange={e => setRememberDevice(e.target.checked)}
+                    style={{ accentColor: '#8b5cf6', width: 16, height: 16, cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: 13, color: '#9ca3af' }}>Recordarme por 30 días</span>
+                </label>
+              </div>
 
               <button disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8 }}>
                 {loading ? 'Cargando...' : 'Entrar al Sistema'}
@@ -398,6 +415,15 @@ export const AuthPage: React.FC = () => {
                       </span>
                     </button>
                   </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={showRegPassword}
+                      onChange={e => setShowRegPassword(e.target.checked)}
+                      style={{ accentColor: '#8b5cf6', width: 16, height: 16, cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: 13, color: '#9ca3af' }}>Mostrar contraseña</span>
+                  </label>
                 </div>
 
                 <div style={{ background: 'rgba(167, 136, 244, 0.08)', border: '1px solid rgba(167, 136, 244, 0.2)', padding: '12px 16px', borderRadius: 12, fontSize: 13, color: '#c4b5fd' }}>
