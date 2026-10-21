@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-background":"#0b1c30","tertiary-fixed":"#dae2ff","on-surface":"#0b1c30","on-tertiary":"#ffffff","tertiary":"#002664","on-primary-container":"#90a8ff","outline-variant":"#c5c5d3","on-secondary-container":"#43218a","on-tertiary-fixed":"#001847","inverse-surface":"#213145","tertiary-container":"#003a91","inverse-on-surface":"#eaf1ff","surface-container-low":"#eff4ff","surface-container-lowest":"#ffffff","on-tertiary-fixed-variant":"#00409f","on-tertiary-container":"#88a9ff","background":"#f8f9ff","primary-fixed":"#dce1ff","on-error-container":"#93000a","surface-bright":"#f8f9ff","secondary":"#694bb2","surface-tint":"#4059aa","surface-container-high":"#dce9ff","error-container":"#ffdad6","on-error":"#ffffff","primary-fixed-dim":"#b6c4ff","surface":"#f8f9ff","secondary-fixed":"#e9ddff","primary-container":"#1e3a8a","on-secondary-fixed":"#23005c","on-primary-fixed":"#00164e","outline":"#757682","on-surface-variant":"#444651","surface-container":"#e5eeff","surface-variant":"#d3e4fe","surface-dim":"#cbdbf5","on-secondary":"#ffffff","inverse-primary":"#b6c4ff","secondary-container":"#b091fe","tertiary-fixed-dim":"#b1c5ff","secondary-fixed-dim":"#d0bcff","on-primary":"#ffffff","surface-container-highest":"#d3e4fe","primary":"#00236f","on-primary-fixed-variant":"#264191","on-secondary-fixed-variant":"#513199"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xl":"2rem","space-xs":"0.25rem","gutter":"1rem","margin":"1rem","gutter-tablet":"1.25rem","margin-desktop":"2rem","space-md":"1rem","space-lg":"1.5rem","margin-tablet":"1.5rem","space-sm":"0.5rem","gutter-desktop":"1.5rem"},fontFamily:{"label-md":["Inter"],"body-md":["Plus Jakarta Sans"],"label-lg":["Inter"],"body-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"numeric-pos":["Inter"],"headline-md":["Plus Jakarta Sans"],"label-sm":["Inter"]},fontSize:{"label-md":["12px",{lineHeight:"16px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],"label-lg":["14px",{lineHeight:"20px",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"16px",fontWeight:"400"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"headline-lg":["28px",{lineHeight:"36px",fontWeight:"700"}],"headline-xl":["36px",{lineHeight:"44px",fontWeight:"800"}],"headline-xl-mobile":["28px",{lineHeight:"36px",fontWeight:"800"}],"headline-sm":["18px",{lineHeight:"24px",fontWeight:"600"}],"headline-lg-mobile":["24px",{lineHeight:"32px",fontWeight:"700"}],"numeric-pos":["24px",{lineHeight:"28px",fontWeight:"700"}],"headline-md":["22px",{lineHeight:"28px",fontWeight:"600"}],"label-sm":["11px",{lineHeight:"14px",fontWeight:"600"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen relative flex flex-col"><header class="fixed top-0 left-0 right-0 w-full z-40 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(11,28,48,0.06)]"><div class="h-16 w-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm shrink-0"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-headline-sm">menu_book</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-primary leading-none">JINStock</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1 hidden sm:inline-block">Papelería &amp; Librería Inteligente</span></div></div><div class="flex-1 max-w-2xl mx-space-md hidden md:flex items-center gap-space-sm"><div class="flex-1 relative flex items-center bg-surface-container-low rounded-xl px-space-sm py-1.5 focus-within:bg-surface-container-lowest focus-within:shadow-[0_0_0_2px_#1e3a8a] transition-all"><span class="material-symbols-outlined text-outline mr-2 text-headline-sm">search</span><input class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none" placeholder="Buscar artículos, código de barras (EAN), facturas..." type="text"/><span class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded shadow-sm shrink-0">Ctrl+K</span></div><div class="relative shrink-0"><select class="font-label-sm text-label-sm bg-surface-container text-on-surface py-2 px-3 rounded-xl focus:outline-none appearance-none pr-7 cursor-pointer"><option>Rol: Administrador General</option><option>Rol: Cajero / POS</option><option>Rol: Encargado de Inventario</option></select><span class="material-symbols-outlined absolute right-2 top-2.5 text-on-surface-variant pointer-events-none text-body-sm">expand_more</span></div></div><div class="flex items-center gap-space-sm shrink-0"><div class="flex items-center gap-1.5 bg-surface-container-high px-2.5 py-1 rounded-full cursor-pointer hover:bg-surface-container transition-colors"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="material-symbols-outlined text-body-sm text-primary">sync</span><span class="font-label-sm text-label-sm text-on-surface hidden lg:inline-block">3 cambios pendientes</span></div><button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-headline-sm">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><div class="flex items-center gap-space-sm pl-2 border-l border-outline-variant/30"><div class="hidden xl:flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface leading-tight">Carlos Mendoza</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Sucursal Central Managua</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida/AEtjO1UKFwhFaPYT_71R6K5nK10Q8h_XzW_T7vOcE8ZgNcU3U1i2OUQh23XWBRKdGefjvHF9JL0NW8FvCMjw4A-NoQlMzqaAJoVRQ7-yH45WOQIvoFSy2tyVVhj0fXZU_r49kUGi8NYcsC2w3ACEMD2kSR2hqnP0rc_8xp47KzblB4VUKc7BGY5BBi22v2lbDiMYduJCW-cOrzx0eq_eYLH5OzIEfkDiBfrLfj_03K5E721X8vylApKUV8rNB4y132UNqFCmEdPvrRLUL4k"/></div></div></div></header><main class="w-full pt-16 pb-28 px-margin-desktop bg-surface flex-1"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-lg w-full max-w-7xl mx-auto">
+<!-- Header & Action Ribbon -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm mb-1">
+<span class="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-secondary text-on-secondary shadow-sm">
+<span class="material-symbols-outlined text-body-lg">admin_panel_settings</span>
+</span>
+<span class="font-label-md text-label-md text-secondary tracking-wide uppercase">Control de Accesos · Seguridad Operativa</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight leading-tight">
+          Gestión de Personal, Roles y Permisos de Sucursal
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+          Auditoría de accesos multi-sucursal con persistencia offline segura en IndexedDB para papelerías y librerías.
+        </p>
+</div>
+<!-- Quick Action CTA Group -->
+<div class="flex flex-wrap items-center gap-space-sm shrink-0">
+<button class="flex items-center gap-2 px-space-md py-2.5 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container-low active:scale-95 transition-all" id="openMatrixConfigBtn">
+<span class="material-symbols-outlined text-primary-container text-body-lg">tune</span>
+<span class="font-label-lg text-label-lg">Configurar Matriz de Seguridad</span>
+</button>
+<button class="flex items-center gap-2 px-space-md py-2.5 rounded-xl bg-primary-container text-on-primary shadow-md hover:bg-primary active:scale-95 transition-all" id="newCollaboratorBtn">
+<span class="material-symbols-outlined text-body-lg">person_add</span>
+<span class="font-label-lg text-label-lg">+ Registrar Nuevo Colaborador</span>
+</button>
+</div>
+</div>
+<!-- Quick Stats Metric Band -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-space-md">
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Colaboradores Activos</span>
+<span class="font-numeric-pos text-numeric-pos text-primary-container mt-1">24</span>
+<span class="font-label-sm text-label-sm text-secondary-container mt-0.5 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container inline-block"></span>
+            8 en turno actual
+          </span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-headline-sm">badge</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sucursales Conectadas</span>
+<span class="font-numeric-pos text-numeric-pos text-tertiary mt-1">3 Sede(s)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Managua, León, Estelí</span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-headline-sm">store</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Políticas de Privacidad</span>
+<span class="font-numeric-pos text-numeric-pos text-on-surface mt-1">4 Perfiles</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">RBAC Estricto Activo</span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-headline-sm">verified_user</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Eventos de Auditoría</span>
+<span class="font-numeric-pos text-numeric-pos text-error mt-1">0 Bloqueos</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Kardex 100% blindado</span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-headline-sm">lock_clock</span>
+</div>
+</div>
+</div>
+<!-- Interactive System Roles Selector -->
+<div class="flex flex-col gap-space-sm bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-1">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Perfiles Operativos del Sistema JINStock</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Selecciona un rol para inspeccionar sus atribuciones de seguridad y modificar accesos locales.</p>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-2.5 py-1 rounded-full self-start sm:self-auto flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-sm text-secondary">security_update_good</span>
+          Reglas sincronizadas
+        </span>
+</div>
+<!-- Role Selector Tabs Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-sm mt-2" id="roleTabsContainer">
+<!-- Role 1: Admin -->
+<div class="role-card cursor-pointer p-space-md rounded-xl bg-primary-container text-on-primary transition-all shadow-md transform hover:-translate-y-0.5 flex flex-col justify-between min-h-[140px] relative overflow-hidden" data-role="admin">
+<div class="flex items-start justify-between">
+<span class="inline-flex p-2 rounded-lg bg-surface-container-lowest/15 backdrop-blur-md">
+<span class="material-symbols-outlined text-body-lg">shield_with_heart</span>
+</span>
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full">Acceso Total</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg font-bold">Administrador General</h3>
+<p class="font-body-sm text-body-sm opacity-90 mt-1 line-clamp-2">
+              Control absoluto de finanzas, márgenes, costos, IA predictiva y sucursales.
+            </p>
+</div>
+<div class="absolute -right-3 -bottom-3 opacity-10 text-headline-xl">
+<span class="material-symbols-outlined text-8xl">manage_accounts</span>
+</div>
+</div>
+<!-- Role 2: Cajero POS -->
+<div class="role-card cursor-pointer p-space-md rounded-xl bg-surface-container-low text-on-surface transition-all hover:bg-surface-container shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden" data-role="cajero">
+<div class="flex items-start justify-between">
+<span class="inline-flex p-2 rounded-lg bg-surface-container-high text-primary">
+<span class="material-symbols-outlined text-body-lg">point_of_sale</span>
+</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded-full">Terminal POS</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg font-bold">Cajero / Mostrador POS</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">
+              Cobros veloces, arqueos y comprobantes. Restringido ver costos de compra y utilidades.
+            </p>
+</div>
+</div>
+<!-- Role 3: Encargado Bodega -->
+<div class="role-card cursor-pointer p-space-md rounded-xl bg-surface-container-low text-on-surface transition-all hover:bg-surface-container shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden" data-role="bodega">
+<div class="flex items-start justify-between">
+<span class="inline-flex p-2 rounded-lg bg-surface-container-high text-secondary">
+<span class="material-symbols-outlined text-body-lg">inventory_2</span>
+</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded-full">Stock &amp; Traslados</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg font-bold">Encargado de Bodega</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">
+              Recepción a proveedores, Kardex físico y conteos de ciclo. Sin acceso a caja.
+            </p>
+</div>
+</div>
+<!-- Role 4: Contador -->
+<div class="role-card cursor-pointer p-space-md rounded-xl bg-surface-container-low text-on-surface transition-all hover:bg-surface-container shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden" data-role="contador">
+<div class="flex items-start justify-between">
+<span class="inline-flex p-2 rounded-lg bg-surface-container-high text-tertiary">
+<span class="material-symbols-outlined text-body-lg">account_balance</span>
+</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded-full">Fiscal &amp; Libros</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg font-bold">Contador / Auditor</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">
+              Reportes tributarios DGI, libros de compras/ventas y exportación Excel/PDF contable.
+            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Role Detail & Visual Permission Matrix -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+<!-- Left Column: Scope Info & AI Assistant Guard -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Current Profile Briefing Card -->
+<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary-container" id="roleBadgeColor"></div>
+<span class="font-headline-sm text-headline-sm text-on-surface" id="activeRoleName">Administrador General</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-bold">Nivel 1</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant" id="roleDescriptionLong">
+            Tiene autorización irrestricta para parametrizar las listas de útiles escolares, definir márgenes mayoristas, ejecutar cortes Z definitivos y autorizar compras directas al crédito.
+          </p>
+<div class="flex flex-col gap-2.5 bg-surface-container-low p-space-md rounded-xl">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Usuarios con este rol</span>
+<span class="font-label-md text-label-md text-on-surface">3 personas</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Límite de descuento manual</span>
+<span class="font-label-md text-label-md text-primary font-bold">Hasta 100%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Acceso Offline Forzado</span>
+<span class="font-label-md text-label-md text-secondary font-bold">Habilitado</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Copia de Seguridad Remota</span>
+<span class="font-label-md text-label-md text-on-surface">Descarga Total</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pt-2">
+<button class="flex-1 py-2 rounded-xl bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+              Duplicar Plantilla
+            </button>
+<button class="flex-1 py-2 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm">
+              Guardar Cambios
+            </button>
+</div>
+</div>
+<!-- JINStock AI Copilot Guard Card -->
+<div class="bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-space-md rounded-2xl shadow-sm relative overflow-hidden flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-headline-sm text-secondary">auto_awesome</span>
+<span class="font-label-lg text-label-lg text-on-surface">JINStock Copilot IA · Asistente</span>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full">Recomendación</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            “Detectamos que durante la temporada escolar de enero-marzo en León, 2 cajeros solicitaron autorización manual para anulación de tickets escolares por encima de C$ 5,000 NIO. Se sugiere habilitar <span class="font-bold text-primary">Anulación Rápida de Línea</span> con límite de C$ 500 para agilizar el mostrador.”
+          </p>
+<div class="flex items-center justify-end gap-2 pt-1">
+<button class="font-label-sm text-label-sm text-secondary hover:underline">Descartar</button>
+<button class="font-label-sm text-label-sm bg-secondary text-on-secondary px-3 py-1.5 rounded-xl hover:bg-on-secondary-container transition-all">
+              Aplicar recomendación
+            </button>
+</div>
+</div>
+<!-- Security Badge Graphic -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary shrink-0">
+<span class="material-symbols-outlined text-headline-md">enhanced_encryption</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface truncate">Cifrado Local AES-GCM (IndexedDB)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Credenciales protegidas contra manipulaciones en modo sin internet.</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Visual Permissions SaaS Matrix -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Matriz de Concesiones y Privilegios</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conmuta de forma granular las funciones habilitadas para este perfil en las terminales.</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="font-label-sm text-label-sm px-3 py-1.5 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors" id="toggleAllMatrix">
+                Marcar Todos
+              </button>
+<button class="font-label-sm text-label-sm px-3 py-1.5 rounded-lg bg-surface-container text-error hover:bg-error-container transition-colors" id="resetMatrix">
+                Restaurar
+              </button>
+</div>
+</div>
+<!-- Permissions Matrix Table / Grid -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-on-surface-variant font-label-md text-label-md bg-surface-container-low rounded-xl">
+<th class="py-3 px-4 rounded-l-xl">Módulo del Sistema</th>
+<th class="py-3 px-3">Visualizar</th>
+<th class="py-3 px-3">Registrar / Editar</th>
+<th class="py-3 px-3">Anular / Eliminar</th>
+<th class="py-3 px-4 rounded-r-xl text-center">Permiso Especial</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-sm text-body-sm" id="matrixTableBody">
+<!-- Row 1: Dashboard Ejecutivo -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-body-lg">query_stats</span>
+<div>
+<span>Dashboard Ejecutivo</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Métricas de venta neta, margen y ticket promedio</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<span class="font-label-sm text-label-sm text-outline">N/A</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-2 py-1 rounded-md">Exportar BI</span>
+</td>
+</tr>
+<!-- Row 2: Punto de Venta (POS) -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-secondary text-body-lg">point_of_sale</span>
+<div>
+<span>Punto de Venta &amp; Mostrador</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Facturación rápida, escáner EAN y arqueos</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2 py-1 rounded-md font-semibold">Anulación Z</span>
+</td>
+</tr>
+<!-- Row 3: Inventario & Kardex -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-tertiary text-body-lg">inventory_2</span>
+<div>
+<span>Inventario, Kardex &amp; Lotes</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Ajustes físicos, mermas de papelería y traslados</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-2 py-1 rounded-md">Conteo Ciego</span>
+</td>
+</tr>
+<!-- Row 4: Compras y Proveedores -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary-container text-body-lg">local_shipping</span>
+<div>
+<span>Compras &amp; Proveedores</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Órdenes de compra, recepción de facturas proveedor</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-2 py-1 rounded-md">Crédito Diriangén</span>
+</td>
+</tr>
+<!-- Row 5: Ver Costos & Márgenes (Critical Restriction) -->
+<tr class="hover:bg-surface-container-low/50 transition-colors bg-surface-container-low/20">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-error text-body-lg">visibility_off</span>
+<div>
+<span class="text-error font-bold">Ver Costos y Márgenes de Ganancia</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Revela costo de importación unitario y margen bruto</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" id="toggleVerCostos" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-error"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<span class="font-label-sm text-label-sm text-outline">Solo Lectura</span>
+</td>
+<td class="py-3.5 px-3">
+<span class="font-label-sm text-label-sm text-outline">N/A</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-error-container text-error px-2 py-1 rounded-md font-bold">Crítico</span>
+</td>
+</tr>
+<!-- Row 6: Modificar Precios de Venta -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-secondary text-body-lg">price_change</span>
+<div>
+<span>Modificar Precios de Venta (PVP)</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Alterar lista de precios en cuadernos, resmas y libros</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-2 py-1 rounded-md">Descuento Libre</span>
+</td>
+</tr>
+<!-- Row 7: Acceso a IA Predictiva y Reposición -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-secondary text-body-lg">neurology</span>
+<div>
+<span>Acceso a IA Predictiva de Demanda</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Pronóstico de abastecimiento escolar y libros de texto</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<span class="font-label-sm text-label-sm text-outline">N/A</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2 py-1 rounded-md font-semibold">Generar Pedido</span>
+</td>
+</tr>
+<!-- Row 8: Modo Offline Forzado & Sincronización -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 font-label-md text-label-md text-on-surface flex items-center gap-2.5">
+<span class="material-symbols-outlined text-tertiary-container text-body-lg">cloud_sync</span>
+<div>
+<span>Modo Offline Forzado &amp; PWA Cache</span>
+<span class="block font-body-sm text-body-sm text-on-surface-variant font-normal">Capacidad de operar y sincronizar sin conexión a internet</span>
+</div>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-3">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="font-label-sm text-label-sm bg-tertiary-fixed text-tertiary px-2 py-1 rounded-md font-semibold">Purgar DB</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-lg text-primary">info</span>
+              Los cambios en la matriz aplican al próximo inicio de turno del colaborador o al refrescar el caché PWA.
+            </span>
+<span class="font-label-sm text-label-sm text-secondary font-bold">8 módulos mapeados</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Collaborators Directory & User Roster -->
+<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-sm border-b border-surface-container">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Directorio de Colaboradores &amp; Sucursales</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gestión directa de credenciales locales, asignación de sedes y estado del turno operativo.</p>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Branch Selector Filter -->
+<div class="relative">
+<select class="font-label-sm text-label-sm bg-surface-container-low text-on-surface py-2 px-3 rounded-xl focus:outline-none appearance-none pr-8 cursor-pointer" id="filterBranch">
+<option value="all">Todas las Sucursales (3)</option>
+<option value="managua">Managua Central</option>
+<option value="leon">Sucursal León</option>
+<option value="esteli">Sucursal Estelí</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-on-surface-variant pointer-events-none text-body-sm">keyboard_arrow_down</span>
+</div>
+<!-- Role Filter -->
+<div class="relative">
+<select class="font-label-sm text-label-sm bg-surface-container-low text-on-surface py-2 px-3 rounded-xl focus:outline-none appearance-none pr-8 cursor-pointer" id="filterRole">
+<option value="all">Todos los Roles</option>
+<option value="admin">Administrador General</option>
+<option value="cajero">Cajero POS</option>
+<option value="bodega">Encargado de Bodega</option>
+<option value="contador">Contador / Auditor</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-on-surface-variant pointer-events-none text-body-sm">keyboard_arrow_down</span>
+</div>
+<!-- User Search -->
+<div class="relative flex items-center bg-surface-container-low rounded-xl px-2.5 py-1.5">
+<span class="material-symbols-outlined text-outline mr-1.5 text-body-md">search</span>
+<input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none w-44" id="userSearchInput" placeholder="Buscar por nombre o PIN..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Users Grid List -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="usersListGrid">
+<!-- User 1: Carlos Mendoza (Admin) -->
+<div class="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" data-alt="Portrait of an experienced male Latin American bookstore store manager in neat professional smart casual attire, warm lighting, natural smile, crisp studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeLqVNvjPO9kiw_fODUx2cMcujFp_7k1lTsB-b5HVnliA_1S2EFfOk_F0DAqcCI6Yo2_RH54X_mtskcRbN9fAUUKB3ja65U_adkCw4tvSRplWRYCExFNQ_ll-QBAGl8waEu1KsXdQ1wbmM0Is3W0do61jH5wZOizqJcwhMdMBNj_Kq-AcrnLPiX_YJEWlIwn1BNz8lKdzmIG0mnmzCDfeuqOSqqoIG_jZ-NiWnX9oh4Vv6Lf9oiGsb5w"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Carlos Mendoza</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">carlos.m@jinstock.com.ni</span>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">En turno activo</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-primary-container text-on-primary px-2.5 py-0.5 rounded-full shrink-0">Admin</span>
+</div>
+<div class="flex flex-col gap-1.5 bg-surface-container-lowest p-2.5 rounded-xl text-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Sede Principal</span>
+<span class="text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">location_on</span>
+                Managua Central
+              </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>PIN Operativo</span>
+<span class="text-on-surface font-mono">**** 9042</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Último sync offline</span>
+<span class="text-on-surface">Hace 3 min</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm">history</span>
+              Auditoría
+            </button>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Editar permisos">
+<span class="material-symbols-outlined text-body-md">edit</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant transition-colors" title="Desactivar usuario">
+<span class="material-symbols-outlined text-body-md">person_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- User 2: Elena Jarquín (Cajera POS) -->
+<div class="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" data-alt="Portrait of a young friendly female cashier in a clean modern stationery shop wearing uniform blue collar shirt with warm ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdOv4YV-SduLwSUh_8VOPKTunWUDlRdHoYMx3nSQKFeaaJu4KPPqU5jrnN13R3NAXZRKbYQQI4XX7730fhTvM3bO8fRTyraoe_Vk2zgKWBcNZaAn_ms7dnwk-EqcXhB2x5ozCzJKE6UiCf9I7RFJ8qGQh4MT-QXKdDb2FrpogGD6tboOXMK5-jP-s7jaJ3e2aAgLz7uHXUTl6AH-QBewNDn2p0zQi1By8yQ-xzKSoUilgIGmnoItuBcQ"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Elena Jarquín S.</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">elena.pos@jinstock.com.ni</span>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Caja 01 Conectada</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2.5 py-0.5 rounded-full shrink-0">Cajera</span>
+</div>
+<div class="flex flex-col gap-1.5 bg-surface-container-lowest p-2.5 rounded-xl text-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Sede Principal</span>
+<span class="text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">location_on</span>
+                Managua Central
+              </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Fondo de Caja</span>
+<span class="text-on-surface font-semibold">C$ 2,500.00 NIO</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Restricción de costo</span>
+<span class="text-error font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-body-sm">lock</span>
+                Bloqueado
+              </span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm">receipt_long</span>
+              Arqueos
+            </button>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Editar permisos">
+<span class="material-symbols-outlined text-body-md">edit</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant transition-colors" title="Desactivar usuario">
+<span class="material-symbols-outlined text-body-md">person_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- User 3: Marcos Somarriba (Bodega) -->
+<div class="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" data-alt="Portrait of an energetic warehouse logistics manager in modern retail bookstore holding a digital handheld scanner with neat organized shelves behind" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaPw5RctXcq6_52cobkQkjSK21l7UTeZ2U6ulJma3lVdhA5TimFfTle1ZAzjv8g6bR_3UBdrpLgJ49PWsRWsiwbYfudJOziPViXF22sD2IWxTSN-hTc9KgzLj568pH5QT2Onqr4DcuoHfeBcPk4oqaAxMVSPSu1yXgnG6sRvKbzet9tGkGYRHOignEyOQw4B8a1zYY6naVvDiti0a3e18JRhgwhnOtH_jWAg9zy4Cmq_sZcvqdkKeMgw"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Marcos Somarriba</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">bodega.leon@jinstock.com</span>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">En turno activo</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-2.5 py-0.5 rounded-full shrink-0">Bodega</span>
+</div>
+<div class="flex flex-col gap-1.5 bg-surface-container-lowest p-2.5 rounded-xl text-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Sede Asignada</span>
+<span class="text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">location_on</span>
+                Sucursal León
+              </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Kardex Físico</span>
+<span class="text-on-surface">Escaneo Lote PWA</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Acceso a POS</span>
+<span class="text-error font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-body-sm">block</span>
+                Inhabilitado
+              </span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm">local_shipping</span>
+              Recepciones
+            </button>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Editar permisos">
+<span class="material-symbols-outlined text-body-md">edit</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant transition-colors" title="Desactivar usuario">
+<span class="material-symbols-outlined text-body-md">person_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- User 4: Lic. Patricia Blandón (Contadora) -->
+<div class="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" data-alt="Portrait of a professional Latina corporate accountant with glasses reviewing financial papers in a brightly lit modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmvOixekqBSlqGBcmNUubHLsSdUtmR_GiyWjbIzXRoOtbLNf4kDifAWEHU8dhFnOHofmx9f1DPsYwc6iHETKaUd4q1PXtR0qcMYit-VoQhY9TaOMg4vtCgv7Mxhy8o9aAIRNypxQel5wEceLbJ7KCYQyrUuKgcHUg0DEFiu2Bm5zJLFjIlTNr5rvD67vsQ1uE2S4pA6Exh07YnT0dB1FZm9ILrKlLrEI8TxQXLmwUzLON9iXDfzEXiWw"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Lic. Patricia Blandón</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">auditoria@jinstock.com.ni</span>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Fuera de turno</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-fixed text-tertiary px-2.5 py-0.5 rounded-full shrink-0">Contador</span>
+</div>
+<div class="flex flex-col gap-1.5 bg-surface-container-lowest p-2.5 rounded-xl text-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Área de Cobertura</span>
+<span class="text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">domain</span>
+                Multi-sucursal (3)
+              </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Reportes Fiscales DGI</span>
+<span class="text-primary font-bold">Descarga Total</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Libros de Ventas</span>
+<span class="text-on-surface">Validación Mensual</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm">download</span>
+              Exportar
+            </button>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Editar permisos">
+<span class="material-symbols-outlined text-body-md">edit</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant transition-colors" title="Desactivar usuario">
+<span class="material-symbols-outlined text-body-md">person_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- User 5: Gabriel Zeledón (Cajero Estelí) -->
+<div class="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" data-alt="Portrait of a young male retail customer assistant smiling warmly in front of colorful school supply stationery shelves with clean warm light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe-93CIztaB80CuZJpcCiydT-F99bWHvEMTPcUmuHEtL55m3MvVF9kbeQ4KKrrdeMARSk6aVa1p9vWAnV6gH42gWOL1-5hhGT0VNpBA0BSa5WTDFMZq9GB7FDDLsCTmSPDi7RH0IM6o8layqb3psopTV_kDqajCRSQCkzGPQoE3Oj2I0UB4JaR4Y_Oo8i0cIHHpmdWHf65iC4N1TabTlcJjtsn1m0nrdMWUbInxeF7-lV0-IuArWYInA"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Gabriel Zeledón</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">gabriel.esteli@jinstock.com</span>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Caja 01 Estelí</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2.5 py-0.5 rounded-full shrink-0">Cajero</span>
+</div>
+<div class="flex flex-col gap-1.5 bg-surface-container-lowest p-2.5 rounded-xl text-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Sede Asignada</span>
+<span class="text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">location_on</span>
+                Sucursal Estelí
+              </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Fondo de Caja</span>
+<span class="text-on-surface font-semibold">C$ 1,800.00 NIO</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Sincronización PWA</span>
+<span class="text-on-surface">Local Listo (Offline)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm">receipt_long</span>
+              Arqueos
+            </button>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Editar permisos">
+<span class="material-symbols-outlined text-body-md">edit</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant transition-colors" title="Desactivar usuario">
+<span class="material-symbols-outlined text-body-md">person_off</span>
+</button>
+</div>
+</div>
+</div>
+<!-- User 6: Sofia Morales (Sub-administradora León) -->
+<div class="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<img class="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" data-alt="Portrait of a poised Hispanic woman store supervisor with clipboard inspecting elegant bookshelf displays in a boutique stationery bookstore" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgV0Cc5L8KlXPbAeIE-L74Zqfl7s_7X6nS9rZ8Jk_8-rojCA04j7l8Tgx9J72ngBvJqq9j4H4sR_8mZtYHec9o8CuqDtQpm_CAcJZuLXEbW4wPRr5WM9aK4shhbRjYkTL11U_EtcuektVhCBTznBDLtWnuH_WO7jz-qqEESMfek4IhdHgs_TzLxu0xxhXaRNcJ8Kqb-i4l34Vzt31V_vMmVYn1x755P-Wt3oF--4xeru9QHt9WcXQySA"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Sofía Morales</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">sofia.admin@jinstock.com</span>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">En turno activo</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-primary-container text-on-primary px-2.5 py-0.5 rounded-full shrink-0">Admin Sede</span>
+</div>
+<div class="flex flex-col gap-1.5 bg-surface-container-lowest p-2.5 rounded-xl text-body-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Sede Asignada</span>
+<span class="text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">location_on</span>
+                Sucursal León
+              </span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Permiso de Cierre</span>
+<span class="text-primary font-bold">Corte Z Habilitado</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm">
+<span>Recepción Proveedor</span>
+<span class="text-on-surface">Validado Directo</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm">history</span>
+              Auditoría
+            </button>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" title="Editar permisos">
+<span class="material-symbols-outlined text-body-md">edit</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant transition-colors" title="Desactivar usuario">
+<span class="material-symbols-outlined text-body-md">person_off</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Audit Activity Drawer Preview (IndexedDB Event Log) -->
+<div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md mb-space-lg">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-2.5">
+<span class="w-8 h-8 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-body-lg">footprint</span>
+</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Pistas de Auditoría Operativa en Tiempo Real</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Registro inmutable de accesos críticos, anulaciones y cambios de precio.</p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+            Sync continuo
+          </span>
+<button class="font-label-sm text-label-sm px-3 py-1.5 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">
+            Descargar Log (.CSV)
+          </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md pt-space-xs">
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-error font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-md">warning</span>
+              Intento de Acceso Restringido
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">10:42 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">
+            Cajera Elena Jarquín intentó ver pestaña de Costo Mayorista en <span class="font-semibold">Cuadernos Scribe 200 Hojas</span>.
+          </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Acción denegada por directiva de perfil · Caja 01 Managua</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-md">lock_open</span>
+              Autorización Gerencial
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:15 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">
+            Carlos Mendoza autorizó descuento extraordinario de 15% en lista de útiles escolares para Colegio Centroamérica.
+          </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ticket #JIN-2025-0842 · C$ 8,450 NIO</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-body-md">inventory</span>
+              Ajuste de Conteo Físico
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">08:00 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">
+            Marcos Somarriba registró entrada de mercadería de Distribuidora Escolar S.A. (+500 bolígrafos Faber Castell).
+          </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Kardex sincronizado · Bodega León</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Template: Registrar Nuevo Colaborador -->
+<div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-md hidden items-center justify-center p-4" id="collaboratorModal">
+<div class="bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+<div class="p-space-md bg-primary-container text-on-primary flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-headline-sm">person_add</span>
+<span class="font-headline-sm text-headline-sm font-bold">Registrar Colaborador</span>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container-lowest/20 transition-colors" id="closeModalBtn">
+<span class="material-symbols-outlined text-headline-sm">close</span>
+</button>
+</div>
+<form class="p-space-lg flex flex-col gap-space-md" id="newCollaboratorForm">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface">Nombre Completo</label>
+<input class="px-3 py-2 rounded-xl bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-body-sm text-body-sm" placeholder="Ej: Marcela Vallecillo Gómez" required="" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface">Correo Corporativo</label>
+<input class="px-3 py-2 rounded-xl bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-body-sm text-body-sm" placeholder="m.vallecillo@jinstock.com" required="" type="email"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface">PIN Numérico POS (4 dígitos)</label>
+<input class="px-3 py-2 rounded-xl bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-body-sm text-body-sm text-center font-mono" maxlength="4" placeholder="****" type="password"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface">Rol Asignado</label>
+<select class="px-3 py-2 rounded-xl bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-body-sm text-body-sm">
+<option>Cajero / Mostrador POS</option>
+<option>Encargado de Bodega</option>
+<option>Contador / Auditor</option>
+<option>Administrador General</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface">Sucursal Primaria</label>
+<select class="px-3 py-2 rounded-xl bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-body-sm text-body-sm">
+<option>Managua Central</option>
+<option>Sucursal León</option>
+<option>Sucursal Estelí</option>
+</select>
+</div>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex items-start gap-2">
+<input checked="" class="mt-1" id="requirePasswordReset" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface" for="requirePasswordReset">
+            Exigir cambio de PIN de mostrador en el primer inicio de turno.
+          </label>
+</div>
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-4 py-2 rounded-xl bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors" id="cancelModalBtn" type="button">
+            Cancelar
+          </button>
+<button class="px-4 py-2 rounded-xl bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-sm" type="submit">
+            Guardar &amp; Activar Usuario
+          </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Toast Notification Feedback -->
+<div class="fixed bottom-24 right-8 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none" id="toastNotification">
+<span class="material-symbols-outlined text-secondary" id="toastIcon">check_circle</span>
+<span class="font-label-md text-label-md" id="toastMessage">Operación completada con éxito</span>
+</div>
+<script>
+    (function() {
+      // Role Data Definition
+      const rolesConfig = {
+        admin: {
+          name: "Administrador General",
+          colorClass: "bg-primary-container",
+          desc: "Tiene autorización irrestricta para parametrizar las listas de útiles escolares, definir márgenes mayoristas, ejecutar cortes Z definitivos y autorizar compras directas al crédito.",
+          toggles: [true, true, true, true, true, true, true, true]
+        },
+        cajero: {
+          name: "Cajero / Mostrador POS",
+          colorClass: "bg-secondary",
+          desc: "Diseñado para atención de mostrador veloz, registro de ventas al detalle, arqueo parcial de caja y consulta de precios escolares. Tiene estrictamente bloqueada la consulta de costos de importación y utilidades.",
+          toggles: [false, true, false, false, false, false, false, true]
+        },
+        bodega: {
+          name: "Encargado de Bodega / Inventario",
+          colorClass: "bg-primary",
+          desc: "Encargado del control de Kardex físico, recepción y conteo de bultos de proveedores, ajustes por merma de cuadernos/hojas y traslados hacia otras sucursales. Sin acceso a facturación ni caja.",
+          toggles: [false, false, true, true, false, false, true, true]
+        },
+        contador: {
+          name: "Contador / Auditor",
+          colorClass: "bg-tertiary",
+          desc: "Acceso exclusivo a la auditoría tributaria, reportes de compras y ventas para la DGI, conciliación de IVA, balance de márgenes brutos y exportación oficial de pólizas contables.",
+          toggles: [true, false, true, true, true, false, false, true]
+        }
+      };
+
+      // Interactive Role Card Toggling
+      const roleCards = document.querySelectorAll('.role-card');
+      const activeRoleName = document.getElementById('activeRoleName');
+      const roleDescriptionLong = document.getElementById('roleDescriptionLong');
+      const roleBadgeColor = document.getElementById('roleBadgeColor');
+      const matrixCheckboxes = document.querySelectorAll('#matrixTableBody input[type="checkbox"]');
+
+      roleCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const roleKey = card.getAttribute('data-role');
+          const data = rolesConfig[roleKey];
+          if (!data) return;
+
+          // Update active card styling
+          roleCards.forEach(c => {
+            c.classList.remove('bg-primary-container', 'text-on-primary');
+            c.classList.add('bg-surface-container-low', 'text-on-surface');
+            const badge = c.querySelector('span:first-child');
+            if (badge) {
+              badge.classList.remove('bg-surface-container-lowest/15');
+            }
+          });
+
+          card.classList.remove('bg-surface-container-low', 'text-on-surface');
+          card.classList.add('bg-primary-container', 'text-on-primary');
+
+          // Update Scope Info
+          if (activeRoleName) activeRoleName.textContent = data.name;
+          if (roleDescriptionLong) roleDescriptionLong.textContent = data.desc;
+
+          // Update Matrix Toggles
+          matrixCheckboxes.forEach((cb, idx) => {
+            const shouldBeChecked = data.toggles[idx % data.toggles.length];
+            cb.checked = shouldBeChecked;
+          });
+
+          showToast("Plantilla de permisos: " + data.name + " cargada.");
+        });
+      });
+
+      // Quick matrix buttons
+      const toggleAllBtn = document.getElementById('toggleAllMatrix');
+      const resetMatrixBtn = document.getElementById('resetMatrix');
+
+      if (toggleAllBtn) {
+        toggleAllBtn.addEventListener('click', () => {
+          matrixCheckboxes.forEach(cb => cb.checked = true);
+          showToast("Todos los privilegios marcados temporalmente");
+        });
+      }
+
+      if (resetMatrixBtn) {
+        resetMatrixBtn.addEventListener('click', () => {
+          matrixCheckboxes.forEach(cb => cb.checked = false);
+          showToast("Matriz restablecida a restricción total");
+        });
+      }
+
+      // Modal Controls
+      const newCollabBtn = document.getElementById('newCollaboratorBtn');
+      const modal = document.getElementById('collaboratorModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const cancelModalBtn = document.getElementById('cancelModalBtn');
+      const newForm = document.getElementById('newCollaboratorForm');
+
+      function openModal() {
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      }
+
+      function closeModal() {
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      }
+
+      if (newCollabBtn) newCollabBtn.addEventListener('click', openModal);
+      if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+      if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+      if (newForm) {
+        newForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          closeModal();
+          showToast("Nuevo colaborador registrado y sincronizado en PWA");
+        });
+      }
+
+      // Quick Toast Notification
+      function showToast(text) {
+        const toast = document.getElementById('toastNotification');
+        const msg = document.getElementById('toastMessage');
+        if (!toast || !msg) return;
+
+        msg.textContent = text;
+        toast.classList.remove('translate-y-24', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+          toast.classList.add('translate-y-24', 'opacity-0');
+          toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3200);
+      }
+
+      // Simple Search and Filter on User Cards
+      const searchInput = document.getElementById('userSearchInput');
+      const filterBranch = document.getElementById('filterBranch');
+      const filterRole = document.getElementById('filterRole');
+      const userCards = document.querySelectorAll('.user-card');
+
+      function filterUsers() {
+        const query = (searchInput?.value || '').toLowerCase();
+        const branchVal = filterBranch?.value || 'all';
+
+        userCards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const matchesQuery = text.includes(query);
+          let matchesBranch = true;
+
+          if (branchVal === 'managua') matchesBranch = text.includes('managua');
+          else if (branchVal === 'leon') matchesBranch = text.includes('león');
+          else if (branchVal === 'esteli') matchesBranch = text.includes('estelí');
+
+          if (matchesQuery && matchesBranch) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+
+      if (searchInput) searchInput.addEventListener('input', filterUsers);
+      if (filterBranch) filterBranch.addEventListener('change', filterUsers);
+      if (filterRole) filterRole.addEventListener('change', filterUsers);
+
+      const matrixConfigBtn = document.getElementById('openMatrixConfigBtn');
+      if (matrixConfigBtn) {
+        matrixConfigBtn.addEventListener('click', () => {
+          showToast("Matriz de seguridad lista para auditoría y guardado");
+        });
+      }
+    })();
+  </script>
+</div></main><aside class="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[94vw]"><div class="bg-surface-container-lowest/95 backdrop-blur-2xl px-3 py-2 rounded-full shadow-[0_12px_32px_-4px_rgba(23,37,84,0.18)] flex items-center gap-1.5 overflow-x-auto max-w-full"><nav class="flex items-center gap-1 shrink-0" data-active-classes="bg-primary-container text-on-primary-container font-bold"><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="dashboard-general" href="#"><span class="material-symbols-outlined text-body-lg">home</span><span>Inicio</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="punto-de-venta" href="#"><span class="material-symbols-outlined text-body-lg">point_of_sale</span><span>POS</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="inventario-y-stock" href="#"><span class="material-symbols-outlined text-body-lg">inventory_2</span><span>Stock</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="catalogo-de-productos" href="#"><span class="material-symbols-outlined text-body-lg">sell</span><span>Productos</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="compras-y-proveedores" href="#"><span class="material-symbols-outlined text-body-lg">local_shipping</span><span>Compras</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="ventas-y-arqueo" href="#"><span class="material-symbols-outlined text-body-lg">query_stats</span><span>Ventas</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="jinstock-ia" href="#"><span class="material-symbols-outlined text-body-lg text-secondary">auto_awesome</span><span>IA Copilot</span></a><a aria-current="page" class="flex items-center gap-1.5 px-3 py-2 rounded-full transition-all whitespace-nowrap bg-primary-container text-on-primary-container font-bold" data-path="gestion-y-roles" href="#"><span class="material-symbols-outlined text-body-lg">group</span><span>Roles</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="ajustes-del-sistema" href="#"><span class="material-symbols-outlined text-body-lg">settings</span><span>Ajustes</span></a></nav><div class="h-5 w-px bg-outline-variant/40 mx-1 shrink-0"></div><div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low shrink-0 text-on-surface-variant" title="Almacenamiento IndexedDB Activo (Offline Ready)"><span class="w-2 h-2 rounded-full bg-secondary-container"></span><span class="font-label-sm text-label-sm text-on-surface">PWA</span></div></div></aside><footer class="w-full bg-surface-container-lowest py-space-sm border-t border-outline-variant/20 mb-16"><div class="w-full px-gutter-desktop flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-label-sm text-label-sm gap-2"><span>© 2025 JINStock • Sistema POS Offline-First para Papelerías y Librerías de Nicaragua</span><span>IndexedDB Cache Ready • Servidor Central Managua</span></div></footer></body></html>

@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+@theme {
+  --color-error: #FF6B6B;
+  --color-on-background: #ffffff;
+  --color-tertiary-fixed: #FDDB35;
+  --color-on-surface: #ffffff;
+  --color-on-tertiary: #111111;
+  --color-tertiary: #FDDB35;
+  --color-on-primary-container: #ffffff;
+  --color-outline-variant: #444651;
+  --color-on-secondary-container: #5F8FFF;
+  --color-on-tertiary-fixed: #111111;
+  --color-inverse-surface: #eaf1ff;
+  --color-tertiary-container: rgba(253, 219, 53, 0.15);
+  --color-inverse-on-surface: #eaf1ff;
+  --color-surface-container-low: #1c1b22;
+  --color-surface-container-lowest: #100f14;
+  --color-on-tertiary-fixed-variant: #FDDB35;
+  --color-on-tertiary-container: #FDDB35;
+  --color-background: #100f14;
+  --color-primary-fixed: #A788F4;
+  --color-on-error-container: #FF6B6B;
+  --color-surface-bright: #33323c;
+  --color-secondary: #5F8FFF;
+  --color-surface-tint: #4A148C;
+  --color-surface-container-high: #2d2c35;
+  --color-error-container: rgba(255, 107, 107, 0.15);
+  --color-on-error: #ffffff;
+  --color-primary-fixed-dim: #A788F4;
+  --color-surface: #100f14;
+  --color-secondary-fixed: #5F8FFF;
+  --color-primary-container: #4A148C;
+  --color-on-secondary-fixed: #ffffff;
+  --color-on-primary-fixed: #ffffff;
+  --color-outline: #8f9099;
+  --color-on-surface-variant: #9ca3af;
+  --color-surface-container: #24232b;
+  --color-surface-variant: #444651;
+  --color-surface-dim: #100f14;
+  --color-on-secondary: #ffffff;
+  --color-inverse-primary: #A788F4;
+  --color-secondary-container: rgba(95, 143, 255, 0.15);
+  --color-tertiary-fixed-dim: #FDDB35;
+  --color-secondary-fixed-dim: #5F8FFF;
+  --color-on-primary: #ffffff;
+  --color-surface-container-highest: #33323c;
+  --color-primary: #A788F4;
+  --color-on-primary-fixed-variant: #4A148C;
+  --color-on-secondary-fixed-variant: #4A148C;
+
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  --spacing-space-xl: 2rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-gutter: 1rem;
+  --spacing-margin: 1rem;
+  --spacing-gutter-tablet: 1.25rem;
+  --spacing-margin-desktop: 2rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-margin-tablet: 1.5rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-gutter-desktop: 1.5rem;
+
+  --font-label-md: 'Inter', sans-serif;
+  --font-body-md: 'Plus Jakarta Sans', sans-serif;
+  --font-label-lg: 'Inter', sans-serif;
+  --font-body-sm: 'Plus Jakarta Sans', sans-serif;
+  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-xl: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-xl-mobile: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-sm: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-lg-mobile: 'Plus Jakarta Sans', sans-serif;
+  --font-numeric-pos: 'Inter', sans-serif;
+  --font-headline-md: 'Plus Jakarta Sans', sans-serif;
+  --font-label-sm: 'Inter', sans-serif;
+
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--font-weight: 600;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--font-weight: 600;
+
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 16px;
+  --text-body-sm--font-weight: 400;
+
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 400;
+
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 36px;
+  --text-headline-lg--font-weight: 700;
+
+  --text-headline-xl: 36px;
+  --text-headline-xl--line-height: 44px;
+  --text-headline-xl--font-weight: 800;
+
+  --text-headline-xl-mobile: 28px;
+  --text-headline-xl-mobile--line-height: 36px;
+  --text-headline-xl-mobile--font-weight: 800;
+
+  --text-headline-sm: 18px;
+  --text-headline-sm--line-height: 24px;
+  --text-headline-sm--font-weight: 600;
+
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 32px;
+  --text-headline-lg-mobile--font-weight: 700;
+
+  --text-numeric-pos: 24px;
+  --text-numeric-pos--line-height: 28px;
+  --text-numeric-pos--font-weight: 700;
+
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--font-weight: 600;
+}
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+  }
+  main > :first-child {
+    margin-top: 0 !important;
+  }
+  main > :last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Material symbols outlined helper class */
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24;
+}
+
+/* Print CSS to isolate thermal receipt ticket without headers or URLs */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  #receipt-ticket-printable, #receipt-ticket-printable * {
+    visibility: visible !important;
+  }
+  #receipt-ticket-printable {
+    position: absolute !important;
+    left: 50% !important;
+    top: 20px !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 0 auto !important;
+    padding: 16px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

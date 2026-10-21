@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-background":"#0b1c30","tertiary-fixed":"#dae2ff","on-surface":"#0b1c30","on-tertiary":"#ffffff","tertiary":"#002664","on-primary-container":"#90a8ff","outline-variant":"#c5c5d3","on-secondary-container":"#43218a","on-tertiary-fixed":"#001847","inverse-surface":"#213145","tertiary-container":"#003a91","inverse-on-surface":"#eaf1ff","surface-container-low":"#eff4ff","surface-container-lowest":"#ffffff","on-tertiary-fixed-variant":"#00409f","on-tertiary-container":"#88a9ff","background":"#f8f9ff","primary-fixed":"#dce1ff","on-error-container":"#93000a","surface-bright":"#f8f9ff","secondary":"#694bb2","surface-tint":"#4059aa","surface-container-high":"#dce9ff","error-container":"#ffdad6","on-error":"#ffffff","primary-fixed-dim":"#b6c4ff","surface":"#f8f9ff","secondary-fixed":"#e9ddff","primary-container":"#1e3a8a","on-secondary-fixed":"#23005c","on-primary-fixed":"#00164e","outline":"#757682","on-surface-variant":"#444651","surface-container":"#e5eeff","surface-variant":"#d3e4fe","surface-dim":"#cbdbf5","on-secondary":"#ffffff","inverse-primary":"#b6c4ff","secondary-container":"#b091fe","tertiary-fixed-dim":"#b1c5ff","secondary-fixed-dim":"#d0bcff","on-primary":"#ffffff","surface-container-highest":"#d3e4fe","primary":"#00236f","on-primary-fixed-variant":"#264191","on-secondary-fixed-variant":"#513199"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xl":"2rem","space-xs":"0.25rem","gutter":"1rem","margin":"1rem","gutter-tablet":"1.25rem","margin-desktop":"2rem","space-md":"1rem","space-lg":"1.5rem","margin-tablet":"1.5rem","space-sm":"0.5rem","gutter-desktop":"1.5rem"},fontFamily:{"label-md":["Inter"],"body-md":["Plus Jakarta Sans"],"label-lg":["Inter"],"body-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"numeric-pos":["Inter"],"headline-md":["Plus Jakarta Sans"],"label-sm":["Inter"]},fontSize:{"label-md":["12px",{lineHeight:"16px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],"label-lg":["14px",{lineHeight:"20px",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"16px",fontWeight:"400"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"headline-lg":["28px",{lineHeight:"36px",fontWeight:"700"}],"headline-xl":["36px",{lineHeight:"44px",fontWeight:"800"}],"headline-xl-mobile":["28px",{lineHeight:"36px",fontWeight:"800"}],"headline-sm":["18px",{lineHeight:"24px",fontWeight:"600"}],"headline-lg-mobile":["24px",{lineHeight:"32px",fontWeight:"700"}],"numeric-pos":["24px",{lineHeight:"28px",fontWeight:"700"}],"headline-md":["22px",{lineHeight:"28px",fontWeight:"600"}],"label-sm":["11px",{lineHeight:"14px",fontWeight:"600"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen relative flex flex-col"><header class="fixed top-0 left-0 right-0 w-full z-40 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(11,28,48,0.06)]"><div class="h-16 w-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm shrink-0"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-headline-sm">menu_book</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-primary leading-none">JINStock</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1 hidden sm:inline-block">Papelería &amp; Librería Inteligente</span></div></div><div class="flex-1 max-w-2xl mx-space-md hidden md:flex items-center gap-space-sm"><div class="flex-1 relative flex items-center bg-surface-container-low rounded-xl px-space-sm py-1.5 focus-within:bg-surface-container-lowest focus-within:shadow-[0_0_0_2px_#1e3a8a] transition-all"><span class="material-symbols-outlined text-outline mr-2 text-headline-sm">search</span><input class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none" placeholder="Buscar artículos, código de barras (EAN), facturas..." type="text"/><span class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded shadow-sm shrink-0">Ctrl+K</span></div><div class="relative shrink-0"><select class="font-label-sm text-label-sm bg-surface-container text-on-surface py-2 px-3 rounded-xl focus:outline-none appearance-none pr-7 cursor-pointer"><option>Rol: Administrador General</option><option>Rol: Cajero / POS</option><option>Rol: Encargado de Inventario</option></select><span class="material-symbols-outlined absolute right-2 top-2.5 text-on-surface-variant pointer-events-none text-body-sm">expand_more</span></div></div><div class="flex items-center gap-space-sm shrink-0"><div class="flex items-center gap-1.5 bg-surface-container-high px-2.5 py-1 rounded-full cursor-pointer hover:bg-surface-container transition-colors"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="material-symbols-outlined text-body-sm text-primary">sync</span><span class="font-label-sm text-label-sm text-on-surface hidden lg:inline-block">3 cambios pendientes</span></div><button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-headline-sm">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><div class="flex items-center gap-space-sm pl-2 border-l border-outline-variant/30"><div class="hidden xl:flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface leading-tight">Carlos Mendoza</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Sucursal Central Managua</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida/AEtjO1UKFwhFaPYT_71R6K5nK10Q8h_XzW_T7vOcE8ZgNcU3U1i2OUQh23XWBRKdGefjvHF9JL0NW8FvCMjw4A-NoQlMzqaAJoVRQ7-yH45WOQIvoFSy2tyVVhj0fXZU_r49kUGi8NYcsC2w3ACEMD2kSR2hqnP0rc_8xp47KzblB4VUKc7BGY5BBi22v2lbDiMYduJCW-cOrzx0eq_eYLH5OzIEfkDiBfrLfj_03K5E721X8vylApKUV8rNB4y132UNqFCmEdPvrRLUL4k"/></div></div></div></header><main class="w-full pt-16 pb-28 px-margin-desktop bg-surface flex-1"><div class="flex flex-col w-full">
+<!-- Top Context Ribbon & Role Switcher Banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-lg">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+          Sucursal Managua Centro #01
+        </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant shadow-sm font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+          99.8% Datos sincronizados en IndexedDB
+        </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">cloud_done</span>
+          Online
+        </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight mt-1">
+        Buenos días, Carlos
+        <span class="text-on-surface-variant font-headline-sm text-headline-sm font-normal ml-1">(Administrador General)</span>
+</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        Resumen operativo en tiempo real para Librería &amp; Papelería JINStock Managua • Tasa oficial BCN: C$ 36.80 / USD
+      </p>
+</div>
+<!-- Quick Role Pill Switcher (Inspired by capsule nav) -->
+<div class="flex items-center self-start lg:self-center bg-surface-container-lowest p-1.5 rounded-full shadow-sm">
+<button class="px-4 py-1.5 rounded-full font-label-md text-label-md bg-secondary text-on-secondary shadow-sm transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-md" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+<span>Administrador</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-md">point_of_sale</span>
+<span>Cajero / POS</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-md">inventory_2</span>
+<span>Encargado Bodega</span>
+</button>
+</div>
+</div>
+<!-- Row 1: KPI SaaS Bento Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md mb-space-lg">
+<!-- KPI 1: Ventas Hoy -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute -right-3 -top-3 w-16 h-16 rounded-full bg-surface-container-high/40 pointer-events-none"></div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Ventas de Hoy</span>
+<div class="w-8 h-8 rounded-xl bg-tertiary-fixed text-tertiary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-body-md">payments</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-numeric-pos text-numeric-pos text-primary tracking-tight">C$ 38,450<span class="text-body-sm font-normal text-on-surface-variant">.00</span></span>
+<div class="flex items-center gap-1.5 mt-2 font-label-sm text-label-sm text-primary">
+<span class="inline-flex items-center text-primary font-bold">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span> 14.2%
+          </span>
+<span class="text-on-surface-variant">vs. ayer (C$ 33.6k)</span>
+</div>
+</div>
+</div>
+<!-- KPI 2: Ventas del Mes -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Ventas del Mes</span>
+<div class="w-8 h-8 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-body-md">trending_up</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-numeric-pos text-numeric-pos text-primary tracking-tight">C$ 684,200<span class="text-body-sm font-normal text-on-surface-variant">.00</span></span>
+<div class="flex items-center justify-between gap-1 mt-2">
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 82%;"></div>
+</div>
+<span class="font-label-sm text-label-sm text-primary shrink-0">82% meta</span>
+</div>
+</div>
+</div>
+<!-- KPI 3: Catálogo Activo -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Catálogo Activo</span>
+<div class="w-8 h-8 rounded-xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-body-md">auto_stories</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-numeric-pos text-numeric-pos text-primary tracking-tight">3,420</span>
+<div class="flex items-center gap-1.5 mt-2 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary">barcode_scanner</span>
+<span>100% clasificados con EAN</span>
+</div>
+</div>
+</div>
+<!-- KPI 4: Stock Bajo -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-error">Stock Bajo</span>
+<div class="w-8 h-8 rounded-xl bg-error-container text-error flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-body-md">production_quantity_limits</span>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-pos text-numeric-pos text-error tracking-tight">14</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">artículos en umbral</span>
+</div>
+<div class="flex items-center gap-1 mt-2">
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+<span class="font-label-sm text-label-sm text-error">Atención prioritaria</span>
+</div>
+</div>
+</div>
+<!-- KPI 5: Agotados Críticos -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-error">Agotados</span>
+<div class="w-8 h-8 rounded-xl bg-error-container text-on-error-container flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-body-md">remove_shopping_cart</span>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-pos text-numeric-pos text-error tracking-tight">3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">quiebres de stock</span>
+</div>
+<span class="font-label-sm text-label-sm text-error mt-2">Pérdida est: ~C$ 4,800</span>
+</div>
+</div>
+</div>
+<!-- Row 2: AI Copilot Strategic Banner -->
+<div class="relative bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm mb-space-lg overflow-hidden">
+<div class="absolute -right-12 -top-12 w-64 h-64 bg-gradient-to-bl from-secondary-fixed/40 via-surface-container-high/30 to-transparent rounded-full pointer-events-none"></div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-2xl bg-secondary text-on-secondary flex items-center justify-center shadow-sm shrink-0">
+<span class="material-symbols-outlined text-headline-sm" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-secondary">JINStock Intelligence Copilot</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">Temporada Escolar 2025</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface font-semibold mt-0.5">
+            8 productos presentan alto riesgo de quiebre de stock por inicio del ciclo lectivo nacional.
+          </p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+            Recomendación instantánea: Aumentar pedido de <strong class="text-primary font-semibold">Cuadernos #1 (Loro/Scribe)</strong> y <strong class="text-primary font-semibold">Marcadores Permanentes Sharpie</strong> antes del viernes para evitar desabastecimiento en Managua.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="px-4 py-2.5 rounded-xl font-label-md text-label-md bg-secondary text-on-secondary shadow-sm hover:opacity-95 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-body-md">psychology</span>
+<span>Ejecutar Análisis Predictivo IA</span>
+</button>
+<button class="p-2.5 rounded-xl bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Descartar sugerencia">
+<span class="material-symbols-outlined text-body-md">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Row 3: Visual Analytics Grid (Curva Semanal + Donut Distribución) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg mb-space-lg">
+<!-- Weekly Sales Curve (Col 8) -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Curva Semanal de Facturación</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Comportamiento de ventas: Temporada alta de cuadernos y papelería técnica</p>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-xl">
+<button class="px-3 py-1 rounded-lg font-label-sm text-label-sm bg-surface-container-lowest text-primary shadow-xs">Esta Semana</button>
+<button class="px-3 py-1 rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">Semana Anterior</button>
+<button class="px-3 py-1 rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">Histórico 2024</button>
+</div>
+</div>
+<!-- Inline SVG Chart for Sales Velocity -->
+<div class="w-full h-64 relative flex flex-col justify-end">
+<svg class="w-full h-52 overflow-visible" fill="none" preserveaspectratio="none" viewbox="0 0 700 200">
+<defs>
+<lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.22"></stop>
+<stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.0"></stop>
+</lineargradient>
+<lineargradient id="lineGrad" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0%" stop-color="#1e3a8a"></stop>
+<stop offset="60%" stop-color="#5f8fff"></stop>
+<stop offset="100%" stop-color="#a788f4"></stop>
+</lineargradient>
+</defs>
+<!-- Horizontal Reference lines -->
+<line stroke="#eff4ff" stroke-width="1.5" x1="0" x2="700" y1="180" y2="180"></line>
+<line stroke="#eff4ff" stroke-width="1.5" x1="0" x2="700" y1="120" y2="120"></line>
+<line stroke="#eff4ff" stroke-width="1.5" x1="0" x2="700" y1="60" y2="60"></line>
+<!-- Filled Area Under Curve -->
+<path d="M 10 160 Q 110 140, 220 110 T 430 45 T 570 70 T 690 25 L 690 190 L 10 190 Z" fill="url(#areaGradient)"></path>
+<!-- Main Trend Line -->
+<path d="M 10 160 Q 110 140, 220 110 T 430 45 T 570 70 T 690 25" fill="none" stroke="url(#lineGrad)" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- Peak Data Points -->
+<circle cx="220" cy="110" fill="#ffffff" r="4.5" stroke="#1e3a8a" stroke-width="2.5"></circle>
+<circle cx="430" cy="45" fill="#ffffff" r="5.5" stroke="#5f8fff" stroke-width="3"></circle>
+<circle cx="690" cy="25" fill="#a788f4" r="6" stroke="#ffffff" stroke-width="2.5"></circle>
+</svg>
+<!-- Dynamic Marker Tooltip Overlay for Saturday Peak -->
+<div class="absolute right-12 top-6 bg-primary text-on-primary px-3 py-1.5 rounded-xl shadow-md pointer-events-none flex flex-col items-center">
+<span class="font-label-sm text-label-sm">Sábado (Pico Escolar)</span>
+<span class="font-headline-sm text-headline-sm font-bold">C$ 58,120</span>
+</div>
+<!-- Axis Labels -->
+<div class="w-full flex justify-between pt-3 font-label-sm text-label-sm text-on-surface-variant">
+<span>Lun (C$ 24k)</span>
+<span>Mar (C$ 29k)</span>
+<span>Mié (C$ 33k)</span>
+<span>Jue (C$ 42k)</span>
+<span class="text-primary font-bold">Vie (C$ 49k)</span>
+<span class="text-primary font-bold">Sáb (C$ 58k)</span>
+<span>Dom (C$ 38k)</span>
+</div>
+</div>
+<!-- Quick Summary Footnote -->
+<div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span>Cuadernos 200 Hojas (+48%)</span>
+</div>
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span>Marcadores &amp; Geometría (+22%)</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Actualizado hace 2 minutos vía POS</span>
+</div>
+</div>
+<!-- Donut Distribution Chart (Col 4) -->
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Composición por Categoría</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Distribución del volumen de venta mensual</p>
+</div>
+<!-- Donut Visual -->
+<div class="flex items-center justify-center my-4 relative">
+<svg class="w-44 h-44 -rotate-90" viewbox="0 0 160 160">
+<!-- Background circle track -->
+<circle cx="80" cy="80" fill="none" r="62" stroke="#eff4ff" stroke-width="20"></circle>
+<!-- Cuadernos & Papeleria (45%) -> Circumference = 2 * PI * 62 = 389.55 -> 45% = 175.3 -->
+<circle cx="80" cy="80" fill="none" r="62" stroke="#1e3a8a" stroke-dasharray="175.3 389.55" stroke-dashoffset="0" stroke-width="20"></circle>
+<!-- Escritura & Boligrafos (25%) -> 97.4 -->
+<circle cx="80" cy="80" fill="none" r="62" stroke="#5f8fff" stroke-dasharray="97.4 389.55" stroke-dashoffset="-175.3" stroke-width="20"></circle>
+<!-- Arte & Manualidades (18%) -> 70.1 -->
+<circle cx="80" cy="80" fill="none" r="62" stroke="#a788f4" stroke-dasharray="70.1 389.55" stroke-dashoffset="-272.7" stroke-width="20"></circle>
+<!-- Oficina & Resmas (12%) -> 46.7 -->
+<circle cx="80" cy="80" fill="none" r="62" stroke="#23005c" stroke-dasharray="46.7 389.55" stroke-dashoffset="-342.8" stroke-width="20"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="font-headline-lg text-headline-lg font-extrabold text-primary leading-none">3,420</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">SKUs Totales</span>
+</div>
+</div>
+<!-- Category Legend -->
+<div class="space-y-2 font-label-sm text-label-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-md bg-primary-container"></span>
+<span class="text-on-surface font-medium">Cuadernos &amp; Papelería</span>
+</div>
+<span class="font-bold text-primary">45%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-md bg-tertiary-container"></span>
+<span class="text-on-surface font-medium">Escritura &amp; Bolígrafos</span>
+</div>
+<span class="font-bold text-primary">25%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-md bg-secondary"></span>
+<span class="text-on-surface font-medium">Arte &amp; Manualidades</span>
+</div>
+<span class="font-bold text-primary">18%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-md bg-tertiary"></span>
+<span class="text-on-surface font-medium">Oficina &amp; Resmas</span>
+</div>
+<span class="font-bold text-primary">12%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Row 4: Two Column Layout -> Alertas de Inventario Crítico & Top Ventas + Muestra Fotográfica -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg mb-space-lg">
+<!-- Left Column: Alertas Críticas (Col 7) -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-xl bg-error-container text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-body-lg">warning</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Alertas de Inventario Crítico</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Productos por debajo del stock de seguridad mínimo en bodega</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">
+            4 Acciones Requeridas
+          </span>
+</div>
+<!-- Inventory Alert List -->
+<div class="space-y-space-sm">
+<!-- Item 1 -->
+<div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-lowest p-1 flex items-center justify-center shadow-xs shrink-0">
+<span class="material-symbols-outlined text-primary text-headline-sm">book</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-primary font-bold">Cuaderno Universitario 200 Hojas Rayado</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Marca: Scribe • Código: 7410098231</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end sm:self-center">
+<div class="text-right">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-error font-bold">
+<span>Stock: 8</span>
+<span class="text-on-surface-variant font-normal">/ Min: 25</span>
+</div>
+<span class="text-error font-label-sm text-[10px] block">Riesgo agotamiento en 24h</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-error text-on-error font-label-sm text-label-sm hover:opacity-90 transition-opacity whitespace-nowrap shadow-xs">
+                Pedir Stock
+              </button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-lowest p-1 flex items-center justify-center shadow-xs shrink-0">
+<span class="material-symbols-outlined text-primary text-headline-sm">edit</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-primary font-bold">Lápiz Grafito HB Faber-Castell (Caja x12)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Marca: Faber-Castell • Ref: FC-1111</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end sm:self-center">
+<div class="text-right">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-error font-bold">
+<span>Stock: 5</span>
+<span class="text-on-surface-variant font-normal">/ Min: 30</span>
+</div>
+<span class="text-error font-label-sm text-[10px] block">Crítico en mostrador</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:opacity-90 transition-opacity whitespace-nowrap shadow-xs">
+                Pedir Stock
+              </button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-lowest p-1 flex items-center justify-center shadow-xs shrink-0">
+<span class="material-symbols-outlined text-primary text-headline-sm">content_copy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-primary font-bold">Resma Papel Bond Chamex Carta 75g (500 Hojas)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Marca: Chamex • Código: 7891048032</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end sm:self-center">
+<div class="text-right">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-error font-bold">
+<span>Stock: 2</span>
+<span class="text-on-surface-variant font-normal">/ Min: 20</span>
+</div>
+<span class="text-error font-label-sm text-[10px] block">Alta rotación de oficina</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:opacity-90 transition-opacity whitespace-nowrap shadow-xs">
+                Pedir Stock
+              </button>
+</div>
+</div>
+<!-- Item 4: Agotado Urgente -->
+<div class="p-space-sm rounded-xl bg-error-container/40 hover:bg-error-container/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-lowest p-1 flex items-center justify-center shadow-xs shrink-0">
+<span class="material-symbols-outlined text-error text-headline-sm">layers_clear</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-error font-bold">Cartulina Blanca Bristol 65x50cm</span>
+<span class="px-1.5 py-0.5 rounded bg-error text-on-error font-label-sm text-[10px] font-bold uppercase">Agotado</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Material de Maquetas y Arte Escolar</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md self-end sm:self-center">
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-error font-bold block">0 unidades</span>
+<span class="text-error font-label-sm text-[10px] block">3 clientes esperando</span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-error text-on-error font-label-sm text-label-sm hover:opacity-90 transition-opacity whitespace-nowrap shadow-xs">
+                Orden Urgente
+              </button>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between">
+<a class="font-label-md text-label-md text-secondary hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span>Ver las 14 alertas de inventario completas</span>
+<span class="material-symbols-outlined text-body-sm">arrow_forward</span>
+</a>
+<button class="px-4 py-2 rounded-xl bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-container transition-colors font-semibold">
+          Generar Orden de Compra Masiva
+        </button>
+</div>
+</div>
+<!-- Right Column: Visual Product Showcase + Top Más Vendidos (Col 5) -->
+<div class="lg:col-span-5 flex flex-col gap-space-md">
+<!-- Image Hero Card for Retail Atmosphere -->
+<div class="relative rounded-2xl overflow-hidden bg-surface-container-lowest shadow-sm h-48 flex flex-col justify-end p-space-md">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Modern brightly lit Nicaraguan stationery and bookstore interior showing organized neat shelves filled with colorful notebooks, sketchbooks, artist markers, and neat school supply displays bathed in soft daylight with deep blue and lavender brand accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDczeuHrix6inlhOTMjedDfTDfeV6myCMkgeYvrixIlHia4IVR3duIQ-HZncJ6cmJWQ02Qvpn1n1ipwTVWCe1FNTCEMzL7dV84hMd8bYugFpA4dlLHG6BaFM_NYw0JfcGFGEaVYCD2MlkHbJVG1J1XMXsk39b42L6HlRGrne1kD9kCtvZ_Omkkmqnd5_TKnRteLBdDX3z3wr2mV4O7YvyLCNC7saJaUJGAbeeqEpk27P40CPyVRkzqhNA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/60 to-transparent"></div>
+<div class="relative z-10 text-on-primary">
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+            Mostrador Principal
+          </span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-primary mt-1">Campaña Útiles Escolares 2025</h3>
+<p class="font-body-sm text-body-sm text-primary-fixed">62 pedidos despachados hoy con terminales POS offline.</p>
+</div>
+</div>
+<!-- Top Seller Ranked List -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm flex-1 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="font-headline-sm text-headline-sm text-primary">Top Artículos Más Vendidos</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hoy</span>
+</div>
+<div class="space-y-2.5">
+<!-- Rank 1 -->
+<div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold flex items-center justify-center">1</span>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold leading-tight">Cuaderno Cocido Loro 100 Hojas</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">142 uds vendidas</p>
+</div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">C$ 7,810.00</span>
+</div>
+<!-- Rank 2 -->
+<div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-bold flex items-center justify-center">2</span>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold leading-tight">Cinta Adhesiva Transparente 3/4"</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">98 uds vendidas</p>
+</div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">C$ 2,450.00</span>
+</div>
+<!-- Rank 3 -->
+<div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-full bg-tertiary text-on-tertiary font-label-sm text-label-sm font-bold flex items-center justify-center">3</span>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold leading-tight">Tijera Escolar Punta Roma 5"</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">74 uds vendidas</p>
+</div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">C$ 2,960.00</span>
+</div>
+<!-- Rank 4 -->
+<div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm font-bold flex items-center justify-center">4</span>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold leading-tight">Resma Papel Bond Chamex Carta</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">18 resmas</p>
+</div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">C$ 4,140.00</span>
+</div>
+</div>
+</div>
+<div class="mt-3 text-right">
+<a class="font-label-sm text-label-sm text-primary font-semibold hover:underline" href="#">
+            Descargar reporte en Excel / PDF →
+          </a>
+</div>
+</div>
+</div>
+</div>
+<!-- Row 5: Tabla de Últimas Transacciones en Mostrador -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm mb-space-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Ventas Recientes en Caja (Punto de Venta)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Transacciones procesadas localmente con comprobante DGI impreso</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Filtro rápido:</span>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container text-primary font-label-sm text-label-sm font-semibold">Todas</button>
+<button class="px-2.5 py-1 rounded-lg text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container">Efectivo NIO</button>
+<button class="px-2.5 py-1 rounded-lg text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container">BAC Tarjeta</button>
+</div>
+</div>
+<!-- Responsive Clean Table -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm text-on-surface">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-4 rounded-l-xl">No. Ticket</th>
+<th class="py-3 px-4">Hora</th>
+<th class="py-3 px-4">Cliente / Tipo</th>
+<th class="py-3 px-4">Artículos</th>
+<th class="py-3 px-4">Método de Pago</th>
+<th class="py-3 px-4">Estado Sync</th>
+<th class="py-3 px-4 text-right rounded-r-xl">Total (NIO)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/40">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-4 font-label-md text-label-md text-primary font-bold">#FAC-008942</td>
+<td class="py-3 px-4 text-on-surface-variant">11:42 AM</td>
+<td class="py-3 px-4">Colegio Centroamérica (Institucional)</td>
+<td class="py-3 px-4">48x Cuadernos, 12x Resmas, 3x Marcadores</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary">
+<span class="material-symbols-outlined text-[15px]">account_balance</span>
+                Transferencia BAC
+              </span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> Sincronizado
+              </span>
+</td>
+<td class="py-3 px-4 text-right font-label-lg text-label-lg font-bold text-primary">C$ 6,850.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-4 font-label-md text-label-md text-primary font-bold">#FAC-008941</td>
+<td class="py-3 px-4 text-on-surface-variant">11:38 AM</td>
+<td class="py-3 px-4">Consumidor Final (Caja 01)</td>
+<td class="py-3 px-4">2x Bolígrafo BIC Cristal, 1x Libreta Top</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">payments</span>
+                Efectivo Córdobas
+              </span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> Sincronizado
+              </span>
+</td>
+<td class="py-3 px-4 text-right font-label-lg text-label-lg font-bold text-primary">C$ 95.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-4 font-label-md text-label-md text-primary font-bold">#FAC-008940</td>
+<td class="py-3 px-4 text-on-surface-variant">11:31 AM</td>
+<td class="py-3 px-4">María Elena Gutiérrez</td>
+<td class="py-3 px-4">1x Set Acuarelas Pelikan, 1x Block Dibujo</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-secondary">
+<span class="material-symbols-outlined text-[15px]">credit_card</span>
+                Tarjeta Débito
+              </span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Cola Local (PWA)
+              </span>
+</td>
+<td class="py-3 px-4 text-right font-label-lg text-label-lg font-bold text-primary">C$ 440.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3 px-4 font-label-md text-label-md text-primary font-bold">#FAC-008939</td>
+<td class="py-3 px-4 text-on-surface-variant">11:15 AM</td>
+<td class="py-3 px-4">Arq. Roberto Miranda</td>
+<td class="py-3 px-4">3x Plumón Calibrado Micron, 1x Escalímetro</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-primary">
+<span class="material-symbols-outlined text-[15px]">payments</span>
+                Dólares Efectivo ($22.00)
+              </span>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[13px]">check_circle</span> Sincronizado
+              </span>
+</td>
+<td class="py-3 px-4 text-right font-label-lg text-label-lg font-bold text-primary">C$ 809.60</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination and POS Action Shortcut -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-sm mt-space-md pt-space-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando 4 de 128 ventas registradas hoy</span>
+<div class="flex items-center gap-space-sm">
+<button class="px-3 py-1.5 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+          ← Anteriores
+        </button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+          Siguientes →
+        </button>
+<button class="px-4 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-xs">
+<span class="material-symbols-outlined text-[15px]">point_of_sale</span>
+<span>Abrir Terminal de Cobro</span>
+</button>
+</div>
+</div>
+</div>
+</div></main><aside class="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[94vw]"><div class="bg-surface-container-lowest/95 backdrop-blur-2xl px-3 py-2 rounded-full shadow-[0_12px_32px_-4px_rgba(23,37,84,0.18)] flex items-center gap-1.5 overflow-x-auto max-w-full"><nav class="flex items-center gap-1 shrink-0" data-active-classes="bg-primary-container text-on-primary-container font-bold"><a aria-current="page" class="flex items-center gap-1.5 px-3 py-2 rounded-full transition-all whitespace-nowrap bg-primary-container text-on-primary-container font-bold" data-path="dashboard-general" href="#"><span class="material-symbols-outlined text-body-lg">home</span><span>Inicio</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="punto-de-venta" href="#"><span class="material-symbols-outlined text-body-lg">point_of_sale</span><span>POS</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="inventario-y-stock" href="#"><span class="material-symbols-outlined text-body-lg">inventory_2</span><span>Stock</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="catalogo-de-productos" href="#"><span class="material-symbols-outlined text-body-lg">sell</span><span>Productos</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="compras-y-proveedores" href="#"><span class="material-symbols-outlined text-body-lg">local_shipping</span><span>Compras</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="ventas-y-arqueo" href="#"><span class="material-symbols-outlined text-body-lg">query_stats</span><span>Ventas</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="jinstock-ia" href="#"><span class="material-symbols-outlined text-body-lg text-secondary">auto_awesome</span><span>IA Copilot</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="gestion-y-roles" href="#"><span class="material-symbols-outlined text-body-lg">group</span><span>Roles</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="ajustes-del-sistema" href="#"><span class="material-symbols-outlined text-body-lg">settings</span><span>Ajustes</span></a></nav><div class="h-5 w-px bg-outline-variant/40 mx-1 shrink-0"></div><div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low shrink-0 text-on-surface-variant" title="Almacenamiento IndexedDB Activo (Offline Ready)"><span class="w-2 h-2 rounded-full bg-secondary-container"></span><span class="font-label-sm text-label-sm text-on-surface">PWA</span></div></div></aside><footer class="w-full bg-surface-container-lowest py-space-sm border-t border-outline-variant/20 mb-16"><div class="w-full px-gutter-desktop flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-label-sm text-label-sm gap-2"><span>© 2025 JINStock • Sistema POS Offline-First para Papelerías y Librerías de Nicaragua</span><span>IndexedDB Cache Ready • Servidor Central Managua</span></div></footer></body></html>

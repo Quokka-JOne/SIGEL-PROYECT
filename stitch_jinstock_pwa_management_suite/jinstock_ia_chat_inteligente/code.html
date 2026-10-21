@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"error":"#ba1a1a","on-background":"#0b1c30","tertiary-fixed":"#dae2ff","on-surface":"#0b1c30","on-tertiary":"#ffffff","tertiary":"#002664","on-primary-container":"#90a8ff","outline-variant":"#c5c5d3","on-secondary-container":"#43218a","on-tertiary-fixed":"#001847","inverse-surface":"#213145","tertiary-container":"#003a91","inverse-on-surface":"#eaf1ff","surface-container-low":"#eff4ff","surface-container-lowest":"#ffffff","on-tertiary-fixed-variant":"#00409f","on-tertiary-container":"#88a9ff","background":"#f8f9ff","primary-fixed":"#dce1ff","on-error-container":"#93000a","surface-bright":"#f8f9ff","secondary":"#694bb2","surface-tint":"#4059aa","surface-container-high":"#dce9ff","error-container":"#ffdad6","on-error":"#ffffff","primary-fixed-dim":"#b6c4ff","surface":"#f8f9ff","secondary-fixed":"#e9ddff","primary-container":"#1e3a8a","on-secondary-fixed":"#23005c","on-primary-fixed":"#00164e","outline":"#757682","on-surface-variant":"#444651","surface-container":"#e5eeff","surface-variant":"#d3e4fe","surface-dim":"#cbdbf5","on-secondary":"#ffffff","inverse-primary":"#b6c4ff","secondary-container":"#b091fe","tertiary-fixed-dim":"#b1c5ff","secondary-fixed-dim":"#d0bcff","on-primary":"#ffffff","surface-container-highest":"#d3e4fe","primary":"#00236f","on-primary-fixed-variant":"#264191","on-secondary-fixed-variant":"#513199"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xl":"2rem","space-xs":"0.25rem","gutter":"1rem","margin":"1rem","gutter-tablet":"1.25rem","margin-desktop":"2rem","space-md":"1rem","space-lg":"1.5rem","margin-tablet":"1.5rem","space-sm":"0.5rem","gutter-desktop":"1.5rem"},fontFamily:{"label-md":["Inter"],"body-md":["Plus Jakarta Sans"],"label-lg":["Inter"],"body-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"numeric-pos":["Inter"],"headline-md":["Plus Jakarta Sans"],"label-sm":["Inter"]},fontSize:{"label-md":["12px",{lineHeight:"16px",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],"label-lg":["14px",{lineHeight:"20px",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"16px",fontWeight:"400"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"headline-lg":["28px",{lineHeight:"36px",fontWeight:"700"}],"headline-xl":["36px",{lineHeight:"44px",fontWeight:"800"}],"headline-xl-mobile":["28px",{lineHeight:"36px",fontWeight:"800"}],"headline-sm":["18px",{lineHeight:"24px",fontWeight:"600"}],"headline-lg-mobile":["24px",{lineHeight:"32px",fontWeight:"700"}],"numeric-pos":["24px",{lineHeight:"28px",fontWeight:"700"}],"headline-md":["22px",{lineHeight:"28px",fontWeight:"600"}],"label-sm":["11px",{lineHeight:"14px",fontWeight:"600"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen relative flex flex-col"><header class="fixed top-0 left-0 right-0 w-full z-40 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(11,28,48,0.06)]"><div class="h-16 w-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm shrink-0"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-headline-sm">menu_book</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-primary leading-none">JINStock</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1 hidden sm:inline-block">Papelería &amp; Librería Inteligente</span></div></div><div class="flex-1 max-w-2xl mx-space-md hidden md:flex items-center gap-space-sm"><div class="flex-1 relative flex items-center bg-surface-container-low rounded-xl px-space-sm py-1.5 focus-within:bg-surface-container-lowest focus-within:shadow-[0_0_0_2px_#1e3a8a] transition-all"><span class="material-symbols-outlined text-outline mr-2 text-headline-sm">search</span><input class="w-full bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none" placeholder="Buscar artículos, código de barras (EAN), facturas..." type="text"/><span class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded shadow-sm shrink-0">Ctrl+K</span></div><div class="relative shrink-0"><select class="font-label-sm text-label-sm bg-surface-container text-on-surface py-2 px-3 rounded-xl focus:outline-none appearance-none pr-7 cursor-pointer"><option>Rol: Administrador General</option><option>Rol: Cajero / POS</option><option>Rol: Encargado de Inventario</option></select><span class="material-symbols-outlined absolute right-2 top-2.5 text-on-surface-variant pointer-events-none text-body-sm">expand_more</span></div></div><div class="flex items-center gap-space-sm shrink-0"><div class="flex items-center gap-1.5 bg-surface-container-high px-2.5 py-1 rounded-full cursor-pointer hover:bg-surface-container transition-colors"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="material-symbols-outlined text-body-sm text-primary">sync</span><span class="font-label-sm text-label-sm text-on-surface hidden lg:inline-block">3 cambios pendientes</span></div><button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-headline-sm">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><div class="flex items-center gap-space-sm pl-2 border-l border-outline-variant/30"><div class="hidden xl:flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface leading-tight">Carlos Mendoza</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Sucursal Central Managua</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida/AEtjO1UKFwhFaPYT_71R6K5nK10Q8h_XzW_T7vOcE8ZgNcU3U1i2OUQh23XWBRKdGefjvHF9JL0NW8FvCMjw4A-NoQlMzqaAJoVRQ7-yH45WOQIvoFSy2tyVVhj0fXZU_r49kUGi8NYcsC2w3ACEMD2kSR2hqnP0rc_8xp47KzblB4VUKc7BGY5BBi22v2lbDiMYduJCW-cOrzx0eq_eYLH5OzIEfkDiBfrLfj_03K5E721X8vylApKUV8rNB4y132UNqFCmEdPvrRLUL4k"/></div></div></div></header><main class="w-full pt-16 pb-28 px-margin-desktop bg-surface flex-1"><div class="flex flex-col w-full gap-space-lg pb-12">
+<!-- Top Predictive Banner & Global Model Status -->
+<section class="w-full bg-surface-container-lowest rounded-2xl shadow-sm p-space-md sm:p-space-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md relative overflow-hidden">
+<div class="absolute -right-16 -top-16 w-48 h-48 bg-secondary-fixed/50 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex items-center gap-space-md min-w-0 z-10">
+<div class="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center text-on-secondary shadow-md shrink-0">
+<span class="material-symbols-outlined text-headline-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<h1 class="font-headline-md text-headline-md text-primary font-extrabold tracking-tight">JINStock Intelligence</h1>
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-2.5 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-body-sm text-secondary">auto_awesome</span>
+            Algoritmo v4.2 Neuronal
+          </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Modelo Predictivo &amp; Asistente Cognitivo para Librerías y Papelerías</p>
+</div>
+</div>
+<!-- Toggle & Sync Telemetry -->
+<div class="flex items-center gap-space-md self-stretch md:self-auto justify-between md:justify-end z-10 flex-wrap">
+<div class="flex items-center gap-2.5 bg-surface-container-low px-3.5 py-2 rounded-xl">
+<div class="flex flex-col text-right">
+<span class="font-label-md text-label-md text-on-surface leading-tight">Temporada Escolar 2026</span>
+<span class="font-label-sm text-label-sm text-secondary leading-tight font-semibold">Ponderador activo (+38% demanda)</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" id="seasonToggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-container-lowest after:border-surface-variant after:border-0 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-xl">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Local SQLite &amp; IndexedDB Sync</span>
+</div>
+</div>
+</section>
+<!-- Main Split Architecture (55% / 45%) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT PANEL: Predictive Analytics & Operational Diagnostics (55% -> lg:col-span-7) -->
+<section class="lg:col-span-7 flex flex-col gap-space-md">
+<!-- Critical Warning Pill/Card (Coral tone: high out-of-stock risk) -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
+<div class="w-2 absolute left-0 top-0 bottom-0 bg-error"></div>
+<div class="w-10 h-10 rounded-xl bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-headline-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<span class="font-label-md text-label-md uppercase tracking-wider text-error font-bold">Alerta Preventiva de Quiebre</span>
+<span class="bg-error-container text-on-error-container font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">8 Artículos Críticos</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+<strong>8 productos</strong> presentan alto riesgo de agotamiento antes de fin de mes según la demanda histórica y el ritmo de ventas acelerado de los últimos 14 días.
+          </p>
+<div class="mt-2 flex items-center gap-space-sm flex-wrap">
+<button class="font-label-sm text-label-sm bg-error-container hover:bg-error text-on-error-container hover:text-on-error px-3 py-1.5 rounded-lg transition-colors font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-sm">assignment_late</span>
+              Ver lista de quiebres inminentes
+            </button>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Impacto potencial estimado: <span class="font-bold text-on-surface">C$ 34,250 NIO</span> en ventas perdidas</span>
+</div>
+</div>
+</div>
+<!-- Precision KPIs & Seasonal Velocity Micro-Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+<!-- Metric 1 -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant font-bold">Precisión Modelo</span>
+<span class="material-symbols-outlined text-secondary text-body-lg">verified</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-extrabold text-primary">96.4%</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold">+1.8% vs feb</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Convergencia en 420 SKUs de papelería</p>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant font-bold">Rotación Escolar</span>
+<span class="material-symbols-outlined text-tertiary-container text-body-lg">trending_up</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-extrabold text-on-surface">3.8x</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">Alta velocidad</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Picos en cuadernos, blocks y gomas</p>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant font-bold">Ahorro en Compras</span>
+<span class="material-symbols-outlined text-on-secondary-container text-body-lg">savings</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-extrabold text-secondary">C$ 18.4K</span>
+<span class="font-label-sm text-label-sm text-on-secondary-container font-bold">Lotes sugeridos</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Descuentos por escala con distribuidores</p>
+</div>
+</div>
+<!-- Section Title for Automated AI Recommendations -->
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-headline-sm">tune</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Acciones Automatizadas Sugeridas</h2>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-2.5 py-1 rounded-full">Basado en Kardex Real</span>
+</div>
+<!-- Recommendations Cards Bento Stack -->
+<div class="flex flex-col gap-space-md">
+<!-- Card 1: Cuaderno Universitario Espiral (Urgente / Reposición) -->
+<div class="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="w-1.5 absolute left-0 top-0 bottom-0 bg-error"></div>
+<div class="flex items-start gap-space-md flex-1 min-w-0">
+<img class="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" data-alt="Modern spiral notebooks with colorful minimalist covers stacked on clean wooden desk in educational library setting with soft natural morning light and vibrant blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQilzO7Uyw6Vuf2wU2-1e7hoxl8ju5YYkpC74ZTSuBB3hJXq4t7tAv4NmwddHp2Ea8bcEvqY7HWl1ZjsHIHVJKVjTbbYNl6eKh4lP2Uzo6QzKSMmaBo84nqvaTALZ4irBvkDGywTAhWWr404KzQFt9hfK8_tWwgNGeS3OkY1z2TwKa1AgkVIsp_tixuPgXdFPZirpoda0maF4OzYl1Rsy1_yDx70glIuovIfmUzJUXyLWGY02B3qoCeA"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="bg-error-container text-on-error-container font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Riesgo Inminente</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">EAN: 7412093821</span>
+</div>
+<h3 class="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Cuaderno Universitario Espiral 100 Hojas Rayado</h3>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
+<div class="bg-surface-container-low px-2 py-1 rounded-lg">
+<span class="text-on-surface-variant block text-label-sm">Stock Actual:</span>
+<span class="font-bold text-error">8 unidades</span>
+</div>
+<div class="bg-surface-container-low px-2 py-1 rounded-lg">
+<span class="text-on-surface-variant block text-label-sm">Ventas 30 días:</span>
+<span class="font-bold text-on-surface">47 unidades</span>
+</div>
+<div class="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
+<span class="text-on-surface-variant block text-label-sm">Agotamiento en:</span>
+<span class="font-bold text-error">~4.5 días</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+<strong class="text-primary font-semibold">Sugerencia IA:</strong> Reponer lote de <span class="font-bold text-on-surface">50 uds</span> con <span class="font-semibold text-primary">Distribuidora Escolar S.A.</span> (Lead time de entrega: 48h).
+              </p>
+</div>
+</div>
+<div class="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
+<button class="w-full sm:w-auto font-label-md text-label-md bg-primary-container text-on-primary hover:bg-primary px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95">
+<span class="material-symbols-outlined text-body-lg">post_add</span>
+<span>Generar Orden de Compra</span>
+</button>
+<button class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface px-2 py-1">Posponer alerta</button>
+</div>
+</div>
+<!-- Card 2: Lápiz de Color Prismacolor 24u (Alta rotación detected) -->
+<div class="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="w-1.5 absolute left-0 top-0 bottom-0 bg-secondary"></div>
+<div class="flex items-start gap-space-md flex-1 min-w-0">
+<img class="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" data-alt="Set of vibrant coloured pencils arranged neatly showing rainbow tips, sharp detail with lavender and sky blue backdrop, commercial stationery photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnrRQVRWt2MUz0dKGYDIRWo1ldIfE6CQwOErjtEjvi7UWdkpPR-ebs8XZDmHoUKqCss0WbwcknnD28MClidrnNSmQ6Pjac-WJv3W6KJ0Hc5HBkDzbBFgA1PtWkZeX_4boeKK2u6nvoG3jEN5J-uXei2S2kfOhjfAy7P0Df-XQVzVhH9pS5vqBYJcWRQGiWtmZGP4Yx_VxadAxKV32ZN8fc8uTcszz8m_Md696Icf1GoouPqSfgtn_KwQ"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Alta Rotación Detectada</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Línea Arte &amp; Dibujo</span>
+</div>
+<h3 class="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Lápiz de Color Prismacolor Escolar 24 Unidades</h3>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
+<div class="bg-surface-container-low px-2 py-1 rounded-lg">
+<span class="text-on-surface-variant block text-label-sm">Stock Actual:</span>
+<span class="font-bold text-on-surface">14 cajas</span>
+</div>
+<div class="bg-surface-container-low px-2 py-1 rounded-lg">
+<span class="text-on-surface-variant block text-label-sm">Velocidad / sem:</span>
+<span class="font-bold text-secondary">9 cajas</span>
+</div>
+<div class="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
+<span class="text-on-surface-variant block text-label-sm">Margen Bruto:</span>
+<span class="font-bold text-primary">41.2%</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+<strong class="text-secondary font-semibold">Sugerencia IA:</strong> Mantener stock de seguridad amortiguado en <span class="font-bold text-on-surface">25 cajas</span> antes del corte quincenal de colegios privados.
+              </p>
+</div>
+</div>
+<div class="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
+<button class="w-full sm:w-auto font-label-md text-label-md bg-secondary text-on-secondary hover:bg-on-secondary-container px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95">
+<span class="material-symbols-outlined text-body-lg">inventory</span>
+<span>Ajustar Stock Mínimo</span>
+</button>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Proveedor: OfiStore Managua</span>
+</div>
+</div>
+<!-- Card 3: Paquete de Papel Lustre surtido (Baja rotación > 90 días) -->
+<div class="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="w-1.5 absolute left-0 top-0 bottom-0 bg-primary-fixed-dim"></div>
+<div class="flex items-start gap-space-md flex-1 min-w-0">
+<img class="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm" data-alt="Multicolor gloss craft paper sheets folded neatly with stationery scissors and glue sticks, bright clean studio photography for bookstore marketing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7yxbK6zJBtTI0xSQ5YzPk8_LzvOtpDuOnpUx8xYuq-QTuRLPXdHiPCPUIL3u0VMnLWGt77YTbaTCirbavq6gJ_srT6pD_Dg0DH_eNPlKJeKAuGqFNMS1NskX8EtEhWKZ66DCQzHHAOwa9fzM8OOXdS7G2zHIhYKwfonWHz211eXYhZy6nH6ICbUIPJiiu2njnsXZ-JU-rK97M8HX6qQg-6b762CX1XOgdpUVtk9V_CTXi7kEz6Xi9iA"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Estancamiento &gt; 90 Días</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Capilaridad Lenta</span>
+</div>
+<h3 class="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Paquete de Papel Lustre Surtido 50 Pliegos</h3>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
+<div class="bg-surface-container-low px-2 py-1 rounded-lg">
+<span class="text-on-surface-variant block text-label-sm">Stock Inmóvil:</span>
+<span class="font-bold text-on-surface">62 paquetes</span>
+</div>
+<div class="bg-surface-container-low px-2 py-1 rounded-lg">
+<span class="text-on-surface-variant block text-label-sm">Capital Retenido:</span>
+<span class="font-bold text-error">C$ 5,890 NIO</span>
+</div>
+<div class="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
+<span class="text-on-surface-variant block text-label-sm">Última Venta:</span>
+<span class="font-bold text-on-surface">Hace 34 días</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
+<strong class="text-primary-container font-semibold">Sugerencia IA:</strong> Aplicar promo combo relámpago con <span class="font-bold text-on-surface">15% de descuento</span> empaquetado junto a tijeras punta roma escolares.
+              </p>
+</div>
+</div>
+<div class="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
+<button class="w-full sm:w-auto font-label-md text-label-md bg-surface-container-high hover:bg-surface-container text-primary px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95 font-bold">
+<span class="material-symbols-outlined text-body-lg">loyalty</span>
+<span>Crear Combo POS</span>
+</button>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Libera C$ 4.2K en 10d</span>
+</div>
+</div>
+</div>
+<!-- Forecast Mini Visualizer (SVG Sparkline showing Demand vs Stock curve) -->
+<div class="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Proyección de Demanda Semanal Consolidada</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Curva histórica vs. predicción algorítmica (Próximas 4 semanas)</span>
+</div>
+<div class="flex items-center gap-3 font-label-sm text-label-sm">
+<div class="flex items-center gap-1">
+<span class="w-3 h-1 bg-secondary rounded-full"></span>
+<span class="text-on-surface-variant">Predicción IA</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-3 h-1 bg-primary-container rounded-full"></span>
+<span class="text-on-surface-variant">Demanda Real</span>
+</div>
+</div>
+</div>
+<!-- Inline Responsive SVG Chart -->
+<div class="w-full h-32 relative flex items-center justify-center">
+<svg class="w-full h-full text-on-surface-variant overflow-visible" preserveaspectratio="none" viewbox="0 0 600 120">
+<!-- Grid lines -->
+<line stroke="currentColor" stroke-dasharray="4 4" stroke-opacity="0.1" x1="0" x2="600" y1="20" y2="20"></line>
+<line stroke="currentColor" stroke-dasharray="4 4" stroke-opacity="0.1" x1="0" x2="600" y1="60" y2="60"></line>
+<line stroke="currentColor" stroke-dasharray="4 4" stroke-opacity="0.1" x1="0" x2="600" y1="100" y2="100"></line>
+<!-- Real Demand Line (Past) -->
+<path d="M 0,95 Q 75,70 150,85 T 300,45" fill="none" stroke="#1E3A8A" stroke-linecap="round" stroke-width="3"></path>
+<!-- Forecasted Line (Future) with Lavender tone -->
+<path d="M 300,45 Q 380,20 450,30 T 600,10" fill="none" stroke="#694bb2" stroke-dasharray="6 4" stroke-linecap="round" stroke-width="3"></path>
+<!-- Shaded Area Under Forecast -->
+<polygon fill="#694bb2" fill-opacity="0.08" points="300,45 380,20 450,30 600,10 600,120 300,120"></polygon>
+<!-- Milestone Points -->
+<circle cx="300" cy="45" fill="#1E3A8A" r="5"></circle>
+<circle cx="450" cy="30" fill="#694bb2" r="5"></circle>
+<circle cx="600" cy="10" fill="#694bb2" r="5"></circle>
+</svg>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant px-1">
+<span>Sem 1 (Real)</span>
+<span>Sem 2 (Real)</span>
+<span class="text-primary font-bold">Hoy (Cruce)</span>
+<span class="text-secondary font-bold">Sem 4 (Pico Escolar)</span>
+<span class="text-secondary font-bold">Sem 5 (+38%)</span>
+</div>
+</div>
+</section>
+<!-- RIGHT PANEL: JINStock Copilot (Conversational Business Chat) (45% -> lg:col-span-5) -->
+<section class="lg:col-span-5 bg-surface-container-lowest rounded-2xl shadow-sm flex flex-col h-[780px] relative overflow-hidden">
+<!-- Chat Header -->
+<div class="p-space-md bg-surface-container-low/80 backdrop-blur-md flex items-center justify-between border-b border-outline-variant/20 shrink-0">
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary-container via-secondary to-secondary-container flex items-center justify-center text-on-secondary shadow-md">
+<span class="material-symbols-outlined text-headline-sm" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-secondary rounded-full ring-2 ring-surface-container-lowest flex items-center justify-center">
+<span class="w-1.5 h-1.5 bg-on-secondary rounded-full animate-pulse"></span>
+</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<h2 class="font-label-lg text-label-lg font-bold text-on-surface">JINStock Copilot IA</h2>
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-1.5 py-0.2 rounded font-bold">PRO</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+              Conectado a Kardex local &amp; facturación
+            </p>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl transition-colors" title="Limpiar historial">
+<span class="material-symbols-outlined text-body-lg">restart_alt</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl transition-colors" title="Opciones del modelo">
+<span class="material-symbols-outlined text-body-lg">tune</span>
+</button>
+</div>
+</div>
+<!-- Chat Scrollable History Area -->
+<div class="flex-1 overflow-y-auto p-space-md flex flex-col gap-space-md" id="chatContainer">
+<!-- Timestamp divider -->
+<div class="flex items-center justify-center my-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant/80 bg-surface-container-low px-3 py-1 rounded-full">Hoy, 10:42 AM • Sesión Carlos Mendoza</span>
+</div>
+<!-- Assistant Welcome / Context Message -->
+<div class="flex items-start gap-space-sm max-w-[92%]">
+<div class="w-7 h-7 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 mt-1">
+<span class="material-symbols-outlined text-body-md" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="bg-surface-container-low text-on-surface p-space-md rounded-2xl rounded-tl-sm flex flex-col gap-1.5">
+<p class="font-body-sm text-body-sm leading-relaxed">
+              ¡Hola Carlos! He sincronizado los <strong>128 movimientos de inventario</strong> y las <strong>46 ventas</strong> registradas en el POS de Managua esta mañana.
+            </p>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">¿Qué decisión comercial analizamos hoy?</span>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex items-start justify-end gap-space-sm self-end max-w-[88%]">
+<div class="bg-primary text-on-primary p-space-md rounded-2xl rounded-tr-sm shadow-sm">
+<p class="font-body-sm text-body-sm leading-relaxed">
+              ¿Cuáles son los 3 productos con mayor margen de ganancia este mes y cuál debería reordenar hoy?
+            </p>
+</div>
+</div>
+<!-- Assistant Detailed Response (Lavender bubble accented card) -->
+<div class="flex items-start gap-space-sm max-w-[95%]">
+<div class="w-7 h-7 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 mt-1">
+<span class="material-symbols-outlined text-body-md" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="bg-surface-container-low text-on-surface p-space-md sm:p-space-lg rounded-2xl rounded-tl-sm shadow-sm flex flex-col gap-3">
+<p class="font-body-sm text-body-sm leading-relaxed">
+              Hola Carlos, con gusto. Analizando el cierre parcial de marzo en tu sucursal central:
+            </p>
+<!-- Structured Items List Inside Response -->
+<div class="flex flex-col gap-2 font-body-sm text-body-sm">
+<!-- Item 1 (Urgent Reorder) -->
+<div class="p-2.5 rounded-xl bg-surface-container-lowest shadow-sm flex items-start gap-2.5">
+<span class="font-bold text-error bg-error-container w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-label-sm mt-0.5">1</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-bold text-on-surface">Resma Chamex Carta 75g</span>
+<span class="font-label-sm text-label-sm bg-error text-on-error px-1.5 py-0.2 rounded font-bold">¡Reordenar hoy!</span>
+</div>
+<p class="text-on-surface-variant text-body-sm mt-0.5">
+                    Margen: <strong class="text-primary">32%</strong> • Quedan: <strong class="text-error">4 unidades</strong> (Consumo promedio: 6/día).
+                  </p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-2.5 rounded-xl bg-surface-container-lowest shadow-sm flex items-start gap-2.5">
+<span class="font-bold text-secondary bg-secondary-fixed w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-label-sm mt-0.5">2</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-bold text-on-surface">Bolígrafo Faber-Castell 0.7mm Azul</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-1.5 py-0.2 rounded">Stock Saludable</span>
+</div>
+<p class="text-on-surface-variant text-body-sm mt-0.5">
+                    Margen líder: <strong class="text-secondary">48%</strong> • Stock actual: <strong>150 unidades</strong> (Suficiente para 22 días).
+                  </p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-2.5 rounded-xl bg-surface-container-lowest shadow-sm flex items-start gap-2.5">
+<span class="font-bold text-primary bg-primary-fixed w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-label-sm mt-0.5">3</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-bold text-on-surface">Calculadoras Casio FX-82MS II</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-1.5 py-0.2 rounded">Margen Estable</span>
+</div>
+<p class="text-on-surface-variant text-body-sm mt-0.5">
+                    Margen: <strong class="text-primary">28%</strong> • Stock: <strong>12 unidades</strong>.
+                  </p>
+</div>
+</div>
+</div>
+<!-- Action confirmation pill -->
+<div class="p-3 bg-secondary-fixed/40 rounded-xl flex items-center justify-between gap-2">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">¿Deseas que prepare el borrador de orden de compra para las <strong>resmas Chamex</strong>?</span>
+<button class="font-label-sm text-label-sm bg-secondary text-on-secondary px-3 py-1.5 rounded-lg shadow-sm font-bold whitespace-nowrap hover:bg-on-secondary-container transition-all shrink-0" onclick="appendOrderDraft()">
+                Sí, preparar orden
+              </button>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-right">10:43 AM • Respuesta generada en 0.4s</span>
+</div>
+</div>
+</div>
+<!-- Quick Suggested Prompt Chips (Interactive) -->
+<div class="px-space-md py-2 bg-surface-container-lowest border-t border-outline-variant/20 flex items-center gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
+<button class="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onclick="fillPrompt('¿Cuál fue la venta promedio por cajero hoy?')">
+<span class="material-symbols-outlined text-body-sm text-secondary">query_stats</span>
+          ¿Venta promedio por cajero hoy?
+        </button>
+<button class="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onclick="fillPrompt('¿Qué artículos no se venden hace 60 días?')">
+<span class="material-symbols-outlined text-body-sm text-error">hourglass_bottom</span>
+          ¿Sin rotación hace 60 días?
+        </button>
+<button class="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onclick="fillPrompt('Predecir demanda para la próxima semana')">
+<span class="material-symbols-outlined text-body-sm text-primary">online_prediction</span>
+          Predecir demanda próxima semana
+        </button>
+</div>
+<!-- Chat Input Area with Lavender Send Button & Dictation -->
+<div class="p-space-md bg-surface-container-low shrink-0">
+<form class="flex items-center gap-2" id="chatForm" onsubmit="handleChatSubmit(event)">
+<button class="p-2.5 rounded-xl bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors shrink-0" title="Adjuntar reporte o imagen de factura" type="button">
+<span class="material-symbols-outlined text-headline-sm">attach_file</span>
+</button>
+<button class="p-2.5 rounded-xl bg-surface-container-lowest text-secondary hover:bg-secondary-fixed transition-colors shrink-0" id="voiceBtn" onclick="toggleVoiceMode()" title="Dictado por voz" type="button">
+<span class="material-symbols-outlined text-headline-sm">mic</span>
+</button>
+<div class="flex-1 relative">
+<input class="w-full bg-surface-container-lowest font-body-md text-body-md text-on-surface placeholder:text-outline py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary transition-all" id="chatInput" placeholder="Pregúntale a JINStock IA sobre stock, márgenes o ventas..." type="text"/>
+</div>
+<!-- Lavanda Send Button (#A788F4 / token secondary) -->
+<button class="bg-secondary hover:bg-on-secondary-container text-on-secondary p-2.5 rounded-xl shadow-md transition-all flex items-center justify-center shrink-0 active:scale-95" title="Enviar mensaje" type="submit">
+<span class="material-symbols-outlined text-headline-sm">send</span>
+</button>
+</form>
+<div class="flex items-center justify-between mt-1 px-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">JINStock Neural Offline Agent</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Ctrl + Enter para enviar</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Intelligence Insight Banner -->
+<section class="w-full bg-primary text-on-primary rounded-2xl p-space-md sm:p-space-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-on-primary-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-headline-sm">hub</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-label-lg text-label-lg font-bold">Consolidación Multitienda &amp; Kardex Centralizado</h3>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim">
+          Los algoritmos predictivos analizan simultáneamente las ventas de Sucursal Central, Sucursal Metrocentro y Tienda Virtual para optimizar fletes.
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="bg-surface-container-lowest text-primary font-label-md text-label-md px-4 py-2.5 rounded-xl hover:bg-surface-container transition-all font-bold">
+        Exportar Reporte Ejecutivo IA
+      </button>
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-4 py-2.5 rounded-xl hover:bg-tertiary-container transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-body-md">schedule</span>
+        Programar Reposiciones
+      </button>
+</div>
+</section>
+</div>
+<script>
+  function fillPrompt(text) {
+    const input = document.getElementById('chatInput');
+    if (!input) return;
+    input.value = text;
+    input.focus();
+  }
+
+  function handleChatSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const container = document.getElementById('chatContainer');
+    if (!input || !input.value.trim() || !container) return;
+
+    const query = input.value.trim();
+    input.value = '';
+
+    // Append User Message
+    const userDiv = document.createElement('div');
+    userDiv.className = 'flex items-start justify-end gap-space-sm self-end max-w-[88%] animate-fadeIn';
+    userDiv.innerHTML = `
+      <div class="bg-primary text-on-primary p-space-md rounded-2xl rounded-tr-sm shadow-sm">
+        <p class="font-body-sm text-body-sm leading-relaxed">${escapeHtml(query)}</p>
+      </div>
+    `;
+    container.appendChild(userDiv);
+    container.scrollTop = container.scrollHeight;
+
+    // Simulate Agent Thinking & Response
+    setTimeout(() => {
+      const botDiv = document.createElement('div');
+      botDiv.className = 'flex items-start gap-space-sm max-w-[95%] animate-fadeIn';
+      botDiv.innerHTML = `
+        <div class="w-7 h-7 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 mt-1">
+          <span class="material-symbols-outlined text-body-md" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        </div>
+        <div class="bg-surface-container-low text-on-surface p-space-md rounded-2xl rounded-tl-sm shadow-sm flex flex-col gap-2">
+          <p class="font-body-sm text-body-sm leading-relaxed">
+            He procesado tu consulta: <em>"${escapeHtml(query)}"</em> contra el registro local de los últimos 60 días.
+          </p>
+          <div class="p-2.5 bg-surface-container-lowest rounded-xl font-body-sm text-body-sm">
+            <span class="text-secondary font-bold">Diagnóstico instantáneo:</span> Se detectaron 3 oportunidades de surtido que elevarían tu ticket promedio en un 14.6%.
+          </div>
+          <span class="font-label-sm text-label-sm text-on-surface-variant text-right">Justo ahora &bull; Copilot IA</span>
+        </div>
+      `;
+      container.appendChild(botDiv);
+      container.scrollTop = container.scrollHeight;
+    }, 600);
+  }
+
+  function appendOrderDraft() {
+    const container = document.getElementById('chatContainer');
+    if (!container) return;
+
+    const draftDiv = document.createElement('div');
+    draftDiv.className = 'flex items-start gap-space-sm max-w-[95%] animate-fadeIn';
+    draftDiv.innerHTML = `
+      <div class="w-7 h-7 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 mt-1">
+        <span class="material-symbols-outlined text-body-md">receipt_long</span>
+      </div>
+      <div class="bg-surface-container-lowest text-on-surface p-space-md rounded-2xl rounded-tl-sm shadow-sm flex flex-col gap-2.5 border-l-4 border-secondary">
+        <div class="flex items-center justify-between">
+          <span class="font-label-md text-label-md font-bold text-primary">Borrador de O/C Generado (#OC-2026-089)</span>
+          <span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-2 py-0.5 rounded">Pendiente Firma</span>
+        </div>
+        <div class="text-body-sm font-body-sm">
+          <strong>Proveedor:</strong> Distribuidora Chamex Nicaragua<br>
+          <strong>Ítem:</strong> Resma Chamex Carta 75g &times; 24 cajas (120 resmas)<br>
+          <strong>Monto Estimado:</strong> C$ 22,800 NIO (Descuento de volumen 8.5% aplicado)
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+          <button class="bg-primary text-on-primary font-label-sm text-label-sm px-3 py-1.5 rounded-lg hover:bg-primary-container font-bold">Enviar a Proveedor vía WhatsApp/Email</button>
+          <button class="bg-surface-container text-on-surface font-label-sm text-label-sm px-3 py-1.5 rounded-lg hover:bg-surface-container-high">Editar cantidades</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(draftDiv);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function toggleVoiceMode() {
+    const btn = document.getElementById('voiceBtn');
+    if (!btn) return;
+    const isListening = btn.classList.contains('bg-error-container');
+    if (isListening) {
+      btn.className = 'p-2.5 rounded-xl bg-surface-container-lowest text-secondary hover:bg-secondary-fixed transition-colors shrink-0';
+      btn.innerHTML = '<span class="material-symbols-outlined text-headline-sm">mic</span>';
+    } else {
+      btn.className = 'p-2.5 rounded-xl bg-error-container text-error animate-pulse transition-colors shrink-0';
+      btn.innerHTML = '<span class="material-symbols-outlined text-headline-sm">mic_active</span>';
+      fillPrompt('JINStock, revisa el stock de cartulinas bristol para mañana');
+    }
+  }
+
+  function escapeHtml(string) {
+    return String(string).replace(/[&<>"']/g, function (s) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[s];
+    });
+  }
+</script></main><aside class="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[94vw]"><div class="bg-surface-container-lowest/95 backdrop-blur-2xl px-3 py-2 rounded-full shadow-[0_12px_32px_-4px_rgba(23,37,84,0.18)] flex items-center gap-1.5 overflow-x-auto max-w-full"><nav class="flex items-center gap-1 shrink-0" data-active-classes="bg-primary-container text-on-primary-container font-bold"><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="dashboard-general" href="#"><span class="material-symbols-outlined text-body-lg">home</span><span>Inicio</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="punto-de-venta" href="#"><span class="material-symbols-outlined text-body-lg">point_of_sale</span><span>POS</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="inventario-y-stock" href="#"><span class="material-symbols-outlined text-body-lg">inventory_2</span><span>Stock</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="catalogo-de-productos" href="#"><span class="material-symbols-outlined text-body-lg">sell</span><span>Productos</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="compras-y-proveedores" href="#"><span class="material-symbols-outlined text-body-lg">local_shipping</span><span>Compras</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="ventas-y-arqueo" href="#"><span class="material-symbols-outlined text-body-lg">query_stats</span><span>Ventas</span></a><a aria-current="page" class="flex items-center gap-1.5 px-3 py-2 rounded-full transition-all whitespace-nowrap bg-primary-container text-on-primary-container font-bold" data-path="jinstock-ia" href="#"><span class="material-symbols-outlined text-body-lg text-secondary">auto_awesome</span><span>IA Copilot</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="gestion-y-roles" href="#"><span class="material-symbols-outlined text-body-lg">group</span><span>Roles</span></a><a class="flex items-center gap-1.5 px-3 py-2 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="ajustes-del-sistema" href="#"><span class="material-symbols-outlined text-body-lg">settings</span><span>Ajustes</span></a></nav><div class="h-5 w-px bg-outline-variant/40 mx-1 shrink-0"></div><div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low shrink-0 text-on-surface-variant" title="Almacenamiento IndexedDB Activo (Offline Ready)"><span class="w-2 h-2 rounded-full bg-secondary-container"></span><span class="font-label-sm text-label-sm text-on-surface">PWA</span></div></div></aside><footer class="w-full bg-surface-container-lowest py-space-sm border-t border-outline-variant/20 mb-16"><div class="w-full px-gutter-desktop flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-label-sm text-label-sm gap-2"><span>© 2025 JINStock • Sistema POS Offline-First para Papelerías y Librerías de Nicaragua</span><span>IndexedDB Cache Ready • Servidor Central Managua</span></div></footer></body></html>
