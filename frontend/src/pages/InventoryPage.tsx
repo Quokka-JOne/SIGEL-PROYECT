@@ -197,6 +197,20 @@ export const InventoryPage: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async (p: ProductItem) => {
+    const confirmed = window.confirm(`¿Estás seguro de que deseas eliminar el producto "${p.nombre}"?`);
+    if (!confirmed) return;
+
+    const res = await apiFetch(`/products/${p.id}`, { method: 'DELETE' });
+    if (res.success) {
+      setActionMessage({ type: 'success', text: res.message || 'Producto eliminado correctamente.' });
+      fetchProducts();
+    } else {
+      setActionMessage({ type: 'error', text: res.message || 'Error al eliminar producto.' });
+      fetchProducts();
+    }
+  };
+
   // T-06: Ajuste manual de existencias Kardex
   const handleOpenAdjustModal = (p: ProductItem) => {
     setAdjustProduct(p);
@@ -482,6 +496,13 @@ export const InventoryPage: React.FC = () => {
                               <span className="material-symbols-outlined text-sm">
                                 {p.estado ? 'visibility_off' : 'visibility'}
                               </span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(p)}
+                              title="Eliminar Producto"
+                              className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
                             </button>
                           </div>
                         )}

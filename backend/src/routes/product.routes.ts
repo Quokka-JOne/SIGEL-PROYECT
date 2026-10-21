@@ -7,6 +7,7 @@ import {
   toggleProductStatus,
   adjustProductStock,
   getInventoryMovements,
+  deleteProduct,
 } from '../controllers/product.controller';
 import { authenticateToken, requireRole } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
@@ -26,6 +27,7 @@ router.get('/:id', getProductById);
 router.post('/', requireRole(['ADMINISTRADOR']), validate(createProductSchema), createProduct);
 router.put('/:id', requireRole(['ADMINISTRADOR']), validate(updateProductSchema), updateProduct);
 router.patch('/:id/status', requireRole(['ADMINISTRADOR']), toggleProductStatus);
+router.delete('/:id', requireRole(['ADMINISTRADOR']), deleteProduct);
 router.post('/adjust', requireRole(['ADMINISTRADOR']), validate(inventoryAdjustmentSchema), adjustProductStock);
 
 export default router;

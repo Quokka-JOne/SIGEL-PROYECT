@@ -216,6 +216,55 @@ export const toggleProductStatus = async (req: Request, res: Response, next: Nex
   }
 };
 
+export const deleteProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const product = await prisma.producto.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            detallesVenta: true,
+            detallesCompra: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundError('Producto no encontrado.');
+    }
+
+    // Si tiene ventas o compras históricas, no se puede borrar físicamente para proteger auditoría y contabilidad
+    if (product._count.detallesVenta > 0 || product._count.detallesCompra > 0) {
+      await prisma.producto.update({
+        where: { id },
+        data: { estado: false },
+      });
+
+      res.status(400).json({
+        success: false,
+        message: 'No es posible eliminar el producto porque tiene ventas o compras registradas en el historial. El producto fue DESACTIVADO para que no aparezca en el POS ni se pueda vender.',
+      });
+      return;
+    }
+
+    // Si no tiene registros contables asociados, se eliminan los movimientos y el producto permanentemente
+    await prisma.$transaction([
+      prisma.movimientoInventario.deleteMany({ where: { productoId: id } }),
+      prisma.producto.delete({ where: { id } }),
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Producto eliminado permanentemente del sistema.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // T-06: Ajuste manual de inventario (conteo físico, merma, daño) con motivo obligatorio
 export const adjustProductStock = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
