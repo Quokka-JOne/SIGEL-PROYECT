@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth, type Rol } from './context/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InventoryPage } from './pages/InventoryPage';
@@ -9,6 +9,8 @@ import { PurchasesPage } from './pages/PurchasesPage';
 import { UsersPage } from './pages/UsersPage';
 import { CopilotPage } from './pages/CopilotPage';
 import { LandingPage } from './pages/LandingPage';
+import { SalesHistoryPage } from './pages/SalesHistoryPage';
+import { ReportsPage } from './pages/ReportsPage';
 import { MainLayout } from './components/MainLayout';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -16,10 +18,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center font-body text-[#0b1c30]">
+      <div className="min-h-screen bg-[#100f14] flex items-center justify-center font-body text-white">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#1E3A8A] border-t-transparent rounded-full animate-spin" />
-          <span className="font-label text-sm font-semibold text-[#1E3A8A]">Cargando JINStock...</span>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-semibold text-purple-300">Cargando JINStock...</span>
         </div>
       </div>
     );
@@ -32,22 +34,41 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <MainLayout>{children}</MainLayout>;
 };
 
+// M-03: Ruta protegida con validación estricta de rol
+const RoleRoute: React.FC<{ allowedRoles: Rol[]; children: React.ReactNode }> = ({
+  allowedRoles,
+  children,
+}) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (!user) return <Navigate to="/auth" replace />;
+
+  if (!allowedRoles.includes(user.rol)) {
+    // Si el rol no corresponde, redirigir al punto de entrada natural del usuario
+    return <Navigate to={user.rol === 'CAJERO' ? '/pos' : '/dashboard'} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FF] flex items-center justify-center font-body text-[#0b1c30]">
+      <div className="min-h-screen bg-[#100f14] flex items-center justify-center font-body text-white">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#1E3A8A] border-t-transparent rounded-full animate-spin" />
-          <span className="font-label text-sm font-semibold text-[#1E3A8A]">Cargando JINStock...</span>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-semibold text-purple-300">Cargando JINStock...</span>
         </div>
       </div>
     );
   }
 
+  // M-03: Redirigir al cajero a /pos y al administrador a /dashboard
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={user.rol === 'CAJERO' ? '/pos' : '/dashboard'} replace />;
   }
 
   return <>{children}</>;
@@ -67,11 +88,15 @@ export const App: React.FC = () => {
               </PublicRoute>
             }
           />
+
+          {/* Rutas exclusivas para ADMINISTRADOR */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                  <DashboardPage />
+                </RoleRoute>
               </ProtectedRoute>
             }
           />
@@ -79,7 +104,9 @@ export const App: React.FC = () => {
             path="/copilot"
             element={
               <ProtectedRoute>
-                <CopilotPage />
+                <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                  <CopilotPage />
+                </RoleRoute>
               </ProtectedRoute>
             }
           />
@@ -87,15 +114,9 @@ export const App: React.FC = () => {
             path="/inventario"
             element={
               <ProtectedRoute>
-                <InventoryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/pos"
-            element={
-              <ProtectedRoute>
-                <PosPage />
+                <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                  <InventoryPage />
+                </RoleRoute>
               </ProtectedRoute>
             }
           />
@@ -103,7 +124,19 @@ export const App: React.FC = () => {
             path="/compras"
             element={
               <ProtectedRoute>
-                <PurchasesPage />
+                <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                  <PurchasesPage />
+                </RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reportes"
+            element={
+              <ProtectedRoute>
+                <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                  <ReportsPage />
+                </RoleRoute>
               </ProtectedRoute>
             }
           />
@@ -111,10 +144,35 @@ export const App: React.FC = () => {
             path="/usuarios"
             element={
               <ProtectedRoute>
-                <UsersPage />
+                <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+                  <UsersPage />
+                </RoleRoute>
               </ProtectedRoute>
             }
           />
+
+          {/* Rutas compartidas (CAJERO y ADMINISTRADOR) */}
+          <Route
+            path="/pos"
+            element={
+              <ProtectedRoute>
+                <RoleRoute allowedRoles={['ADMINISTRADOR', 'CAJERO']}>
+                  <PosPage />
+                </RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ventas"
+            element={
+              <ProtectedRoute>
+                <RoleRoute allowedRoles={['ADMINISTRADOR', 'CAJERO']}>
+                  <SalesHistoryPage />
+                </RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>
       </AuthProvider>

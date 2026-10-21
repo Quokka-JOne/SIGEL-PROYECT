@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const AuthPage: React.FC = () => {
-  const { login, register, seedUsers } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
@@ -12,18 +12,16 @@ export const AuthPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Login form state
-  const [loginEmail, setLoginEmail] = useState('admin@jinstock.ni');
-  const [loginPassword, setLoginPassword] = useState('admin123');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [rememberDevice, setRememberDevice] = useState(true);
 
-  // Register form state
+  // Register form state (creates standard Cajero / Staff; Admins created via seed or admin panel)
   const [regName, setRegName] = useState('');
   const [regLastName, setRegLastName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regStore, setRegStore] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regRole, setRegRole] = useState<'ADMINISTRADOR' | 'CAJERO'>('ADMINISTRADOR');
-  const [adminCode, setAdminCode] = useState('');
 
   // Verificación de correo
   const [isVerifying, setIsVerifying] = useState(false);
@@ -41,7 +39,12 @@ export const AuthPage: React.FC = () => {
       if (res.success) {
         setSuccessMessage('¡Acceso exitoso! Redirigiendo...');
         setTimeout(() => {
-          navigate('/dashboard');
+          const user = res.usuario || (localStorage.getItem('jinstock_user') ? JSON.parse(localStorage.getItem('jinstock_user')!) : null);
+          if (user?.rol === 'CAJERO') {
+            navigate('/pos');
+          } else {
+            navigate('/dashboard');
+          }
         }, 500);
       } else if (res.requireVerification) {
         setVerificationEmail(res.email || loginEmail);
@@ -70,12 +73,12 @@ export const AuthPage: React.FC = () => {
     setLoading(true);
 
     try {
+      const fullName = [regName, regLastName].filter(Boolean).join(' ') || regStore || 'Cajero Librería';
       const res = await register({
-        nombre: regName + ' ' + regLastName || regStore || 'Usuario Librería',
+        nombre: fullName,
         email: regEmail,
         password: regPassword,
-        rol: regRole,
-        adminCode: regRole === 'ADMINISTRADOR' ? adminCode : undefined,
+        rol: 'CAJERO',
       });
 
       if (res.success) {
@@ -84,9 +87,9 @@ export const AuthPage: React.FC = () => {
           setVerificationEmail(res.email || regEmail);
           setIsVerifying(true);
         } else {
-          setSuccessMessage('¡Cuenta creada exitosamente!');
+          setSuccessMessage('¡Cuenta de cajero creada exitosamente! Redirigiendo...');
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/pos');
           }, 600);
         }
       } else {
@@ -311,20 +314,10 @@ export const AuthPage: React.FC = () => {
                   <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="Mínimo 8 caracteres" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rol</label>
-                  <select value={regRole} onChange={e => setRegRole(e.target.value as any)} style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }}>
-                    <option value="CAJERO">Cajero (Personal de Venta)</option>
-                    <option value="ADMINISTRADOR">Administrador (Control Total)</option>
-                  </select>
+                <div style={{ background: 'rgba(167, 136, 244, 0.08)', border: '1px solid rgba(167, 136, 244, 0.2)', padding: '12px 16px', borderRadius: 12, fontSize: 13, color: '#c4b5fd' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 6 }}>badge</span>
+                  Registro habilitado para personal de ventas (Cajero). Las cuentas de Administrador se crean desde el panel de control o mediante CLI.
                 </div>
-
-                {regRole === 'ADMINISTRADOR' && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#ffbd2e', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Código Secreto del Sistema</label>
-                    <input type="password" value={adminCode} onChange={e => setAdminCode(e.target.value)} placeholder="Autorización requerida" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #ffbd2e', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} required />
-                  </div>
-                )}
 
                 <button disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4, #5F8FFF)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {loading ? 'Procesando...' : 'Siguiente Paso'} 

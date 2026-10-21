@@ -1,648 +1,430 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'copilot';
   text: string;
   timestamp: string;
-  suggestions?: string[];
-  metricsSummary?: {
-    lowStockCount: number;
-    totalValuation: number;
-    recommendedOrderCost: number;
-  };
+}
+
+interface ProductAnalysis {
+  id: string;
+  nombre: string;
+  sku?: string;
+  stock: number;
+  stockMinimo: number;
+  precioVenta: number;
+  costo: number;
+  totalVendido: number;
+  consumoDiario: number;
+  diasCobertura: number;
+  cantidadSugerida: number;
+  categoriaNombre?: string;
 }
 
 export const CopilotPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [products, setProducts] = useState<ProductAnalysis[]>([]);
+  const [salesList, setSalesList] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [thinking, setThinking] = useState<boolean>(false);
-  const [catalogContext, setCatalogContext] = useState<any[]>([]);
-
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchContextData = async () => {
-    const [prodRes, saleRes] = await Promise.all([
-      apiFetch<any[]>('/products?includeInactive=true'),
-      apiFetch<any[]>('/sales'),
-    ]);
+  // M-07 & F-10: Cargar catálogo y ventas reales para calcular rotación y días de cobertura sin datos ficticios
+  const loadRealAnalytics = async () => {
+    setLoading(true);
+    try {
+      const [prodRes, saleRes] = await Promise.all([
+        apiFetch<any[]>('/products?includeInactive=true'),
+        apiFetch<any[]>('/sales?limit=100'),
+      ]);
 
-    const products = prodRes.success && prodRes.data ? prodRes.data : [];
-    const sales = saleRes.success && saleRes.data ? saleRes.data : [];
-    setCatalogContext(products);
+      const rawProducts = prodRes.success && prodRes.data ? prodRes.data : [];
+      const rawSales = saleRes.success && saleRes.data ? saleRes.data : [];
+      setSalesList(rawSales);
 
-    // Initial Welcome Message from JIN Copilot
-    const lowStock = products.filter((p: any) => p.stock > 0 && p.stock <= p.stockMinimo);
-    const outOfStock = products.filter((p: any) => p.stock === 0);
-    const totalInventoryVal = products.reduce((acc: number, p: any) => acc + (p.stock * p.costo), 0);
-    const salesCount = sales.length;
+      // Calcular ventas por producto
+      const soldMap = new Map<string, number>();
+      for (const sale of rawSales) {
+        if (sale.detalles && Array.isArray(sale.detalles)) {
+          for (const det of sale.detalles) {
+            const current = soldMap.get(det.productoId) || 0;
+            soldMap.set(det.productoId, current + (Number(det.cantidad) || 0));
+          }
+        }
+      }
 
-    const initialMsg: ChatMessage = {
-      id: 'init-1',
-      sender: 'copilot',
-      text: `¡Hola ${user?.nombre || 'Administrador'}! He sincronizado los **movimientos de inventario** y las **${salesCount} ventas** registradas.
-      
-¿Qué decisión comercial analizamos hoy?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+      // Analizar cobertura de cada producto (M-07 Opción 2 / F-10)
+      const analyzed: ProductAnalysis[] = rawProducts.map((p: any) => {
+        const totalVendido = soldMap.get(p.id) || 0;
+        // Consumo diario estimado sobre 30 días
+        const consumoDiario = totalVendido > 0 ? Number((totalVendido / 30).toFixed(2)) : 0;
+        // Días de cobertura = stock ÷ consumo diario
+        const diasCobertura =
+          consumoDiario > 0
+            ? Number((p.stock / consumoDiario).toFixed(1))
+            : p.stock > 0
+            ? 90
+            : 0;
 
-    setMessages([initialMsg]);
+        // Cantidad sugerida para alcanzar cobertura mínima de 15 días o satisfacer stock mínimo
+        let cantidadSugerida = 0;
+        if (p.stock <= p.stockMinimo) {
+          const neededForStockMin = (p.stockMinimo * 2) - p.stock;
+          const neededFor15Days = Math.ceil(consumoDiario * 15) - p.stock;
+          cantidadSugerida = Math.max(neededForStockMin, neededFor15Days, 5);
+        }
+
+        return {
+          id: p.id,
+          nombre: p.nombre,
+          sku: p.sku,
+          stock: p.stock,
+          stockMinimo: p.stockMinimo,
+          precioVenta: p.precioVenta,
+          costo: p.costo,
+          totalVendido,
+          consumoDiario,
+          diasCobertura,
+          cantidadSugerida,
+          categoriaNombre: p.categoriaNombre || p.categoria?.nombre || 'General',
+        };
+      });
+
+      setProducts(analyzed);
+
+      // Mensaje de bienvenida inicial fundamentado en datos reales
+      const lowStockCount = analyzed.filter((p) => p.stock <= p.stockMinimo).length;
+      setMessages([
+        {
+          id: 'welcome',
+          sender: 'copilot',
+          text: `Hola ${user?.nombre || 'Administrador'}, he analizado **${analyzed.length} productos** del catálogo y **${rawSales.length} transacciones recientes**.
+
+Actualmente hay **${lowStockCount} productos** en nivel crítico o bajo stock mínimo. ¿Desea revisar sugerencias de reabastecimiento o rotación?`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } catch (e) {
+      console.error('Error calculando analíticas:', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchContextData();
+    loadRealAnalytics();
   }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, thinking]);
 
-  const generateSmartAnswer = (prompt: string): string => {
+  // Generador de respuestas analíticas con datos reales verificables (M-07 Opción 2)
+  const generateRealAnswer = (prompt: string): string => {
     const lower = prompt.toLowerCase();
-    const lowStock = catalogContext.filter((p: any) => p.stock <= p.stockMinimo);
+    const criticalItems = products.filter((p) => p.stock <= p.stockMinimo);
 
-    if (lower.includes('orden de compra') || lower.includes('comprar') || lower.includes('reabastecer')) {
-      if (lowStock.length === 0) {
-        return `✅ **Análisis de Inventario JIN Copilot**:
-Tu inventario se encuentra actualmente abastecido. Todos los artículos superan el stock mínimo configurado.
-
-Recomendación: Monitorear el ritmo de rotación de libretas escolares.`;
+    if (lower.includes('comprar') || lower.includes('reabastecer') || lower.includes('orden') || lower.includes('reposición')) {
+      if (criticalItems.length === 0) {
+        return `✅ **Diagnóstico de Inventario**:
+Todo el catálogo de la librería supera actualmente el umbral de stock mínimo. No se requieren órdenes de compra urgentes hoy.`;
       }
 
-      const listStr = lowStock
+      const itemsList = criticalItems
+        .slice(0, 5)
         .map(
-          (p: any) =>
-            `• **${p.nombre}**: Stock actual **${p.stock}** (Mínimo: ${p.stockMinimo}). Sugerido: **+${p.stockMinimo * 3} unidades**.`
+          (p) =>
+            `• **${p.nombre}**: Stock actual **${p.stock}** (Mínimo: ${p.stockMinimo}). Cobertura estimada: **${p.diasCobertura} días**. Cantidad sugerida a pedir: **+${p.cantidadSugerida} u.**`
         )
         .join('\n');
 
-      return `📦 **Sugerencia de Orden de Compra Inteligente**:
-Basado en las existencias actuales, sugiero enviar la siguiente orden de abastecimiento:
+      return `📦 **Sugerencia de Reabastecimiento con Datos Reales**:
+Basado en las existencias y ritmo de consumo diario, se recomienda pedir:
 
-${listStr}
+${itemsList}
 
-💡 **Consejo**: Aplica descuentos por volumen con Distribuidora Escolar.`;
+💡 Puede pulsar el botón **"Generar Orden"** en las tarjetas de alerta para abrir el formulario de compras.`;
     }
 
-    if (lower.includes('ventas') || lower.includes('ingresos') || lower.includes('promedio') || lower.includes('cajero')) {
-      return `📊 **Resumen Analítico de Ventas**:
-• El flujo comercial procesado en caja POS se mantiene activo con ticket promedio de C$ 180.
-• El producto con mayor rotación del día es el **Cuaderno Universitario** y los **Lápices de Color**.
-• Se recomienda verificar que la caja cuente con suficiente vuelto en Córdobas (C$).`;
+    if (lower.includes('ventas') || lower.includes('ticket') || lower.includes('promedio') || lower.includes('rotación')) {
+      const totalIngreso = salesList.reduce((acc, s) => acc + (Number(s.total) || 0), 0);
+      const ticketPromedio = salesList.length > 0 ? Number((totalIngreso / salesList.length).toFixed(2)) : 0;
+      const topRotation = [...products].sort((a, b) => b.totalVendido - a.totalVendido).slice(0, 3);
+
+      return `📊 **Análisis Comercial de Ventas**:
+• Transacciones analizadas: **${salesList.length} ventas**.
+• Ticket promedio real en caja: **C$ ${ticketPromedio}**.
+• Artículos con mayor rotación:
+${topRotation.map((p, i) => `  ${i + 1}. **${p.nombre}** (${p.totalVendido} u. vendidas)`).join('\n')}`;
     }
 
-    if (lower.includes('riesgo') || lower.includes('quiebre') || lower.includes('rotación')) {
-      if (lowStock.length === 0) {
-        return `🟢 **Estado de Stock JIN Copilot**: No se detectan productos en riesgo inminente de quiebre.`;
+    if (lower.includes('riesgo') || lower.includes('agotado') || lower.includes('quiebre')) {
+      const outOfStock = products.filter((p) => p.stock === 0);
+      if (outOfStock.length === 0) {
+        return `🟢 **Estado de Quiebre**: No hay productos totalmente agotados (stock = 0).`;
       }
-      return `⚠️ **Alerta Preventiva de Quiebre de Stock**:
-Detecto **${lowStock.length} artículos** que están a punto de agotarse. Se aconseja ingresar al módulo de **Inventario** para emitir orden.`;
+      return `⚠️ **Productos Agotados**:
+Hay **${outOfStock.length} artículos** con existencia 0:
+${outOfStock.map((p) => `• ${p.nombre}`).join('\n')}`;
     }
 
-    if (lower.includes('temporada') || lower.includes('escolar') || lower.includes('predecir')) {
-      return `💡 **Proyección de Demanda Inteligente**:
-1. **Picos de venta estimados**: Próxima semana veremos un +38% en cuadernos y bolígrafos.
-2. **Kardex Sugerido**: Mantener mínimo de 15 resmas de papel bond.
-3. **Estrategia**: Promocionar mochilas y útiles en combo escolar.`;
-    }
-
-    return `🤖 **Diagnóstico Copilot IA**:
-He procesado tu consulta: "*${prompt}*" contra el registro local de los últimos 60 días.
-
-Se detectaron oportunidades de surtido que elevarían tu ticket promedio. Puedes gestionar compras desde el menú lateral.`;
+    return `Entendido. Puede consultarme sobre:
+1. **Reabastecimiento sugerido**: "¿Qué productos debo comprar?"
+2. **Rotación y ventas**: "¿Cuál es el ticket promedio y los más vendidos?"
+3. **Riesgo de agotamiento**: "¿Qué productos están agotados?"`;
   };
 
-  const handleSendMessage = (e?: React.FormEvent, textToSend?: string) => {
-    if (e) e.preventDefault();
-    const query = textToSend || inputValue;
-    if (!query.trim()) return;
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() || thinking) return;
 
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
+    const userText = inputValue.trim();
+    setInputValue('');
+
+    const newMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
       sender: 'user',
-      text: query.trim(),
+      text: userText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInputValue('');
+    setMessages((prev) => [...prev, newMsg]);
     setThinking(true);
 
     setTimeout(() => {
-      const botResponseText = generateSmartAnswer(query);
-      const botMsg: ChatMessage = {
-        id: `copilot-${Date.now()}`,
-        sender: 'copilot',
-        text: botResponseText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, botMsg]);
+      const reply = generateRealAnswer(userText);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `reply-${Date.now()}`,
+          sender: 'copilot',
+          text: reply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
       setThinking(false);
-    }, 600);
-  };
-  
-  const fillPrompt = (text: string) => {
-    setInputValue(text);
+    }, 400);
   };
 
-  const lowStockCount = catalogContext.filter(p => p.stock > 0 && p.stock <= p.stockMinimo).length;
-  const outOfStockCount = catalogContext.filter(p => p.stock === 0).length;
-  const criticalItems = lowStockCount + outOfStockCount;
+  // Productos con necesidad de reposición real
+  const replenishmentAlerts = products
+    .filter((p) => p.stock <= p.stockMinimo)
+    .sort((a, b) => a.diasCobertura - b.diasCobertura);
 
   return (
-    <div className="flex flex-col w-full gap-space-lg pb-12">
-      {/* Top Predictive Banner & Global Model Status */}
-      <section className="w-full bg-surface-container-lowest rounded-2xl shadow-sm p-space-md sm:p-space-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md relative overflow-hidden">
-        <div className="absolute -right-16 -top-16 w-48 h-48 bg-secondary-fixed/50 rounded-full blur-3xl pointer-events-none"></div>
-        
-        <div className="flex items-center gap-space-md min-w-0 z-10">
-          <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center text-on-secondary shadow-md shrink-0">
-            <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+      {/* Header (M-07: Rotulación honesta con datos reales verificables) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="material-symbols-outlined text-purple-400 text-3xl">smart_toy</span>
+            <h1 className="text-2xl font-extrabold text-white">JIN Copilot · Asistente Analítico</h1>
           </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
-              <h1 className="font-headline-md text-headline-md text-primary font-extrabold tracking-tight">JINStock Intelligence</h1>
-              <span className="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-2.5 py-0.5 rounded-full flex items-center gap-1 self-start sm:self-auto shrink-0">
-                <span className="material-symbols-outlined text-body-sm text-secondary">auto_awesome</span>
-                Algoritmo v4.2 Neuronal
-              </span>
-            </div>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1.5 line-clamp-2 sm:line-clamp-1 sm:truncate whitespace-normal leading-snug">Modelo Predictivo & Asistente Cognitivo para Librerías y Papelerías</p>
-          </div>
+          <p className="text-xs text-gray-400">
+            Reglas de negocio y análisis predictivo de rotación con días de cobertura (Datos Reales de Inventario).
+          </p>
         </div>
 
-        {/* Toggle & Sync Telemetry */}
-        <div className="flex items-center gap-space-md self-stretch md:self-auto justify-between md:justify-end z-10 flex-wrap">
-          <div className="flex items-center gap-2.5 bg-surface-container-low px-3.5 py-2 rounded-xl">
-            <div className="flex flex-col text-right">
-              <span className="font-label-md text-label-md text-on-surface leading-tight">Temporada Escolar 2026</span>
-              <span className="font-label-sm text-label-sm text-secondary leading-tight font-semibold">Ponderador activo (+38% demanda)</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" defaultChecked />
-              <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-container-lowest after:border-surface-variant after:border-0 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
-            </label>
-          </div>
-          
-          <div className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-xl">
-            <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></span>
-            <span className="font-label-sm text-label-sm text-on-surface font-semibold">Motor Gemini Conectado</span>
-          </div>
+        <div className="flex items-center gap-2">
+          {/* M-07: Rótulo honesto */}
+          <span className="bg-purple-500/10 border border-purple-500/30 text-purple-300 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+            Motor Analítico Local Activo
+          </span>
+          <Link
+            to="/compras"
+            className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-sm">local_shipping</span>
+            Ir a Compras
+          </Link>
         </div>
-      </section>
+      </div>
 
-      {/* Main Split Architecture (55% / 45%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
-        
-        {/* LEFT PANEL: Predictive Analytics & Operational Diagnostics (55% -> lg:col-span-7) */}
-        <section className="lg:col-span-7 flex flex-col gap-space-md">
-          
-          {/* Critical Warning Pill/Card (Coral tone: high out-of-stock risk) */}
-          {criticalItems > 0 ? (
-            <div className="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
-              <div className="w-2 absolute left-0 top-0 bottom-0 bg-[#FF6B6B]"></div>
-              <div className="w-10 h-10 rounded-xl bg-[#FF6B6B]/15 text-[#FF6B6B] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
-              </div>
-              <div className="flex-1 flex flex-col gap-1">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-[#FF6B6B] font-bold">Alerta Preventiva de Quiebre</span>
-                  <span className="bg-[#FF6B6B]/15 text-[#FF6B6B] font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">{criticalItems} Artículos Críticos</span>
-                </div>
-                <p className="font-body-md text-body-md text-on-surface">
-                  <strong>{criticalItems} productos</strong> presentan alto riesgo de agotamiento antes de fin de mes según la demanda histórica y el ritmo de ventas.
-                </p>
-                <div className="mt-2 flex items-center gap-space-sm flex-wrap">
-                  <button className="font-label-sm text-label-sm bg-[#FF6B6B]/15 hover:bg-[#FF6B6B] text-[#FF6B6B] hover:text-on-error px-3 py-1.5 rounded-lg transition-colors font-bold flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-body-sm">assignment_late</span>
-                    Ver lista de quiebres inminentes
-                  </button>
-                </div>
-              </div>
+      {/* Main Layout: Alert Cards + Chat Assistant */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN: Real Replenishment Recommendations (F-10) (col-span-7) */}
+        <div className="lg:col-span-7 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <span className="material-symbols-outlined text-amber-400">notification_important</span>
+              Sugerencias de Reposición Calculadas ({replenishmentAlerts.length})
+            </h2>
+            <span className="text-xs text-gray-400">Fórmula: Stock ÷ Consumo Diario</span>
+          </div>
+
+          {loading ? (
+            <div className="py-20 text-center text-gray-400 flex flex-col items-center gap-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl">
+              <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs">Calculando cobertura y rotación...</span>
+            </div>
+          ) : replenishmentAlerts.length === 0 ? (
+            <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-8 text-center text-gray-400">
+              <span className="material-symbols-outlined text-4xl text-emerald-400 mb-2">check_circle</span>
+              <p className="text-sm font-semibold text-white">Inventario Abastecido</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Todos los productos se encuentran por encima de su nivel de stock de seguridad.
+              </p>
             </div>
           ) : (
-            <div className="bg-surface-container-lowest rounded-2xl p-space-md sm:p-space-lg shadow-sm flex items-start gap-space-md relative overflow-hidden">
-              <div className="w-2 absolute left-0 top-0 bottom-0 bg-[#5F8FFF]"></div>
-              <div className="w-10 h-10 rounded-xl bg-[#5F8FFF]/15 text-[#5F8FFF] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-              </div>
-              <div className="flex-1 flex flex-col gap-1">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-[#5F8FFF] font-bold">Estado de Inventario</span>
-                  <span className="bg-[#5F8FFF]/15 text-[#5F8FFF] font-label-sm text-label-sm px-2 py-0.5 rounded-md font-bold">0 Artículos Críticos</span>
+            <div className="space-y-3">
+              {replenishmentAlerts.map((prod) => (
+                <div
+                  key={prod.id}
+                  className="bg-[#1c1b22] border border-[#2d2c35] p-4 rounded-2xl shadow-md hover:border-purple-500/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          prod.stock === 0
+                            ? 'bg-red-500/20 text-red-300'
+                            : 'bg-amber-500/20 text-amber-300'
+                        }`}
+                      >
+                        {prod.stock === 0 ? 'Agotado (0 u.)' : 'Stock Crítico'}
+                      </span>
+                      <span className="text-[11px] text-gray-500">{prod.categoriaNombre}</span>
+                      {prod.sku && <span className="text-[11px] text-gray-500">• SKU: {prod.sku}</span>}
+                    </div>
+
+                    <h3 className="text-sm font-bold text-white truncate" title={prod.nombre}>
+                      {prod.nombre}
+                    </h3>
+
+                    <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div className="bg-[#100f14] p-2 rounded-xl border border-white/5">
+                        <span className="text-gray-500 text-[10px] block">Stock Actual</span>
+                        <span className={`font-bold ${prod.stock === 0 ? 'text-red-400' : 'text-white'}`}>
+                          {prod.stock} u.
+                        </span>
+                      </div>
+                      <div className="bg-[#100f14] p-2 rounded-xl border border-white/5">
+                        <span className="text-gray-500 text-[10px] block">Vendido Reciente</span>
+                        <span className="font-bold text-purple-300">{prod.totalVendido} u.</span>
+                      </div>
+                      <div className="bg-[#100f14] p-2 rounded-xl border border-white/5">
+                        <span className="text-gray-500 text-[10px] block">Cobertura</span>
+                        <span className="font-bold text-amber-400">
+                          {prod.consumoDiario > 0 ? `~${prod.diasCobertura} d.` : 'Baja rotación'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-400 mt-2">
+                      Sugerencia: Pedir al menos{' '}
+                      <strong className="text-emerald-400 font-bold">+{prod.cantidadSugerida} unidades</strong> para
+                      restablecer reserva.
+                    </p>
+                  </div>
+
+                  {/* F-10: Botón directo para generar orden */}
+                  <div className="shrink-0 w-full sm:w-auto">
+                    <button
+                      onClick={() => navigate('/compras')}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                    >
+                      <span className="material-symbols-outlined text-sm">post_add</span>
+                      Generar Orden
+                    </button>
+                  </div>
                 </div>
-                <p className="font-body-md text-body-md text-on-surface">
-                  Tu inventario se encuentra en óptimas condiciones. Ningún producto presenta riesgo inminente de agotamiento.
-                </p>
-              </div>
+              ))}
             </div>
           )}
+        </div>
 
-          {/* Precision KPIs & Seasonal Velocity Micro-Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
-            {/* Metric 1 */}
-            <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant font-bold">Precisión Modelo</span>
-                <span className="material-symbols-outlined text-secondary text-body-lg">verified</span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="font-headline-lg text-headline-lg font-extrabold text-primary">96.4%</span>
-                <span className="font-label-sm text-label-sm text-secondary font-bold">+1.8% vs feb</span>
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Convergencia en 420 SKUs de papelería</p>
-            </div>
-            
-            {/* Metric 2 */}
-            <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant font-bold">Rotación Escolar</span>
-                <span className="material-symbols-outlined text-tertiary-container text-body-lg">trending_up</span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="font-headline-lg text-headline-lg font-extrabold text-on-surface">3.8x</span>
-                <span className="font-label-sm text-label-sm text-primary font-bold">Alta velocidad</span>
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Picos en cuadernos, blocks y gomas</p>
-            </div>
-            
-            {/* Metric 3 */}
-            <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant font-bold">Ahorro en Compras</span>
-                <span className="material-symbols-outlined text-on-secondary-container text-body-lg">savings</span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="font-headline-lg text-headline-lg font-extrabold text-secondary">C$ 18.4K</span>
-                <span className="font-label-sm text-label-sm text-on-secondary-container font-bold">Lotes sugeridos</span>
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Descuentos por escala con distribuidores</p>
-            </div>
-          </div>
-
-          {/* Section Title for Automated AI Recommendations */}
-          <div className="flex items-center justify-between mt-2">
+        {/* RIGHT COLUMN: Interactive Chat (col-span-5) */}
+        <div className="lg:col-span-5 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 flex flex-col h-[580px] shadow-xl">
+          <div className="pb-3 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-headline-sm">tune</span>
-              <h2 className="font-headline-sm text-headline-sm font-bold text-primary">Acciones Automatizadas Sugeridas</h2>
-            </div>
-            <span className="font-label-sm text-label-sm bg-surface-container-high text-on-surface px-2.5 py-1 rounded-full">Basado en Kardex Real</span>
-          </div>
-
-          {/* Recommendations Cards Bento Stack */}
-          <div className="flex flex-col gap-space-md">
-            
-            {/* Card 1: Cuaderno Universitario Espiral (Urgente / Reposición) */}
-            <div className="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
-              <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-[#FF6B6B]"></div>
-              <div className="flex items-start gap-space-md flex-1 min-w-0">
-                <div className="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center shrink-0 shadow-sm text-primary">
-                  <span className="material-symbols-outlined text-headline-lg">book</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-[#FF6B6B]/15 text-[#FF6B6B] font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Riesgo Inminente</span>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">EAN: 7412093821</span>
-                  </div>
-                  <h3 className="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Cuaderno Universitario Espiral 100 Hojas Rayado</h3>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Stock Actual:</span>
-                      <span className="font-bold text-[#FF6B6B]">8 unidades</span>
-                    </div>
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Ventas 30 días:</span>
-                      <span className="font-bold text-on-surface">47 unidades</span>
-                    </div>
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
-                      <span className="text-on-surface-variant block text-label-sm">Agotamiento en:</span>
-                      <span className="font-bold text-[#FF6B6B]">~4.5 días</span>
-                    </div>
-                  </div>
-                  
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                    <strong className="text-primary font-semibold">Sugerencia IA:</strong> Reponer lote de <span className="font-bold text-on-surface">50 uds</span> con <span className="font-semibold text-primary">Distribuidora Escolar S.A.</span>
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
-                <button className="w-full sm:w-auto font-label-md text-label-md bg-primary-container text-on-primary hover:bg-primary px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                  <span className="material-symbols-outlined text-body-lg">post_add</span>
-                  <span>Generar Orden</span>
-                </button>
-                <button className="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface px-2 py-1">Posponer alerta</button>
-              </div>
-            </div>
-
-            {/* Card 2: Lápiz de Color Prismacolor (Alta rotación detected) */}
-            <div className="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
-              <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-secondary"></div>
-              <div className="flex items-start gap-space-md flex-1 min-w-0">
-                <div className="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center shrink-0 shadow-sm text-secondary">
-                  <span className="material-symbols-outlined text-headline-lg">edit</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Alta Rotación Detectada</span>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Línea Arte & Dibujo</span>
-                  </div>
-                  <h3 className="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Lápiz de Color Prismacolor Escolar 24 Unidades</h3>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Stock Actual:</span>
-                      <span className="font-bold text-on-surface">14 cajas</span>
-                    </div>
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Velocidad / sem:</span>
-                      <span className="font-bold text-secondary">9 cajas</span>
-                    </div>
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg col-span-2 sm:col-span-1">
-                      <span className="text-on-surface-variant block text-label-sm">Margen Bruto:</span>
-                      <span className="font-bold text-primary">41.2%</span>
-                    </div>
-                  </div>
-                  
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                    <strong className="text-secondary font-semibold">Sugerencia IA:</strong> Mantener stock de seguridad amortiguado en <span className="font-bold text-on-surface">25 cajas</span> antes del corte quincenal de colegios privados.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
-                <button className="w-full sm:w-auto font-label-md text-label-md bg-secondary text-on-secondary hover:bg-on-secondary-container px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                  <span className="material-symbols-outlined text-body-lg">inventory</span>
-                  <span>Ajustar Stock Mínimo</span>
-                </button>
-                <span className="font-label-sm text-label-sm text-secondary font-semibold">Proveedor: OfiStore Managua</span>
-              </div>
-            </div>
-
-            {/* Card 3: Papel Lustre Surtido (Estancamiento 90 días) */}
-            <div className="bg-surface-container-lowest p-space-md sm:p-space-lg rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md hover:shadow-md transition-shadow relative overflow-hidden">
-              <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-tertiary-container"></div>
-              <div className="flex items-start gap-space-md flex-1 min-w-0">
-                <div className="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center shrink-0 shadow-sm text-on-surface-variant">
-                  <span className="material-symbols-outlined text-headline-lg">inventory_2</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Estancamiento &gt; 90 Días</span>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Capitalidad Lenta</span>
-                  </div>
-                  <h3 className="font-label-lg text-label-lg font-bold text-on-surface mt-1 truncate">Paquete de Papel Lustre Surtido 50 Pliegos</h3>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 font-body-sm text-body-sm">
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Stock Inmóvil:</span>
-                      <span className="font-bold text-on-surface">62 paquetes</span>
-                    </div>
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Capital Retenido:</span>
-                      <span className="font-bold text-on-surface">C$ 5,890 NIO</span>
-                    </div>
-                    <div className="bg-surface-container-low px-2 py-1 rounded-lg">
-                      <span className="text-on-surface-variant block text-label-sm">Última Venta:</span>
-                      <span className="font-bold text-on-surface">Hace 34 días</span>
-                    </div>
-                  </div>
-
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                    <strong className="text-on-surface font-semibold">Sugerencia IA:</strong> Aplicar promo combo relámpago con{' '}
-                    <span className="font-bold text-on-surface">15% de descuento</span> empaquetado junto a tijeras punta roma escolares.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
-                <button className="w-full sm:w-auto font-label-md text-label-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                  <span className="material-symbols-outlined text-body-lg">sell</span>
-                  <span>Crear Combo POS</span>
-                </button>
-                <span className="font-label-sm text-label-sm text-secondary font-semibold">Libera C$ 4.2K en 10d</span>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Demand Forecast Chart */}
-          <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-space-md sm:p-space-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-headline-sm text-headline-sm font-bold text-primary">Proyección de Demanda Semanal Consolidada</h2>
-            </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">Curva histórica vs predicción algorítmica (Próximas 4 semanas)</p>
-
-            {/* SVG Line Chart */}
-            <div className="w-full overflow-x-auto">
-              <svg viewBox="0 0 560 160" className="w-full" style={{ minWidth: '320px' }}>
-                {/* Grid lines */}
-                {[0, 40, 80, 120].map(y => (
-                  <line key={y} x1="40" y1={y + 10} x2="540" y2={y + 10} stroke="currentColor" strokeOpacity="0.08" strokeWidth="1" className="text-on-surface"/>
-                ))}
-
-                {/* Demand Real line (solid) */}
-                <polyline
-                  points="60,120 160,100 260,70 360,40 460,30"
-                  fill="none"
-                  stroke="#6366f1"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-                {/* Predicción IA line (dashed) */}
-                <polyline
-                  points="260,70 360,35 460,20 540,12"
-                  fill="none"
-                  stroke="#a78bfa"
-                  strokeWidth="2"
-                  strokeDasharray="6 4"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-
-                {/* Dot markers - Real */}
-                {[[60,120],[160,100],[260,70],[360,40],[460,30]].map(([cx,cy], i) => (
-                  <circle key={i} cx={cx} cy={cy} r="4" fill="#6366f1" />
-                ))}
-
-                {/* "Hoy (Cruce)" annotation */}
-                <line x1="260" y1="10" x2="260" y2="130" stroke="#6366f1" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3"/>
-                <rect x="210" y="52" width="100" height="22" rx="5" fill="#6366f1" fillOpacity="0.12"/>
-                <text x="260" y="67" textAnchor="middle" className="font-label-sm" style={{ fontSize: '10px', fill: '#6366f1', fontWeight: 700 }}>Sábado (Pco Escolar)</text>
-                <text x="260" y="80" textAnchor="middle" style={{ fontSize: '9px', fill: '#6366f1' }}>C$ 58,120</text>
-
-                {/* X Axis labels */}
-                {[['Sem 1\n(Real)', 60], ['Sem 2\n(Real)', 160], ['Hoy\n(Cruce)', 260], ['Sem 4\n(Pico Escolar)', 370], ['Sem 5\n(+38%)', 470]].map(([label, x]) => (
-                  <text key={String(x)} x={Number(x)} y={148} textAnchor="middle" style={{ fontSize: '9px', fill: 'currentColor', opacity: 0.6 }} className="text-on-surface">
-                    {String(label)}
-                  </text>
-                ))}
-              </svg>
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center gap-space-md mt-2 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-0.5 bg-[#6366f1] rounded"></div>
-                <span className="font-label-sm text-label-sm text-on-surface-variant">Cuadernos 200 Hojas (+48%)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-0" style={{ borderTop: '2px dashed #a78bfa' }}></div>
-                <span className="font-label-sm text-label-sm text-on-surface-variant">Marcadores &amp; Geometría (+22%)</span>
-              </div>
-              <span className="font-label-sm text-label-sm text-on-surface-variant ml-auto">Actualizado hace 2 minutos vía POS</span>
-            </div>
-          </div>
-
-          {/* Bottom Consolidation Banner */}
-          <div className="bg-primary rounded-2xl p-space-md sm:p-space-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
-            <div className="flex items-start gap-space-md flex-1 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-primary-container/20 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-on-primary text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>hub</span>
+              <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                <span className="material-symbols-outlined text-base">forum</span>
               </div>
               <div>
-                <h3 className="font-label-lg text-label-lg font-bold text-on-primary">Consolidación Multitienda &amp; Kardex Centralizado</h3>
-                <p className="font-body-sm text-body-sm text-on-primary/70 mt-0.5">
-                  Los algoritmos predictivos analizan simultáneamente las ventas de Sucursal Central, Sucursal Metrocentro y Tienda Virtual para optimizar fletes.
-                </p>
+                <h3 className="text-xs font-bold text-white">Consulta Analítica en Tiempo Real</h3>
+                <span className="text-[10px] text-gray-500">Respuestas calculadas sobre el catálogo real</span>
               </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <button className="font-label-md text-label-md bg-primary-container text-on-primary-container hover:bg-on-primary px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95">
-                <span className="material-symbols-outlined text-body-lg">summarize</span>
-                Exportar Reporte Ejecutivo IA
-              </button>
-              <button className="font-label-md text-label-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95">
-                <span className="material-symbols-outlined text-body-lg">schedule_send</span>
-                Programar Reposiciones
-              </button>
             </div>
           </div>
 
-        </section>
-
-        {/* RIGHT PANEL: JINStock Copilot (Conversational Business Chat) (45% -> lg:col-span-5) */}
-        <section className="lg:col-span-5 bg-surface-container-lowest rounded-2xl shadow-sm flex flex-col h-[780px] relative overflow-hidden">
-          
-          {/* Chat Header */}
-          <div className="p-space-md bg-surface-container-low/80 backdrop-blur-md flex items-center justify-between border-b border-outline-variant/20 shrink-0">
-            <div className="flex items-center gap-space-sm">
-              <div className="relative">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary-container via-secondary to-secondary-container flex items-center justify-center text-on-secondary shadow-md">
-                  <span className="material-symbols-outlined text-headline-sm" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-secondary rounded-full ring-2 ring-surface-container-lowest flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 bg-on-secondary rounded-full animate-pulse"></span>
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="font-label-lg text-label-lg font-bold text-on-surface">JINStock Copilot IA</h2>
-                  <span className="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-1.5 py-0.5 rounded font-bold">PRO</span>
-                </div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-                  Conectado a Kardex local & facturación
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl transition-colors" title="Limpiar historial" onClick={() => fetchContextData()}>
-                <span className="material-symbols-outlined text-body-lg">restart_alt</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Chat Scrollable History Area */}
-          <div className="flex-1 overflow-y-auto p-space-md flex flex-col gap-space-md" id="chatContainer">
-            <div className="flex items-center justify-center my-1">
-              <span className="font-label-sm text-label-sm text-on-surface-variant/80 bg-surface-container-low px-3 py-1 rounded-full">Sesión Actual</span>
-            </div>
-
-            {messages.map((msg) => (
+          {/* Messages Container */}
+          <div className="flex-1 overflow-y-auto space-y-3 py-3 pr-1 text-xs">
+            {messages.map((m) => (
               <div
-                key={msg.id}
-                className={`flex items-start gap-space-sm max-w-[95%] ${msg.sender === 'user' ? 'self-end flex-row-reverse max-w-[88%]' : ''}`}
+                key={m.id}
+                className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
-                {/* Avatar */}
-                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-1 ${msg.sender === 'user' ? 'hidden' : 'bg-secondary-fixed text-secondary'}`}>
-                  {msg.sender === 'copilot' && <span className="material-symbols-outlined text-body-md" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>}
+                <div
+                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 whitespace-pre-line leading-relaxed ${
+                    m.sender === 'user'
+                      ? 'bg-purple-600 text-white rounded-tr-sm'
+                      : 'bg-[#100f14] text-gray-200 border border-[#2d2c35] rounded-tl-sm'
+                  }`}
+                >
+                  {m.text}
                 </div>
-
-                {/* Message Bubble */}
-                <div className={`${msg.sender === 'user' ? 'bg-primary text-on-primary rounded-2xl rounded-tr-sm shadow-sm p-space-md' : 'bg-surface-container-low text-on-surface p-space-md rounded-2xl rounded-tl-sm flex flex-col gap-1.5'}`}>
-                  <p className="font-body-sm text-body-sm leading-relaxed whitespace-pre-wrap">
-                    {msg.text.split(/(\*\*.*?\*\*)/g).map((part, i) => 
-                      part.startsWith('**') && part.endsWith('**') ? 
-                        <strong key={i}>{part.slice(2, -2)}</strong> : 
-                        <span key={i}>{part}</span>
-                    )}
-                  </p>
-                  
-                  {msg.sender === 'copilot' && <span className="font-label-sm text-label-sm text-on-surface-variant text-right block mt-1">{msg.timestamp}</span>}
-                </div>
+                <span className="text-[10px] text-gray-500 mt-1 px-1">{m.timestamp}</span>
               </div>
             ))}
 
             {thinking && (
-              <div className="flex items-start gap-space-sm max-w-[95%]">
-                <div className="w-7 h-7 rounded-xl bg-secondary-fixed text-secondary flex items-center justify-center shrink-0 mt-1">
-                  <span className="material-symbols-outlined text-body-md animate-spin" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                </div>
-                <div className="bg-surface-container-low text-on-surface p-space-md rounded-2xl rounded-tl-sm shadow-sm flex flex-col gap-2">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant">Procesando Kardex...</span>
-                </div>
+              <div className="flex items-center gap-2 text-purple-400 text-xs py-1">
+                <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                <span>Analizando métricas de catálogo...</span>
               </div>
             )}
-            
             <div ref={chatEndRef} />
           </div>
 
-          {/* Quick Suggested Prompt Chips (Interactive) */}
-          <div className="px-space-md py-2 bg-surface-container-lowest border-t border-outline-variant/20 flex items-center gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
-            <button className="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onClick={() => fillPrompt('¿Cuál fue la venta promedio por cajero hoy?')}>
-              <span className="material-symbols-outlined text-body-sm text-secondary">query_stats</span>
-              ¿Venta promedio por cajero hoy?
-            </button>
-            <button className="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onClick={() => fillPrompt('¿Qué artículos no se venden hace 60 días?')}>
-              <span className="material-symbols-outlined text-body-sm text-[#FF6B6B]">hourglass_bottom</span>
-              ¿Sin rotación hace 60 días?
-            </button>
-            <button className="font-label-sm text-label-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap transition-colors flex items-center gap-1" onClick={() => fillPrompt('Predecir demanda para la próxima semana')}>
-              <span className="material-symbols-outlined text-body-sm text-primary">online_prediction</span>
-              Predecir demanda próxima semana
-            </button>
+          {/* Suggestions Pill Bar */}
+          <div className="flex flex-wrap gap-1.5 py-2 border-t border-white/5">
+            {[
+              '¿Qué productos debo reabastecer?',
+              '¿Cuáles son los más vendidos?',
+              '¿Qué productos están agotados?',
+            ].map((sugg, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setInputValue(sugg);
+                }}
+                className="text-[11px] bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 rounded-full px-2.5 py-1 transition-colors text-left truncate"
+              >
+                {sugg}
+              </button>
+            ))}
           </div>
 
-          {/* Chat Input Area */}
-          <div className="p-space-md bg-surface-container-low shrink-0">
-            <form className="flex items-center gap-2" onSubmit={(e) => handleSendMessage(e)}>
-              <button type="button" className="p-2.5 rounded-xl bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors shrink-0" title="Adjuntar reporte">
-                <span className="material-symbols-outlined text-headline-sm">attach_file</span>
-              </button>
-              
-              <div className="flex-1 relative">
-                <input 
-                  type="text" 
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className="w-full bg-surface-container-lowest font-body-md text-body-md text-on-surface placeholder:text-outline py-2.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary transition-all" 
-                  placeholder="Pregúntale a JINStock IA..." 
-                />
-              </div>
-              
-              <button type="submit" disabled={!inputValue.trim() || thinking} className="bg-secondary hover:bg-on-secondary-container text-on-secondary p-2.5 rounded-xl shadow-md transition-all flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-50">
-                <span className="material-symbols-outlined text-headline-sm">send</span>
-              </button>
-            </form>
-            <div className="flex items-center justify-between mt-1 px-1">
-              <span className="font-label-sm text-label-sm text-on-surface-variant">JINStock Neural Offline Agent</span>
-              <span className="font-label-sm text-label-sm text-secondary font-medium">Enter para enviar</span>
-            </div>
-          </div>
-        </section>
+          {/* Chat Form */}
+          <form onSubmit={handleSendMessage} className="flex gap-2 pt-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Pregunte sobre cobertura, ventas, compras..."
+              className="flex-1 bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+            />
+            <button
+              type="submit"
+              disabled={!inputValue.trim() || thinking}
+              className="p-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl disabled:opacity-40 transition-colors"
+            >
+              <span className="material-symbols-outlined text-base">send</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

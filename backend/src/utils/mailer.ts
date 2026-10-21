@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 
-// Create the transporter lazily so environment variables are guaranteed to be loaded
 let _transporter: any = null;
 
 function getTransporter() {
@@ -8,23 +7,28 @@ function getTransporter() {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
-    console.log(`📧 Inicializando SMTP transporter. SMTP_USER configurado: ${!!user}, SMTP_PASS configurado: ${!!pass}`);
+    if (!user || !pass) {
+      return null;
+    }
 
     _transporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: { user: user || '', pass: pass || '' },
+      auth: { user, pass },
     });
   }
   return _transporter;
 }
 
-export const sendConfirmationEmail = async (to: string, code: string) => {
+export const sendConfirmationEmail = async (to: string, code: string): Promise<boolean> => {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
 
   if (!smtpUser || !smtpPass) {
-    console.warn(`⚠️ SMTP no configurado (SMTP_USER=${!!smtpUser}, SMTP_PASS=${!!smtpPass}). Código para ${to}: ${code}`);
-    return;
+    // Si no hay SMTP configurado, registrar advertencia limpia sin exponer detalles sensibles
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[Mailer DEV] SMTP no configurado. Código generado para ${to}: ${code}`);
+    }
+    return false;
   }
 
   const mailOptions = {
@@ -48,10 +52,11 @@ export const sendConfirmationEmail = async (to: string, code: string) => {
 
   try {
     const transporter = getTransporter();
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✉️ Correo de confirmación enviado a ${to}. MessageId: ${info.messageId}`);
+    if (!transporter) return false;
+    await transporter.sendMail(mailOptions);
+    return true;
   } catch (error: any) {
-    console.error(`❌ Error enviando correo a ${to}:`, error.message || error);
-    console.error('Detalles completos del error SMTP:', JSON.stringify(error, null, 2));
+    console.error(`[Mailer] Error enviando correo a ${to}:`, error.message);
+    return false;
   }
 };

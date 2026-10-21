@@ -14,10 +14,9 @@ interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
-  register: (data: { nombre: string; email: string; password: string; rol?: Rol }) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string; requireVerification?: boolean; email?: string }>;
+  register: (data: { nombre: string; email: string; password: string }) => Promise<{ success: boolean; message?: string; requireVerification?: boolean; email?: string }>;
   logout: () => void;
-  seedUsers: () => Promise<{ success: boolean; message?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,9 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res.success && res.data) {
           setUser(res.data);
           localStorage.setItem('jinstock_user', JSON.stringify(res.data));
-        } else {
-          // Token invalid or server offline, keep local user if offline
-          console.log('[Auth] Servidor inaccesible o token no verificado.');
+        } else if (res.status === 401 || res.status === 403) {
+          // C-05: Si el token está vencido o inválido (401/403), cerrar sesión y limpiar almacenamiento
+          console.warn('[Auth] Sesión inválida o expirada (401/403). Cerrando sesión.');
+          handleLogout();
+        } else if (res.networkError) {
+          // C-05: Si hay fallo de red (offline), mantener la sesión local para poder seguir operando offline
+          console.log('[Auth] Servidor no disponible. Manteniendo sesión local offline.');
         }
       }
       setLoading(false);
@@ -63,10 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, message: res.message };
     }
 
-    return { success: false, message: res.message || 'Error al iniciar sesión', ...(res as any) };
+    return {
+      success: false,
+      message: res.message || 'Error al iniciar sesión',
+      requireVerification: res.requireVerification,
+      email: res.email,
+    };
   };
 
-  const handleRegister = async (data: { nombre: string; email: string; password: string; rol?: Rol; adminCode?: string }) => {
+  const handleRegister = async (data: { nombre: string; email: string; password: string }) => {
     const res = await apiFetch<{ token: string; usuario: UserProfile }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -80,23 +88,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, message: res.message };
     }
 
-    // Handle requireVerification response (no token/data, but success=true)
-    if (res.success) {
-      return { success: true, message: res.message, requireVerification: (res as any).requireVerification, email: (res as any).email };
-    }
-
-    return { success: false, message: res.message || 'Error al registrar la cuenta', requireVerification: (res as any).requireVerification, email: (res as any).email };
+    return {
+      success: res.success,
+      message: res.message || 'Error al registrar la cuenta',
+      requireVerification: res.requireVerification,
+      email: res.email,
+    };
   };
 
   const handleLogout = () => {
     removeAuthToken();
     setToken(null);
     setUser(null);
-  };
-
-  const handleSeedUsers = async () => {
-    const res = await apiFetch('/auth/seed', { method: 'POST' });
-    return { success: res.success, message: res.message };
   };
 
   return (
@@ -108,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login: handleLogin,
         register: handleRegister,
         logout: handleLogout,
-        seedUsers: handleSeedUsers,
       }}
     >
       {children}

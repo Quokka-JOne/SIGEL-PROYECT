@@ -38,7 +38,7 @@ export const PurchasesPage: React.FC = () => {
   const isAdmin = user?.rol === 'ADMINISTRADOR';
 
   const [activeTab, setActiveTab] = useState<'NEW_PURCHASE' | 'PURCHASE_HISTORY' | 'SUPPLIERS'>('NEW_PURCHASE');
-  
+
   // Data lists
   const [suppliers, setSuppliers] = useState<SupplierItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -48,7 +48,7 @@ export const PurchasesPage: React.FC = () => {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('');
   const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [purchaseItems, setPurchaseItems] = useState<PurchaseCartItem[]>([]);
-  
+
   // Selected product to add to purchase
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [addQty, setAddQty] = useState<number>(10);
@@ -68,9 +68,15 @@ export const PurchasesPage: React.FC = () => {
     direccion: '',
   });
 
+  // T-05: Anular compra modal
+  const [anularModalOpen, setAnularModalOpen] = useState<boolean>(false);
+  const [purchaseToAnular, setPurchaseToAnular] = useState<any | null>(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState<string>('');
+  const [anulando, setAnulando] = useState<boolean>(false);
+
   const fetchData = async () => {
     const [suppRes, prodRes, purRes] = await Promise.all([
-      apiFetch<SupplierItem[]>('/suppliers'),
+      apiFetch<SupplierItem[]>('/suppliers?includeInactive=true'),
       apiFetch<ProductItem[]>('/products?includeInactive=true'),
       apiFetch<any[]>('/purchases'),
     ]);
@@ -118,37 +124,33 @@ export const PurchasesPage: React.FC = () => {
       return;
     }
 
-    if (addCost < 0) {
-      setMessage({ type: 'error', text: 'El costo unitario no puede ser negativo.' });
-      return;
-    }
+    const subtotal = Number((addQty * addCost).toFixed(2));
 
     setPurchaseItems((prev) => {
-      const existingIdx = prev.findIndex((item) => item.productoId === selectedProductId);
-      if (existingIdx !== -1) {
+      const idx = prev.findIndex((item) => item.productoId === prod.id);
+      if (idx !== -1) {
         const updated = [...prev];
-        const newQty = updated[existingIdx].cantidad + addQty;
-        updated[existingIdx] = {
-          ...updated[existingIdx],
+        const newQty = updated[idx].cantidad + addQty;
+        updated[idx] = {
+          ...updated[idx],
           cantidad: newQty,
           costoUnitario: addCost,
-          subtotal: newQty * addCost,
+          subtotal: Number((newQty * addCost).toFixed(2)),
         };
         return updated;
-      } else {
-        return [
-          ...prev,
-          {
-            productoId: prod.id,
-            nombre: prod.nombre,
-            sku: prod.sku,
-            imagenUrl: prod.imagenUrl,
-            cantidad: addQty,
-            costoUnitario: addCost,
-            subtotal: addQty * addCost,
-          },
-        ];
       }
+      return [
+        ...prev,
+        {
+          productoId: prod.id,
+          nombre: prod.nombre,
+          sku: prod.sku,
+          imagenUrl: prod.imagenUrl,
+          cantidad: addQty,
+          costoUnitario: addCost,
+          subtotal,
+        },
+      ];
     });
   };
 
@@ -156,29 +158,27 @@ export const PurchasesPage: React.FC = () => {
     setPurchaseItems((prev) => prev.filter((item) => item.productoId !== prodId));
   };
 
-  const grandTotalPurchase = purchaseItems.reduce((acc, item) => acc + item.subtotal, 0);
+  const grandTotal = purchaseItems.reduce((acc, item) => acc + item.subtotal, 0);
 
-  const handleConfirmPurchase = async () => {
+  const handleSubmitPurchase = async () => {
     setMessage(null);
     if (!selectedSupplierId) {
-      setMessage({ type: 'error', text: 'Seleccione un proveedor de la lista.' });
+      setMessage({ type: 'error', text: 'Por favor seleccione un proveedor.' });
       return;
     }
-
     if (purchaseItems.length === 0) {
       setMessage({ type: 'error', text: 'Agregue al menos un producto a la compra.' });
       return;
     }
 
     setSubmitting(true);
-
     const payload = {
       proveedorId: selectedSupplierId,
-      numeroFactura: invoiceNumber || `FAC-COMPRA-${Date.now().toString().slice(-6)}`,
-      detalles: purchaseItems.map((i) => ({
-        productoId: i.productoId,
-        cantidad: i.cantidad,
-        costoUnitario: i.costoUnitario,
+      numeroFactura: invoiceNumber.trim() || undefined,
+      detalles: purchaseItems.map((item) => ({
+        productoId: item.productoId,
+        cantidad: item.cantidad,
+        costoUnitario: item.costoUnitario,
       })),
     };
 
@@ -187,187 +187,196 @@ export const PurchasesPage: React.FC = () => {
       body: JSON.stringify(payload),
     });
 
-    setSubmitting(false);
-
     if (res.success) {
-      setMessage({
-        type: 'success',
-        text: '¡Compra registrada correctamente! El inventario ha sido actualizado con la nueva ENTRADA de stock.',
-      });
+      setMessage({ type: 'success', text: 'Compra registrada con éxito y existencias aumentadas en Kardex.' });
       setPurchaseItems([]);
       setInvoiceNumber('');
-      fetchData(); // Refresh history and catalog stock!
+      fetchData();
     } else {
       setMessage({ type: 'error', text: res.message || 'Error al procesar la compra.' });
     }
+    setSubmitting(false);
   };
 
-  const handleCreateSupplierSubmit = async (e: React.FormEvent) => {
+  // M-05: Toggle de estado de proveedor
+  const handleToggleSupplierStatus = async (supp: SupplierItem) => {
+    const res = await apiFetch(`/suppliers/${supp.id}/status`, { method: 'PATCH' });
+    if (res.success) {
+      fetchData();
+    } else {
+      setMessage({ type: 'error', text: res.message || 'Error al cambiar estado del proveedor.' });
+    }
+  };
+
+  // Registrar nuevo proveedor
+  const handleCreateSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSuppData.nombre.trim()) return;
 
-    setSubmitting(true);
     const res = await apiFetch('/suppliers', {
       method: 'POST',
       body: JSON.stringify(newSuppData),
     });
-    setSubmitting(false);
 
     if (res.success) {
       setIsSupplierModalOpen(false);
       setNewSuppData({ nombre: '', ruc: '', telefono: '', email: '', direccion: '' });
       fetchData();
+    } else {
+      setMessage({ type: 'error', text: res.message || 'Error al registrar proveedor.' });
     }
+  };
+
+  // T-05: Anulación de compra
+  const handleConfirmCancelPurchase = async () => {
+    if (!purchaseToAnular || !motivoCancelacion.trim()) return;
+    setAnulando(true);
+
+    const res = await apiFetch(`/purchases/${purchaseToAnular.id}/anular`, {
+      method: 'PATCH',
+      body: JSON.stringify({ motivo: motivoCancelacion.trim() }),
+    });
+
+    if (res.success) {
+      setMessage({ type: 'success', text: res.message || 'Compra cancelada correctamente y stock deducido.' });
+      setAnularModalOpen(false);
+      setPurchaseToAnular(null);
+      setMotivoCancelacion('');
+      fetchData();
+    } else {
+      setMessage({ type: 'error', text: res.message || 'Error al cancelar compra.' });
+    }
+    setAnulando(false);
   };
 
   if (!isAdmin) {
     return (
-      <div className="p-space-xl text-center font-body-md text-on-surface">
-        <span className="material-symbols-outlined text-headline-xl text-error mb-2">lock</span>
-        <h2 className="text-headline-md font-bold">Acceso Restringido</h2>
-        <p className="text-body-sm text-on-surface-variant mt-1">
-          Solo los usuarios con rol de <strong>Administrador</strong> tienen permisos para gestionar Compras y Proveedores.
+      <div className="p-8 text-center text-white">
+        <span className="material-symbols-outlined text-4xl text-rose-400 mb-2">lock</span>
+        <h2 className="text-xl font-bold">Acceso Restringido</h2>
+        <p className="text-xs text-gray-400 mt-1">
+          Solo los usuarios con rol de <strong>Administrador</strong> tienen acceso al módulo de compras.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-space-lg w-full">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-headline-lg text-primary">shopping_cart_checkout</span>
-            <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">
-              Compras & Reabastecimiento
-            </h1>
-          </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-            Ingreso de mercadería por factura de compra. Incrementa automáticamente existencias (ENTRADA Kardex).
+          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-purple-400 text-3xl">local_shipping</span>
+            Gestión de Compras & Proveedores
+          </h1>
+          <p className="text-xs text-gray-400 mt-1">
+            Abastecimiento de mercadería escolar, actualización de costos e ingreso de facturas.
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="p-1 bg-surface-container-low rounded-xl flex border border-surface-container self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab('NEW_PURCHASE')}
-            className={`py-2 px-4 rounded-lg font-label-md text-label-md transition-all flex items-center gap-1.5 ${
-              activeTab === 'NEW_PURCHASE'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-body-lg">add_shopping_cart</span>
-            Registrar Compra
-          </button>
-
-          <button
-            onClick={() => setActiveTab('PURCHASE_HISTORY')}
-            className={`py-2 px-4 rounded-lg font-label-md text-label-md transition-all flex items-center gap-1.5 ${
-              activeTab === 'PURCHASE_HISTORY'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-body-lg">history</span>
-            Historial
-          </button>
-
-          <button
-            onClick={() => setActiveTab('SUPPLIERS')}
-            className={`py-2 px-4 rounded-lg font-label-md text-label-md transition-all flex items-center gap-1.5 ${
-              activeTab === 'SUPPLIERS'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-body-lg">local_shipping</span>
-            Proveedores
-          </button>
-        </div>
+        <button
+          onClick={() => setIsSupplierModalOpen(true)}
+          className="px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+        >
+          <span className="material-symbols-outlined text-base">person_add</span>
+          Nuevo Proveedor
+        </button>
       </div>
 
-      {/* Global Alerts */}
       {message && (
         <div
-          className={`p-3.5 rounded-xl border text-body-sm flex items-center gap-3 shadow-sm ${
-            message.type === 'error'
-              ? 'bg-error-container border-error text-on-error-container'
-              : 'bg-primary-fixed border-primary text-on-primary-fixed'
+          className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
+            message.type === 'success'
+              ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-200'
+              : 'bg-red-950/70 border-red-500/40 text-red-200'
           }`}
         >
-          <span className="material-symbols-outlined text-body-lg">
-            {message.type === 'error' ? 'error' : 'check_circle'}
-          </span>
-          <span className="font-semibold">{message.text}</span>
+          <span>{message.text}</span>
+          <button onClick={() => setMessage(null)} className="text-gray-400 hover:text-white">
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
         </div>
       )}
 
-      {/* TAB 1: REGISTRAR NUEVA COMPRA (ENTRADA DE STOCK) */}
-      {activeTab === 'NEW_PURCHASE' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
-          {/* Left / Main Panel: Purchase Setup & Products */}
-          <div className="lg:col-span-2 flex flex-col gap-space-md">
-            {/* Supplier & Invoice info card */}
-            <div className="p-space-md bg-surface-container-lowest rounded-2xl border border-surface-container shadow-sm flex flex-col gap-space-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-body-lg text-primary">badge</span>
-                  Datos del Proveedor & Factura
-                </h3>
-                <button
-                  onClick={() => setIsSupplierModalOpen(true)}
-                  className="text-label-sm font-label-sm text-primary hover:underline flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-body-sm">person_add</span>
-                  + Nuevo Proveedor
-                </button>
-              </div>
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-white/10 pb-3">
+        {[
+          { id: 'NEW_PURCHASE', label: 'Registrar Factura de Compra', icon: 'add_shopping_cart' },
+          { id: 'PURCHASE_HISTORY', label: 'Historial de Compras', icon: 'history' },
+          { id: 'SUPPLIERS', label: 'Directorio de Proveedores', icon: 'contacts' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+              activeTab === tab.id
+                ? 'bg-purple-600 text-white shadow-md'
+                : 'bg-[#1c1b22] text-gray-400 hover:text-white border border-[#2d2c35]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
-                <div className="flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Proveedor *</label>
+      {/* TAB 1: NEW PURCHASE */}
+      {activeTab === 'NEW_PURCHASE' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Form & Item Selection */}
+          <div className="lg:col-span-8 flex flex-col gap-4">
+            <div className="bg-[#1c1b22] border border-[#2d2c35] p-5 rounded-2xl flex flex-col gap-4 shadow-md">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 pb-2 border-b border-white/5">
+                <span className="material-symbols-outlined text-purple-400">receipt</span>
+                Datos del Proveedor y Factura
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="text-gray-400 font-semibold block mb-1">Proveedor Distribuidor *</label>
                   <select
                     value={selectedSupplierId}
                     onChange={(e) => setSelectedSupplierId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container cursor-pointer"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
                   >
-                    {suppliers.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nombre} {s.ruc ? `(RUC: ${s.ruc})` : ''}
-                      </option>
-                    ))}
+                    {suppliers
+                      .filter((s) => s.estado)
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.nombre} {s.ruc ? `(${s.ruc})` : ''}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Número de Factura Proveedor</label>
+                <div>
+                  <label className="text-gray-400 font-semibold block mb-1">Nº de Factura Comercial</label>
                   <input
                     type="text"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
-                    placeholder="ej. FAC-HIS-88942"
-                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                    placeholder="Ej. FAC-001923"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Add Products to Purchase Bar */}
-            <div className="p-space-md bg-surface-container-lowest rounded-2xl border border-surface-container shadow-sm flex flex-col gap-space-sm">
-              <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-body-lg text-secondary">post_add</span>
-                Agregar Artículos a la Compra
+            {/* Add Products to Purchase Box */}
+            <div className="bg-[#1c1b22] border border-[#2d2c35] p-5 rounded-2xl flex flex-col gap-4 shadow-md">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 pb-2 border-b border-white/5">
+                <span className="material-symbols-outlined text-purple-400">add_box</span>
+                Añadir Mercadería al Lote
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-space-sm items-end">
-                <div className="sm:col-span-5 flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Producto</label>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs items-end">
+                <div className="sm:col-span-6">
+                  <label className="text-gray-400 font-semibold block mb-1">Seleccionar Producto</label>
                   <select
                     value={selectedProductId}
                     onChange={(e) => handleSelectProductChange(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container cursor-pointer"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
                   >
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -377,317 +386,340 @@ export const PurchasesPage: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="sm:col-span-3 flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Cantidad Comprada</label>
+                <div className="sm:col-span-3">
+                  <label className="text-gray-400 font-semibold block mb-1">Costo Unitario (C$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={addCost}
+                    onChange={(e) => setAddCost(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label className="text-gray-400 font-semibold block mb-1">Cantidad a Ingresar</label>
                   <input
                     type="number"
                     min="1"
                     value={addQty}
-                    onChange={(e) => setAddQty(parseInt(e.target.value || '0', 10))}
-                    className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl font-numeric text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                    onChange={(e) => setAddQty(parseInt(e.target.value, 10) || 1)}
+                    className="w-full bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
                   />
-                </div>
-
-                <div className="sm:col-span-2 flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Costo Unit. C$</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={addCost}
-                    onChange={(e) => setAddCost(parseFloat(e.target.value || '0'))}
-                    className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl font-numeric text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <button
-                    type="button"
-                    onClick={handleAddProductToPurchase}
-                    className="w-full py-2.5 px-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center justify-center gap-1 active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-body-md">add</span>
-                    <span>Agregar</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Purchase Details Items Table */}
-            <div className="bg-surface-container-lowest rounded-2xl border border-surface-container shadow-sm overflow-hidden flex flex-col">
-              <div className="p-3.5 border-b border-surface-container bg-surface-container-low font-headline-sm font-bold text-label-lg text-on-surface">
-                Detalle de la Orden de Compra ({purchaseItems.length} ítems)
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-container-low/50 border-b border-surface-container font-label-sm text-label-sm text-on-surface-variant uppercase">
-                      <th className="py-3 px-4">Producto</th>
-                      <th className="py-3 px-4 text-center">Cantidad a Sumar</th>
-                      <th className="py-3 px-4 text-right">Costo Unitario</th>
-                      <th className="py-3 px-4 text-right">Subtotal</th>
-                      <th className="py-3 px-4 text-center">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-surface-container font-body-sm text-body-sm text-on-surface">
-                    {purchaseItems.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-on-surface-variant">
-                          No has agregado artículos a esta compra.
-                        </td>
-                      </tr>
-                    ) : (
-                      purchaseItems.map((item) => (
-                        <tr key={item.productoId} className="hover:bg-surface-container-low/30 transition-colors">
-                          <td className="py-3 px-4 font-semibold">
-                            {item.nombre}
-                            {item.sku && <span className="block text-[10px] text-outline font-mono">SKU: {item.sku}</span>}
-                          </td>
-                          <td className="py-3 px-4 text-center font-numeric font-bold text-secondary">
-                            +{item.cantidad} unidades
-                          </td>
-                          <td className="py-3 px-4 text-right font-numeric">
-                            C$ {item.costoUnitario.toFixed(2)}
-                          </td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold text-primary">
-                            C$ {item.subtotal.toFixed(2)}
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <button
-                              onClick={() => handleRemovePurchaseItem(item.productoId)}
-                              className="p-1.5 text-error hover:bg-error-container rounded-lg transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-body-lg">delete</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Panel: Total Summary & Submit */}
-          <div className="flex flex-col gap-space-md">
-            <div className="p-space-lg bg-surface-container-lowest rounded-2xl border border-surface-container shadow-sm flex flex-col gap-space-md">
-              <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Resumen de Inversión</h3>
-
-              <div className="flex flex-col gap-2 bg-surface-container-low p-4 rounded-xl border border-surface-container">
-                <div className="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
-                  <span>Ítems agregados:</span>
-                  <span className="font-bold text-on-surface">{purchaseItems.length} tipos de producto</span>
-                </div>
-                <div className="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
-                  <span>Unidades totales de entrada:</span>
-                  <span className="font-bold text-secondary">
-                    +{purchaseItems.reduce((acc, i) => acc + i.cantidad, 0)} unidades
-                  </span>
-                </div>
-                <div className="flex justify-between font-numeric font-bold text-on-surface pt-2 border-t border-surface-container mt-1">
-                  <span>TOTAL COMPRA (C$):</span>
-                  <span className="text-body-lg text-primary">C$ {grandTotalPurchase.toFixed(2)}</span>
                 </div>
               </div>
 
               <button
-                onClick={handleConfirmPurchase}
-                disabled={submitting || purchaseItems.length === 0}
-                className="w-full py-3 px-4 rounded-xl bg-primary text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                type="button"
+                onClick={handleAddProductToPurchase}
+                className="self-end px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
               >
-                {submitting ? (
-                  <span>Registrando Entrada...</span>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-body-lg">inventory</span>
-                    <span>Confirmar & Sumar a Inventario</span>
-                  </>
-                )}
+                <span className="material-symbols-outlined text-sm">playlist_add</span>
+                Agregar a Factura
               </button>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* TAB 2: HISTORIAL DE COMPRAS */}
-      {activeTab === 'PURCHASE_HISTORY' && (
-        <div className="bg-surface-container-lowest rounded-2xl border border-surface-container shadow-sm overflow-hidden flex flex-col p-space-md gap-space-md">
-          <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Historial de Compras de Reabastecimiento</h3>
+          {/* Right Column: Items Summary & Confirm */}
+          <div className="lg:col-span-4 bg-[#1c1b22] border border-[#2d2c35] p-5 rounded-2xl flex flex-col gap-4 shadow-xl">
+            <h3 className="text-sm font-bold text-white flex items-center justify-between pb-2 border-b border-white/10">
+              <span>Detalle de Factura</span>
+              <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
+                {purchaseItems.length} ítems
+              </span>
+            </h3>
 
-          <div className="overflow-x-auto rounded-xl border border-surface-container">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-container-low border-b border-surface-container font-label-sm text-label-sm text-on-surface-variant uppercase">
-                  <th className="py-3 px-4">No. Factura Proveedor</th>
-                  <th className="py-3 px-4">Proveedor</th>
-                  <th className="py-3 px-4">Fecha de Registro</th>
-                  <th className="py-3 px-4 text-center">Estado</th>
-                  <th className="py-3 px-4 text-right">Total Invertido (C$)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-container font-body-sm text-body-sm text-on-surface">
-                {purchasesHistory.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-8 text-center text-on-surface-variant">
-                      No hay compras registradas aún.
-                    </td>
-                  </tr>
-                ) : (
-                  purchasesHistory.map((pur) => (
-                    <tr key={pur.id} className="hover:bg-surface-container-low/30 transition-colors">
-                      <td className="py-3 px-4 font-mono font-semibold text-primary">
-                        {pur.numeroFactura}
-                      </td>
-                      <td className="py-3 px-4 font-medium">
-                        {pur.proveedorNombre || pur.proveedor?.nombre || 'Proveedor Papelera'}
-                      </td>
-                      <td className="py-3 px-4 text-on-surface-variant">
-                        {new Date(pur.fecha).toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="px-2.5 py-1 bg-surface-container-high text-primary rounded-full font-label-sm text-label-sm font-bold">
-                          {pur.estado || 'CONFIRMADA'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right font-numeric font-bold">
-                        C$ {pur.total?.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+            <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto text-xs pr-1">
+              {purchaseItems.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  No hay artículos en la factura aún.
+                </div>
+              ) : (
+                purchaseItems.map((item) => (
+                  <div
+                    key={item.productoId}
+                    className="bg-[#100f14] p-2.5 rounded-xl border border-[#2d2c35] flex items-center justify-between"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <p className="font-semibold text-white truncate" title={item.nombre}>
+                        {item.nombre}
+                      </p>
+                      <span className="text-[11px] text-gray-400">
+                        {item.cantidad} x C$ {item.costoUnitario.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-bold text-emerald-400">C$ {item.subtotal.toFixed(2)}</span>
+                      <button
+                        onClick={() => handleRemovePurchaseItem(item.productoId)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
 
-      {/* TAB 3: DIRECTORIO DE PROVEEDORES */}
-      {activeTab === 'SUPPLIERS' && (
-        <div className="flex flex-col gap-space-md">
-          <div className="flex justify-between items-center">
-            <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Directorio de Proveedores de Papelería</h3>
+            <div className="pt-3 border-t border-white/10 flex justify-between items-center text-sm font-bold">
+              <span>Total a Pagar:</span>
+              <span className="text-emerald-400 text-lg">C$ {grandTotal.toFixed(2)}</span>
+            </div>
+
             <button
-              onClick={() => setIsSupplierModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-primary text-on-primary font-label-sm text-label-sm shadow-sm hover:bg-primary-container transition-colors flex items-center gap-1.5 active:scale-95"
+              onClick={handleSubmitPurchase}
+              disabled={submitting || purchaseItems.length === 0}
+              className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-40 shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-body-md">person_add</span>
-              <span>+ Registrar Proveedor</span>
+              <span className="material-symbols-outlined text-base">check_circle</span>
+              {submitting ? 'Procesando Compra...' : 'Confirmar Compra y Sumar Stock'}
             </button>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-            {suppliers.map((s) => (
-              <div key={s.id} className="p-space-md bg-surface-container-lowest rounded-2xl border border-surface-container shadow-sm flex flex-col gap-space-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-surface-container-high text-primary flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-body-lg">local_shipping</span>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <h4 className="font-label-lg text-label-lg font-bold text-on-surface truncate">{s.nombre}</h4>
-                    {s.ruc && <span className="font-mono text-label-sm text-on-surface-variant truncate">RUC: {s.ruc}</span>}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1 text-body-sm font-body-sm text-on-surface-variant pt-2 border-t border-surface-container">
-                  {s.telefono && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-body-sm">call</span> {s.telefono}</p>}
-                  {s.email && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-body-sm">mail</span> {s.email}</p>}
-                  {s.direccion && <p className="flex items-center gap-1"><span className="material-symbols-outlined text-body-sm">location_on</span> {s.direccion}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
-      {/* REGISTER SUPPLIER MODAL */}
+      {/* TAB 2: PURCHASE HISTORY */}
+      {activeTab === 'PURCHASE_HISTORY' && (
+        <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl overflow-hidden shadow-xl">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
+              <tr>
+                <th className="py-3 px-4">Factura</th>
+                <th className="py-3 px-4">Fecha</th>
+                <th className="py-3 px-4">Proveedor</th>
+                <th className="py-3 px-4 text-center">Ítems</th>
+                <th className="py-3 px-4 text-right">Total Facturado</th>
+                <th className="py-3 px-4 text-center">Estado</th>
+                <th className="py-3 px-4 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {purchasesHistory.map((p) => (
+                <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                  <td className="py-3 px-4 font-bold text-white">{p.numeroFactura || p.id}</td>
+                  <td className="py-3 px-4 text-gray-300">{new Date(p.fecha).toLocaleDateString()}</td>
+                  <td className="py-3 px-4 text-gray-300 font-semibold">{p.proveedor?.nombre}</td>
+                  <td className="py-3 px-4 text-center text-gray-400">{p.detalles?.length || 0}</td>
+                  <td className="py-3 px-4 text-right font-bold text-emerald-400 text-sm">
+                    C$ {Number(p.total).toFixed(2)}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        p.estado === 'CONFIRMADA'
+                          ? 'bg-emerald-500/20 text-emerald-300'
+                          : 'bg-rose-500/20 text-rose-300'
+                      }`}
+                    >
+                      {p.estado}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    {p.estado !== 'CANCELADA' && (
+                      <button
+                        onClick={() => {
+                          setPurchaseToAnular(p);
+                          setAnularModalOpen(true);
+                        }}
+                        title="Cancelar Compra"
+                        className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] font-semibold transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* TAB 3: DIRECTORY OF SUPPLIERS (M-05) */}
+      {activeTab === 'SUPPLIERS' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {suppliers.map((supp) => (
+            <div
+              key={supp.id}
+              className="bg-[#1c1b22] border border-[#2d2c35] p-5 rounded-2xl flex flex-col justify-between gap-3 shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      supp.estado ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-500/20 text-gray-400'
+                    }`}
+                  >
+                    {supp.estado ? 'Activo' : 'Inactivo'}
+                  </span>
+                  {supp.ruc && <span className="text-[11px] text-gray-500 font-mono">RUC: {supp.ruc}</span>}
+                </div>
+                <h3 className="text-sm font-bold text-white mt-1">{supp.nombre}</h3>
+                <div className="mt-2 text-xs text-gray-400 space-y-1">
+                  {supp.telefono && <p>📞 {supp.telefono}</p>}
+                  {supp.email && <p>✉️ {supp.email}</p>}
+                  {supp.direccion && <p>📍 {supp.direccion}</p>}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/5 flex justify-end">
+                <button
+                  onClick={() => handleToggleSupplierStatus(supp)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                    supp.estado
+                      ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300'
+                      : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300'
+                  }`}
+                >
+                  {supp.estado ? 'Desactivar' : 'Activar'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal: Registrar Proveedor */}
       {isSupplierModalOpen && (
-        <div className="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest w-full max-w-md rounded-3xl shadow-lg border border-surface-container overflow-hidden p-space-lg flex flex-col gap-space-md">
-            <div className="flex items-center justify-between pb-2 border-b border-surface-container">
-              <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Registrar Proveedor</h3>
-              <button onClick={() => setIsSupplierModalOpen(false)} className="text-on-surface-variant hover:text-on-surface transition-colors">
-                <span className="material-symbols-outlined text-body-lg">close</span>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-purple-400">person_add</span>
+                Registrar Nuevo Proveedor
+              </h3>
+              <button onClick={() => setIsSupplierModalOpen(false)} className="text-gray-400 hover:text-white">
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleCreateSupplierSubmit} className="flex flex-col gap-space-sm">
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-on-surface">Nombre o Razón Social *</label>
+            <form onSubmit={handleCreateSupplier} className="flex flex-col gap-3 text-xs">
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Razón Social / Nombre *</label>
                 <input
                   type="text"
                   required
                   value={newSuppData.nombre}
                   onChange={(e) => setNewSuppData({ ...newSuppData, nombre: e.target.value })}
-                  placeholder="ej. Distribuidora Papelera"
-                  className="w-full px-3.5 py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                  placeholder="Ej. Distribuidora Papelera Nicaragua"
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-on-surface">RUC / Cédula Fiscal</label>
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">RUC Tributario</label>
                 <input
                   type="text"
                   value={newSuppData.ruc}
                   onChange={(e) => setNewSuppData({ ...newSuppData, ruc: e.target.value })}
-                  placeholder="ej. J0310000123456"
-                  className="w-full px-3.5 py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                  placeholder="Ej. J0310000123456"
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-space-sm">
-                <div className="flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Teléfono</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-400 font-semibold block mb-1">Teléfono</label>
                   <input
                     type="text"
                     value={newSuppData.telefono}
                     onChange={(e) => setNewSuppData({ ...newSuppData, telefono: e.target.value })}
-                    placeholder="+505 2278-1234"
-                    className="w-full px-3.5 py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                    placeholder="+505 2278-0000"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
                   />
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="font-label-sm text-label-sm text-on-surface">Correo Electrónico</label>
+                <div>
+                  <label className="text-gray-400 font-semibold block mb-1">Correo Electrónico</label>
                   <input
                     type="email"
                     value={newSuppData.email}
                     onChange={(e) => setNewSuppData({ ...newSuppData, email: e.target.value })}
-                    placeholder="ventas@hispamer.ni"
-                    className="w-full px-3.5 py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                    placeholder="ventas@proveedor.ni"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-on-surface">Dirección</label>
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Dirección Física</label>
                 <input
                   type="text"
                   value={newSuppData.direccion}
                   onChange={(e) => setNewSuppData({ ...newSuppData, direccion: e.target.value })}
-                  placeholder="Managua, Rotonda Rubén Darío"
-                  className="w-full px-3.5 py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary border border-surface-container"
+                  placeholder="Ej. Managua, Rotonda Cristo Rey 2c al lago"
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              <div className="pt-2 flex gap-2">
+              <div className="flex gap-2 pt-3 border-t border-white/10 mt-1">
                 <button
                   type="button"
                   onClick={() => setIsSupplierModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant bg-surface-container hover:bg-surface-container-high transition-colors"
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-colors shadow-md"
                 >
-                  {submitting ? 'Guardando...' : 'Guardar'}
+                  Guardar Proveedor
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: T-05 Cancelar Compra */}
+      {anularModalOpen && purchaseToAnular && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center gap-2 text-rose-400 pb-2 border-b border-white/10">
+              <span className="material-symbols-outlined text-2xl">warning</span>
+              <h3 className="text-base font-bold text-white">Cancelar Factura de Compra</h3>
+            </div>
+
+            <p className="text-xs text-gray-300">
+              ¿Está seguro de cancelar la compra <strong>{purchaseToAnular.numeroFactura || purchaseToAnular.id}</strong> por{' '}
+              <strong className="text-white">C$ {Number(purchaseToAnular.total).toFixed(2)}</strong>? Esta acción deducirá las unidades correspondientes del stock en Kardex.
+            </p>
+
+            <div>
+              <label className="text-gray-400 font-semibold block mb-1 text-xs">
+                Motivo de cancelación (obligatorio):
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={motivoCancelacion}
+                onChange={(e) => setMotivoCancelacion(e.target.value)}
+                placeholder="Indique la justificación (ej. factura devuelta, mercadería errónea o defectuosa)..."
+                className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl p-2.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setAnularModalOpen(false);
+                  setPurchaseToAnular(null);
+                }}
+                className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-xs font-semibold"
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                disabled={anulando || !motivoCancelacion.trim()}
+                onClick={handleConfirmCancelPurchase}
+                className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold disabled:opacity-50 transition-colors"
+              >
+                {anulando ? 'Cancelando...' : 'Confirmar Cancelación'}
+              </button>
+            </div>
           </div>
         </div>
       )}

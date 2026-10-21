@@ -1,197 +1,243 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma';
-import { memoryProducts, memoryPurchases, memoryMovements, memorySuppliers } from '../data/memoryStore';
+import { ValidationError, NotFoundError, ForbiddenError } from '../utils/errors';
 
-let purchaseCounter = 5000;
-
-export const createPurchase = async (req: Request, res: Response): Promise<void> => {
+export const createPurchase = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { proveedorId, numeroFactura, detalles } = req.body;
     const usuarioId = req.user?.id;
 
-    if (!proveedorId || !detalles || !Array.isArray(detalles) || detalles.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: 'Por favor seleccione un proveedor e incluya al menos un producto en la compra.',
-      });
-      return;
-    }
-
     if (!usuarioId) {
-      res.status(401).json({ success: false, message: 'No autenticado.' });
-      return;
+      throw new ForbiddenError('No autenticado.');
     }
 
-    const invoiceNum = numeroFactura ? numeroFactura.trim() : `FAC-PUR-${++purchaseCounter}`;
+    if (!proveedorId || !detalles || !Array.isArray(detalles) || detalles.length === 0) {
+      throw new ValidationError('Por favor seleccione un proveedor e incluya al menos un producto en la compra.');
+    }
 
-    let purchaseResult: any = null;
+    const purchaseResult = await prisma.$transaction(async (tx) => {
+      const supplier = await tx.proveedor.findUnique({ where: { id: proveedorId } });
+      if (!supplier) {
+        throw new NotFoundError('El proveedor seleccionado no existe.');
+      }
 
-    try {
-      // Transactional Purchase Execution, stock addition and Kardex ENTRADA log
-      purchaseResult = await prisma.$transaction(async (tx) => {
-        const supplier = await tx.proveedor.findUnique({ where: { id: proveedorId } });
-        if (!supplier) {
-          throw new Error('El proveedor seleccionado no existe.');
+      // Generar número de factura secuencial seguro si no se especifica
+      let invoiceNum = numeroFactura ? numeroFactura.trim() : '';
+      if (!invoiceNum) {
+        const count = await tx.compra.count();
+        invoiceNum = `PUR-${new Date().getFullYear()}-${String(count + 1).padStart(5, '0')}`;
+      }
+
+      let grandTotal = 0;
+      const purchaseDetailsData: any[] = [];
+
+      for (const item of detalles) {
+        const product = await tx.producto.findUnique({ where: { id: item.productoId } });
+        if (!product) {
+          throw new NotFoundError(`El producto con ID ${item.productoId} no existe.`);
         }
 
-        let grandTotal = 0;
-        const purchaseDetailsData: any[] = [];
+        const qty = Number(item.cantidad);
+        const unitCost = Number(item.costoUnitario);
 
-        for (const item of detalles) {
-          const product = await tx.producto.findUnique({ where: { id: item.productoId } });
-          if (!product) {
-            throw new Error(`El producto con ID ${item.productoId} no existe.`);
-          }
-
-          const qty = Number(item.cantidad);
-          const unitCost = Number(item.costoUnitario);
-
-          if (qty <= 0 || unitCost < 0) {
-            throw new Error(`Cantidad y costo deben ser mayores a 0 para '${product.nombre}'.`);
-          }
-
-          const subtotal = qty * unitCost;
-          grandTotal += subtotal;
-
-          purchaseDetailsData.push({
-            productoId: item.productoId,
-            cantidad: qty,
-            costoUnitario: unitCost,
-            subtotal,
-          });
-
-          // 1. Update product stock (ENTRADA) and cost price
-          const stockAnterior = product.stock;
-          const stockNuevo = stockAnterior + qty;
-
-          await tx.producto.update({
-            where: { id: item.productoId },
-            data: {
-              stock: stockNuevo,
-              costo: unitCost,
-            },
-          });
-
-          // 2. Register Kardex ENTRADA movement
-          await tx.movimientoInventario.create({
-            data: {
-              productoId: item.productoId,
-              usuarioId,
-              tipo: 'ENTRADA',
-              cantidad: qty,
-              stockAnterior,
-              stockNuevo,
-              motivo: `Compra de reabastecimiento Factura #${invoiceNum} (Proveedor: ${supplier.nombre})`,
-            },
-          });
+        if (!Number.isInteger(qty) || qty <= 0 || unitCost < 0) {
+          throw new ValidationError(`Cantidad debe ser entero positivo y costo no negativo para '${product.nombre}'.`);
         }
 
-        // 3. Create Purchase Master Record
-        const purchase = await tx.compra.create({
+        const subtotal = Number((qty * unitCost).toFixed(2));
+        grandTotal += subtotal;
+
+        purchaseDetailsData.push({
+          productoId: item.productoId,
+          cantidad: qty,
+          costoUnitario: unitCost,
+          subtotal,
+        });
+
+        // 1. Actualizar stock del producto (ENTRADA) y último costo
+        const stockAnterior = product.stock;
+        const stockNuevo = stockAnterior + qty;
+
+        await tx.producto.update({
+          where: { id: item.productoId },
           data: {
-            numeroFactura: invoiceNum,
-            proveedorId,
-            usuarioId,
-            total: grandTotal,
-            estado: 'CONFIRMADA',
-            detalles: {
-              create: purchaseDetailsData,
-            },
-          },
-          include: {
-            proveedor: { select: { nombre: true, ruc: true } },
-            detalles: {
-              include: { producto: { select: { nombre: true, sku: true } } },
-            },
-            usuario: { select: { nombre: true } },
+            stock: stockNuevo,
+            costo: unitCost,
           },
         });
 
-        return purchase;
-      });
-    } catch (dbErr: any) {
-      console.warn('⚠️ Base de datos offline, procesando compra en memoria de respaldo y aumentando stock de inventario.');
-      
-      let grandTotal = 0;
-
-      // UPDATE MEMORY PRODUCTS STOCK FOR REALTIME SYNC
-      for (const item of detalles) {
-        const prodIdx = memoryProducts.findIndex((p) => p.id === item.productoId);
-        const qty = Number(item.cantidad || 0);
-        const unitCost = Number(item.costoUnitario || 0);
-        grandTotal += qty * unitCost;
-
-        if (prodIdx !== -1) {
-          const stockAnt = memoryProducts[prodIdx].stock;
-          memoryProducts[prodIdx].stock += qty;
-          memoryProducts[prodIdx].costo = unitCost;
-
-          memoryMovements.unshift({
-            id: `mov-${Date.now()}-${Math.random()}`,
+        // 2. Registrar movimiento Kardex ENTRADA
+        await tx.movimientoInventario.create({
+          data: {
             productoId: item.productoId,
             usuarioId,
             tipo: 'ENTRADA',
             cantidad: qty,
-            stockAnterior: stockAnt,
-            stockNuevo: memoryProducts[prodIdx].stock,
-            motivo: `Compra de reabastecimiento Factura #${invoiceNum}`,
-            fecha: new Date().toISOString(),
-          });
-        }
+            stockAnterior,
+            stockNuevo,
+            motivo: `Compra Factura #${invoiceNum} (Proveedor: ${supplier.nombre})`,
+          },
+        });
       }
 
-      const supp = memorySuppliers.find((s) => s.id === proveedorId);
+      grandTotal = Number(grandTotal.toFixed(2));
 
-      purchaseResult = {
-        id: `pur-${Date.now()}`,
-        numeroFactura: invoiceNum,
-        proveedorId,
-        proveedorNombre: supp ? supp.nombre : 'Distribuidora Papelera Hispamer S.A.',
-        usuarioId,
-        usuarioNombre: req.user?.nombre || 'Administrador',
-        fecha: new Date().toISOString(),
-        total: grandTotal,
-        estado: 'CONFIRMADA',
-        detalles,
-      };
-      memoryPurchases.unshift(purchaseResult);
-    }
+      // 3. Crear registro maestro de compra
+      const purchase = await tx.compra.create({
+        data: {
+          numeroFactura: invoiceNum,
+          proveedorId,
+          usuarioId,
+          total: grandTotal,
+          estado: 'CONFIRMADA',
+          detalles: {
+            create: purchaseDetailsData,
+          },
+        },
+        include: {
+          proveedor: { select: { nombre: true, ruc: true } },
+          detalles: {
+            include: { producto: { select: { nombre: true, sku: true, unidadMedida: true } } },
+          },
+          usuario: { select: { nombre: true } },
+        },
+      });
+
+      return purchase;
+    });
 
     res.status(201).json({
       success: true,
       data: purchaseResult,
-      message: 'Compra registrada exitosamente y existencias en inventario actualizadas (ENTRADA Kardex)',
+      message: 'Compra registrada exitosamente y stock actualizado.',
     });
-  } catch (error: any) {
-    console.error('Error al registrar compra:', error);
-    res.status(500).json({ success: false, message: 'Error al procesar la compra.' });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const getPurchases = async (req: Request, res: Response): Promise<void> => {
+export const getPurchases = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    let purchases: any[] = [];
-    try {
-      purchases = await prisma.compra.findMany({
-        take: 50,
+    const { desde, hasta, page = '1', limit = '50', proveedorId } = req.query;
+    const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 50));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = {};
+    if (proveedorId) {
+      where.proveedorId = String(proveedorId);
+    }
+    if (desde || hasta) {
+      where.fecha = {};
+      if (desde) where.fecha.gte = new Date(String(desde));
+      if (hasta) {
+        const hastaDate = new Date(String(hasta));
+        hastaDate.setHours(23, 59, 59, 999);
+        where.fecha.lte = hastaDate;
+      }
+    }
+
+    const [purchases, total] = await Promise.all([
+      prisma.compra.findMany({
+        where,
+        skip,
+        take: limitNum,
         orderBy: { fecha: 'desc' },
         include: {
           proveedor: { select: { nombre: true, ruc: true } },
           usuario: { select: { nombre: true } },
-          detalles: { include: { producto: { select: { nombre: true } } } },
+          detalles: {
+            include: { producto: { select: { nombre: true, sku: true } } },
+          },
         },
-      });
-    } catch (dbErr) {
-      purchases = memoryPurchases;
-    }
+      }),
+      prisma.compra.count({ where }),
+    ]);
 
     res.json({
       success: true,
       data: purchases,
-      message: 'Historial de compras obtenido correctamente',
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+      message: 'Historial de compras obtenido correctamente.',
     });
   } catch (error) {
-    console.error('Error al obtener compras:', error);
-    res.status(500).json({ success: false, message: 'Error al consultar historial de compras.' });
+    next(error);
+  }
+};
+
+// T-05: Anular compra (solo ADMINISTRADOR)
+export const anularPurchase = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { motivo } = req.body;
+    const adminId = req.user?.id;
+
+    if (!motivo || !motivo.trim()) {
+      throw new ValidationError('El motivo de cancelación es obligatorio.');
+    }
+
+    if (!adminId) {
+      throw new ForbiddenError('No autenticado.');
+    }
+
+    const purchase = await prisma.compra.findUnique({
+      where: { id },
+      include: { detalles: true },
+    });
+
+    if (!purchase) {
+      throw new NotFoundError('Compra no encontrada.');
+    }
+
+    if (purchase.estado === 'CANCELADA') {
+      throw new ValidationError('Esta compra ya ha sido cancelada.');
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Revertir existencias de cada producto
+      for (const item of purchase.detalles) {
+        const prod = await tx.producto.findUnique({ where: { id: item.productoId } });
+        if (prod) {
+          const stockAnterior = prod.stock;
+          const stockNuevo = Math.max(0, stockAnterior - item.cantidad);
+
+          await tx.producto.update({
+            where: { id: item.productoId },
+            data: { stock: stockNuevo },
+          });
+
+          await tx.movimientoInventario.create({
+            data: {
+              productoId: item.productoId,
+              usuarioId: adminId,
+              tipo: 'SALIDA',
+              cantidad: item.cantidad,
+              stockAnterior,
+              stockNuevo,
+              motivo: `Cancelación de Compra #${purchase.numeroFactura || purchase.id}: ${motivo.trim()}`,
+              referenciaId: purchase.id,
+            },
+          });
+        }
+      }
+
+      return await tx.compra.update({
+        where: { id },
+        data: { estado: 'CANCELADA' },
+      });
+    });
+
+    res.json({
+      success: true,
+      data: result,
+      message: `Compra cancelada exitosamente y stock deducido del Kardex.`,
+    });
+  } catch (error) {
+    next(error);
   }
 };

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, type Rol } from '../context/AuthContext';
 
 export interface UserAccount {
   id: string;
   nombre: string;
   email: string;
-  rol: 'ADMINISTRADOR' | 'CAJERO' | 'BODEGA' | 'CONTADOR';
+  rol: Rol;
   estado: boolean;
+  verificado?: boolean;
   createdAt?: string;
 }
 
@@ -18,26 +19,28 @@ export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  
-  // Selected Role Tab
-  const [activeRoleTab, setActiveRoleTab] = useState<'ADMINISTRADOR' | 'CAJERO' | 'BODEGA' | 'CONTADOR'>('ADMINISTRADOR');
+  const [activeFilter, setActiveFilter] = useState<'TODOS' | 'ADMINISTRADOR' | 'CAJERO'>('TODOS');
 
-  // Form fields
+  // Form fields (M-02: Solo roles existentes en el alcance: ADMINISTRADOR y CAJERO)
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
     password: '',
-    rol: 'CAJERO' as 'ADMINISTRADOR' | 'CAJERO' | 'BODEGA' | 'CONTADOR',
+    rol: 'CAJERO' as Rol,
   });
 
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
+    setActionError(null);
     const res = await apiFetch<UserAccount[]>('/users');
     if (res.success && res.data) {
       setUsers(res.data);
+    } else {
+      setActionError(res.message || 'Error al obtener usuarios.');
     }
     setLoading(false);
   };
@@ -47,9 +50,12 @@ export const UsersPage: React.FC = () => {
   }, []);
 
   const handleToggleUserStatus = async (usr: UserAccount) => {
+    setActionError(null);
     const res = await apiFetch(`/users/${usr.id}/status`, { method: 'PATCH' });
     if (res.success) {
       fetchUsers();
+    } else {
+      setActionError(res.message || 'Error al cambiar estado del usuario.');
     }
   };
 
@@ -69,395 +75,301 @@ export const UsersPage: React.FC = () => {
     });
 
     if (res.success) {
-      setFormSuccess('Usuario creado exitosamente');
+      setFormSuccess('Usuario creado exitosamente con credenciales activas.');
       setTimeout(() => {
         setIsModalOpen(false);
         setFormData({ nombre: '', email: '', password: '', rol: 'CAJERO' });
         fetchUsers();
-      }, 500);
+      }, 600);
     } else {
-      setFormError(res.message || 'Error al registrar usuario.');
+      setFormError(res.message || 'Error al registrar el usuario.');
     }
   };
 
   if (!isAdmin) {
     return (
-      <div className="p-8 text-center font-body-md text-on-surface">
-        <span className="material-symbols-outlined text-4xl text-error mb-2">lock</span>
-        <h2 className="text-xl font-bold font-headline-md">Acceso Restringido</h2>
-        <p className="text-sm text-on-surface-variant mt-1">
-          Solo los usuarios con rol de <strong>Administrador</strong> tienen acceso al control de cuentas.
+      <div className="p-8 text-center text-white">
+        <span className="material-symbols-outlined text-4xl text-rose-400 mb-2">lock</span>
+        <h2 className="text-xl font-bold">Acceso Restringido</h2>
+        <p className="text-xs text-gray-400 mt-1">
+          Solo los usuarios con rol de <strong>Administrador</strong> tienen acceso a la gestión de colaboradores.
         </p>
       </div>
     );
   }
 
-  const getRoleDetails = (role: string) => {
-    switch (role) {
-      case 'ADMINISTRADOR':
-        return { name: 'Administrador General', desc: 'Tiene autorización irrestricta para parametrizar las listas de útiles escolares, definir márgenes mayoristas, ejecutar cortes Z definitivos y autorizar compras directas al crédito.', color: 'bg-primary-container', text: 'text-on-primary' };
-      case 'CAJERO':
-        return { name: 'Cajero / Mostrador POS', desc: 'Cobros veloces, arqueos y comprobantes. Restringido ver costos de compra y utilidades.', color: 'bg-surface-container-high', text: 'text-primary' };
-      case 'BODEGA':
-        return { name: 'Encargado de Bodega', desc: 'Recepción a proveedores, Kardex físico y conteos de ciclo. Sin acceso a caja.', color: 'bg-surface-container-high', text: 'text-secondary' };
-      case 'CONTADOR':
-        return { name: 'Contador / Auditor', desc: 'Reportes tributarios DGI, libros de compras/ventas y exportación Excel/PDF contable.', color: 'bg-surface-container-high', text: 'text-tertiary' };
-      default:
-        return { name: 'Desconocido', desc: '', color: 'bg-surface-container', text: 'text-on-surface' };
-    }
-  };
-
-  const activeRoleDetails = getRoleDetails(activeRoleTab);
+  const filteredUsers = users.filter((u) => {
+    if (activeFilter === 'TODOS') return true;
+    return u.rol === activeFilter;
+  });
 
   return (
-    <div className="flex flex-col gap-space-lg w-full">
-      {/* Header & Action Ribbon */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-space-sm mb-1">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-secondary text-on-secondary shadow-sm">
-              <span className="material-symbols-outlined text-body-lg">admin_panel_settings</span>
-            </span>
-            <span className="font-label-md text-label-md text-secondary tracking-wide uppercase">Control de Accesos · Seguridad Operativa</span>
-          </div>
-          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight leading-tight">
-            Gestión de Personal, Roles y Permisos
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+        <div>
+          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-purple-400 text-3xl">admin_panel_settings</span>
+            Gestión de Usuarios y Roles
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">
-            Auditoría de accesos multi-sucursal con persistencia offline segura en IndexedDB.
+          <p className="text-xs text-gray-400 mt-1">
+            Administración de cuentas con acceso al sistema (Roles: ADMINISTRADOR y CAJERO según especificación).
           </p>
         </div>
-        
-        {/* Quick Action CTA Group */}
-        <div className="flex flex-wrap items-center gap-space-sm shrink-0">
-          <button className="flex items-center gap-2 px-space-md py-2.5 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container-low active:scale-95 transition-all">
-            <span className="material-symbols-outlined text-primary-container text-body-lg">tune</span>
-            <span className="font-label-lg text-label-lg">Configurar Matriz</span>
-          </button>
-          <button 
-            onClick={() => {
-              setFormError(null);
-              setFormSuccess(null);
-              setFormData({ nombre: '', email: '', password: '', rol: 'CAJERO' });
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-space-md py-2.5 rounded-xl bg-primary-container text-on-primary shadow-md hover:bg-primary active:scale-95 transition-all"
-          >
-            <span className="material-symbols-outlined text-body-lg">person_add</span>
-            <span className="font-label-lg text-label-lg">+ Registrar Nuevo Colaborador</span>
-          </button>
-        </div>
+
+        <button
+          onClick={() => {
+            setFormError(null);
+            setFormSuccess(null);
+            setFormData({ nombre: '', email: '', password: '', rol: 'CAJERO' });
+            setIsModalOpen(true);
+          }}
+          className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-lg shadow-purple-900/30"
+        >
+          <span className="material-symbols-outlined text-lg">person_add</span>
+          Nuevo Colaborador
+        </button>
       </div>
 
-      {/* Quick Stats Metric Band */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
-        <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Colaboradores Activos</span>
-            <span className="font-numeric-pos text-numeric-pos text-primary-container mt-1">{users.length}</span>
-            <span className="font-label-sm text-label-sm text-secondary-container mt-0.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary-container inline-block"></span>
-              {users.filter(u => u.estado).length} en turno
+      {actionError && (
+        <div className="p-3 rounded-xl border bg-red-950/70 border-red-500/40 text-red-200 text-xs flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-gray-400 hover:text-white">
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      )}
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#1c1b22] border border-[#2d2c35] p-4 rounded-2xl flex items-center justify-between">
+          <div>
+            <span className="text-xs text-gray-400">Total Usuarios</span>
+            <span className="text-2xl font-extrabold text-white block mt-1">{users.length}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+            <span className="material-symbols-outlined">group</span>
+          </div>
+        </div>
+
+        <div className="bg-[#1c1b22] border border-[#2d2c35] p-4 rounded-2xl flex items-center justify-between">
+          <div>
+            <span className="text-xs text-gray-400">Administradores</span>
+            <span className="text-2xl font-extrabold text-purple-300 block mt-1">
+              {users.filter((u) => u.rol === 'ADMINISTRADOR').length}
             </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container">
-            <span className="material-symbols-outlined text-headline-sm">badge</span>
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+            <span className="material-symbols-outlined">shield_person</span>
           </div>
         </div>
-        
-        <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Sucursales Conectadas</span>
-            <span className="font-numeric-pos text-numeric-pos text-tertiary mt-1">1 Sede</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Managua</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
-            <span className="material-symbols-outlined text-headline-sm">store</span>
-          </div>
-        </div>
-        
-        <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Políticas de Privacidad</span>
-            <span className="font-numeric-pos text-numeric-pos text-on-surface mt-1">4 Perfiles</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">RBAC Activo</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary">
-            <span className="material-symbols-outlined text-headline-sm">verified_user</span>
-          </div>
-        </div>
-        
-        <div className="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Eventos Auditoría</span>
-            <span className="font-numeric-pos text-numeric-pos text-error mt-1">0</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Sistema blindado</span>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-error-container flex items-center justify-center text-error">
-            <span className="material-symbols-outlined text-headline-sm">lock_clock</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Interactive System Roles Selector */}
-      <div className="flex flex-col gap-space-sm bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-1">
+        <div className="bg-[#1c1b22] border border-[#2d2c35] p-4 rounded-2xl flex items-center justify-between">
           <div>
-            <h2 className="font-headline-sm text-headline-sm text-on-surface">Perfiles Operativos del Sistema</h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">Selecciona un rol para inspeccionar sus atribuciones de seguridad.</p>
+            <span className="text-xs text-gray-400">Cajeros de Turno</span>
+            <span className="text-2xl font-extrabold text-emerald-400 block mt-1">
+              {users.filter((u) => u.rol === 'CAJERO').length}
+            </span>
           </div>
-        </div>
-        
-        {/* Role Selector Tabs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-sm mt-2">
-          {/* Admin */}
-          <div 
-            onClick={() => setActiveRoleTab('ADMINISTRADOR')}
-            className={`cursor-pointer p-space-md rounded-xl transition-all shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden ${activeRoleTab === 'ADMINISTRADOR' ? 'bg-primary-container text-on-primary scale-[1.02] shadow-md' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-start justify-between">
-              <span className={`inline-flex p-2 rounded-lg ${activeRoleTab === 'ADMINISTRADOR' ? 'bg-surface-container-lowest/15' : 'bg-surface-container-high'}`}>
-                <span className="material-symbols-outlined text-body-lg">shield_with_heart</span>
-              </span>
-              <span className="font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full">Acceso Total</span>
-            </div>
-            <div>
-              <h3 className="font-label-lg text-label-lg font-bold">Administrador General</h3>
-              <p className={`font-body-sm text-body-sm mt-1 line-clamp-2 ${activeRoleTab === 'ADMINISTRADOR' ? 'opacity-90' : 'text-on-surface-variant'}`}>
-                Control absoluto de finanzas, márgenes, costos, IA predictiva y sucursales.
-              </p>
-            </div>
-          </div>
-          
-          {/* Cajero */}
-          <div 
-            onClick={() => setActiveRoleTab('CAJERO')}
-            className={`cursor-pointer p-space-md rounded-xl transition-all shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden ${activeRoleTab === 'CAJERO' ? 'bg-primary-container text-on-primary scale-[1.02] shadow-md' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-start justify-between">
-              <span className={`inline-flex p-2 rounded-lg ${activeRoleTab === 'CAJERO' ? 'bg-surface-container-lowest/15' : 'bg-surface-container-high text-primary'}`}>
-                <span className="material-symbols-outlined text-body-lg">point_of_sale</span>
-              </span>
-            </div>
-            <div>
-              <h3 className="font-label-lg text-label-lg font-bold">Cajero / Mostrador POS</h3>
-              <p className={`font-body-sm text-body-sm mt-1 line-clamp-2 ${activeRoleTab === 'CAJERO' ? 'opacity-90' : 'text-on-surface-variant'}`}>
-                Cobros veloces, arqueos y comprobantes. Restringido ver costos.
-              </p>
-            </div>
-          </div>
-          
-          {/* Bodega */}
-          <div 
-            onClick={() => setActiveRoleTab('BODEGA')}
-            className={`cursor-pointer p-space-md rounded-xl transition-all shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden ${activeRoleTab === 'BODEGA' ? 'bg-primary-container text-on-primary scale-[1.02] shadow-md' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-start justify-between">
-              <span className={`inline-flex p-2 rounded-lg ${activeRoleTab === 'BODEGA' ? 'bg-surface-container-lowest/15' : 'bg-surface-container-high text-secondary'}`}>
-                <span className="material-symbols-outlined text-body-lg">inventory_2</span>
-              </span>
-            </div>
-            <div>
-              <h3 className="font-label-lg text-label-lg font-bold">Encargado Bodega</h3>
-              <p className={`font-body-sm text-body-sm mt-1 line-clamp-2 ${activeRoleTab === 'BODEGA' ? 'opacity-90' : 'text-on-surface-variant'}`}>
-                Recepción, Kardex físico y conteos. Sin acceso a caja.
-              </p>
-            </div>
-          </div>
-          
-          {/* Contador */}
-          <div 
-            onClick={() => setActiveRoleTab('CONTADOR')}
-            className={`cursor-pointer p-space-md rounded-xl transition-all shadow-sm flex flex-col justify-between min-h-[140px] relative overflow-hidden ${activeRoleTab === 'CONTADOR' ? 'bg-primary-container text-on-primary scale-[1.02] shadow-md' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-start justify-between">
-              <span className={`inline-flex p-2 rounded-lg ${activeRoleTab === 'CONTADOR' ? 'bg-surface-container-lowest/15' : 'bg-surface-container-high text-tertiary'}`}>
-                <span className="material-symbols-outlined text-body-lg">account_balance</span>
-              </span>
-            </div>
-            <div>
-              <h3 className="font-label-lg text-label-lg font-bold">Contador / Auditor</h3>
-              <p className={`font-body-sm text-body-sm mt-1 line-clamp-2 ${activeRoleTab === 'CONTADOR' ? 'opacity-90' : 'text-on-surface-variant'}`}>
-                Reportes tributarios, libros y exportación contable.
-              </p>
-            </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <span className="material-symbols-outlined">badge</span>
           </div>
         </div>
       </div>
 
-      {/* Active Role Detail Panel */}
-      <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md">
-        <div className="flex items-center justify-between pb-space-sm border-b border-surface-container">
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${activeRoleDetails.color}`}></div>
-            <span className="font-headline-sm text-headline-sm text-on-surface">{activeRoleDetails.name}</span>
-          </div>
-          <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-bold">Detalle</span>
-        </div>
-        <p className="font-body-md text-body-md text-on-surface-variant">
-          {activeRoleDetails.desc}
-        </p>
-        <div className="flex flex-col gap-2.5 bg-surface-container-low p-space-md rounded-xl">
-          <div className="flex items-center justify-between">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Usuarios con este rol</span>
-            <span className="font-label-md text-label-md text-on-surface">{users.filter(u => u.rol === activeRoleTab).length} personas</span>
-          </div>
-        </div>
+      {/* Role Filter Tabs (M-02) */}
+      <div className="flex gap-2 border-b border-white/10 pb-3">
+        {(['TODOS', 'ADMINISTRADOR', 'CAJERO'] as const).map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setActiveFilter(filter)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeFilter === filter
+                ? 'bg-purple-600 text-white shadow-md'
+                : 'bg-[#1c1b22] text-gray-400 hover:text-white border border-[#2d2c35]'
+            }`}
+          >
+            {filter === 'TODOS' ? 'Todos los Usuarios' : filter === 'ADMINISTRADOR' ? 'Administradores' : 'Cajeros'}
+          </button>
+        ))}
       </div>
 
-      {/* Active Collaborators Directory */}
-      <div className="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-sm border-b border-surface-container">
-          <div>
-            <h2 className="font-headline-sm text-headline-sm text-on-surface">Directorio de Colaboradores</h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">Gestión directa de credenciales locales.</p>
+      {/* Users Table */}
+      <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl overflow-hidden shadow-xl">
+        {loading ? (
+          <div className="py-20 text-center text-gray-400 flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs">Cargando usuarios...</span>
           </div>
-        </div>
-
-        {/* Users Grid List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
-          {loading ? (
-            <div className="col-span-full py-12 text-center text-on-surface-variant">Cargando lista de usuarios...</div>
-          ) : users.length === 0 ? (
-            <div className="col-span-full py-12 text-center text-on-surface-variant">No hay usuarios registrados.</div>
-          ) : (
-            users.map(u => (
-              <div key={u.id} className="user-card bg-surface-container-low/60 hover:bg-surface-container-low transition-all p-space-md rounded-2xl flex flex-col justify-between gap-space-md shadow-sm border border-surface-container/50">
-                <div className="flex items-start justify-between gap-space-sm">
-                  <div className="flex items-center gap-space-sm min-w-0">
-                    <div className="w-12 h-12 rounded-xl bg-surface-container text-primary flex items-center justify-center font-bold text-headline-sm shrink-0 shadow-sm">
-                      {u.nombre.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-label-lg text-label-lg text-on-surface truncate">{u.nombre}</span>
-                      <span className="font-body-sm text-body-sm text-on-surface-variant truncate">{u.email}</span>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span className={`w-2 h-2 rounded-full ${u.estado ? 'bg-secondary' : 'bg-error'}`}></span>
-                        <span className={`font-label-sm text-label-sm font-semibold ${u.estado ? 'text-primary' : 'text-error'}`}>
-                          {u.estado ? 'Activo' : 'Desactivado'}
-                        </span>
+        ) : filteredUsers.length === 0 ? (
+          <div className="py-20 text-center text-gray-500 text-xs">
+            No se encontraron usuarios en este rol.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
+                <tr>
+                  <th className="py-3 px-4">Usuario</th>
+                  <th className="py-3 px-4">Correo Electrónico</th>
+                  <th className="py-3 px-4 text-center">Rol Asignado</th>
+                  <th className="py-3 px-4 text-center">Estado</th>
+                  <th className="py-3 px-4 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filteredUsers.map((usr) => (
+                  <tr key={usr.id} className="hover:bg-white/5 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-800 flex items-center justify-center font-bold text-xs text-white">
+                          {usr.nombre.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white leading-tight">{usr.nombre}</p>
+                          <span className="text-[10px] text-gray-500">
+                            Registrado: {usr.createdAt ? new Date(usr.createdAt).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <span className="font-label-sm text-label-sm bg-primary-container text-on-primary px-2.5 py-0.5 rounded-full shrink-0">
-                    {u.rol === 'ADMINISTRADOR' ? 'Admin' : u.rol === 'CAJERO' ? 'Cajero' : u.rol === 'BODEGA' ? 'Bodega' : 'Contador'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between pt-1 border-t border-surface-container">
-                  <button className="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
-                    <span className="material-symbols-outlined text-body-sm">history</span>
-                    Auditoría
-                  </button>
-                  <div className="flex items-center gap-1">
-                    <button 
-                      onClick={() => handleToggleUserStatus(u)}
-                      disabled={u.id === user?.id}
-                      className={`p-1.5 rounded-lg transition-colors ${u.estado ? 'bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant' : 'bg-surface-container hover:bg-secondary-fixed hover:text-secondary text-on-surface-variant'}`}
-                      title={u.estado ? "Desactivar" : "Activar"}
-                    >
-                      <span className="material-symbols-outlined text-body-md">
-                        {u.estado ? 'person_off' : 'person_check'}
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-300 font-mono text-xs">{usr.email}</td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          usr.rol === 'ADMINISTRADOR'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        }`}
+                      >
+                        {usr.rol}
                       </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          usr.estado
+                            ? 'bg-emerald-500/20 text-emerald-300'
+                            : 'bg-rose-500/20 text-rose-300'
+                        }`}
+                      >
+                        {usr.estado ? 'Activo' : 'Desactivado'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <button
+                        onClick={() => handleToggleUserStatus(usr)}
+                        disabled={usr.id === user?.id}
+                        title={usr.id === user?.id ? 'No puede desactivar su propia cuenta' : 'Cambiar estado'}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                          usr.estado
+                            ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300'
+                            : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300'
+                        }`}
+                      >
+                        {usr.estado ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* CREATE USER MODAL */}
+      {/* Modal: Registrar Nuevo Colaborador */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-surface-container p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-surface-container-low">
-              <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">Nuevo Colaborador</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-on-surface-variant hover:text-on-surface transition-colors">
-                <span className="material-symbols-outlined text-headline-sm">close</span>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-purple-400">person_add</span>
+                Registrar Nuevo Colaborador
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleCreateUserSubmit} className="space-y-4">
-              {formError && (
-                <div className="p-3 bg-error-container text-error text-xs rounded-xl border border-error">
-                  {formError}
-                </div>
-              )}
+            {formError && (
+              <div className="p-3 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs">
+                {formError}
+              </div>
+            )}
+            {formSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-200 text-xs">
+                {formSuccess}
+              </div>
+            )}
 
-              {formSuccess && (
-                <div className="p-3 bg-primary-fixed text-primary text-xs rounded-xl border border-primary">
-                  {formSuccess}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1.5">
-                <label className="font-label-md text-label-md text-on-surface">Nombre Completo *</label>
+            <form onSubmit={handleCreateUserSubmit} className="flex flex-col gap-3 text-xs">
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Nombre Completo *</label>
                 <input
                   type="text"
                   required
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  placeholder="ej. Martha López"
-                  className="w-full px-4 py-2.5 bg-surface-container-low/40 rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                  placeholder="Ej. Roberto Martínez García"
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="font-label-md text-label-md text-on-surface">Correo Electrónico *</label>
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Correo Electrónico *</label>
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="cajero2@jinstock.ni"
-                  className="w-full px-4 py-2.5 bg-surface-container-low/40 rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                  placeholder="ejemplo@jinstock.ni"
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="font-label-md text-label-md text-on-surface">Rol de Sistema *</label>
-                <div className="relative">
-                  <select
-                    value={formData.rol}
-                    onChange={(e) => setFormData({ ...formData, rol: e.target.value as any })}
-                    className="w-full px-4 py-2.5 bg-surface-container-low/40 rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-sm cursor-pointer appearance-none"
-                  >
-                    <option value="CAJERO">Cajero / Mostrador POS</option>
-                    <option value="BODEGA">Encargado de Bodega</option>
-                    <option value="CONTADOR">Contador / Auditor</option>
-                    <option value="ADMINISTRADOR">Administrador (Acceso Total)</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-body-md">expand_more</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="font-label-md text-label-md text-on-surface">Contraseña de Acceso *</label>
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Contraseña Inicial *</label>
                 <input
                   type="password"
                   required
+                  minLength={6}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Mínimo 6 caracteres"
-                  className="w-full px-4 py-2.5 bg-surface-container-low/40 rounded-xl font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                  placeholder="Mínimo 6 caracteres..."
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              <div className="pt-3 flex gap-2">
+              {/* M-02: Selector de Rol (Exclusivamente ADMINISTRADOR o CAJERO) */}
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Rol Operativo *</label>
+                <select
+                  value={formData.rol}
+                  onChange={(e) => setFormData({ ...formData, rol: e.target.value as Rol })}
+                  className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                >
+                  <option value="CAJERO">CAJERO (Acceso exclusivo a POS y Mis Ventas)</option>
+                  <option value="ADMINISTRADOR">ADMINISTRADOR (Acceso total al sistema y reportes)</option>
+                </select>
+                <span className="text-[11px] text-gray-500 block mt-1">
+                  Nota: Roles adicionales (Bodega, Contador) quedan declarados fuera del alcance según las especificaciones del MVP.
+                </span>
+              </div>
+
+              <div className="flex gap-2 pt-3 border-t border-white/10 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl font-label-md text-label-md text-on-surface-variant bg-surface-container hover:bg-surface-container-high transition-colors"
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl font-semibold text-gray-300"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 rounded-xl font-label-md text-label-md text-on-primary bg-primary hover:bg-primary-container transition-colors shadow-md"
+                  className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-md transition-colors"
                 >
-                  Crear Cuenta
+                  Guardar Colaborador
                 </button>
               </div>
             </form>

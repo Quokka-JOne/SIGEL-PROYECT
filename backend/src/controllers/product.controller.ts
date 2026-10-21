@@ -1,107 +1,86 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma';
-import { memoryProducts } from '../data/memoryStore';
+import { ValidationError, NotFoundError, ForbiddenError } from '../utils/errors';
 
-export const getProducts = async (req: Request, res: Response): Promise<void> => {
+export const getProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { search, categoriaId, lowStock, includeInactive } = req.query;
 
-    let products: any[] = [];
+    const where: any = {};
 
-    try {
-      const where: any = {};
-
-      if (includeInactive !== 'true') {
-        where.estado = true;
-      }
-
-      if (categoriaId) {
-        where.categoriaId = String(categoriaId);
-      }
-
-      if (search) {
-        const query = String(search).trim();
-        where.OR = [
-          { nombre: { contains: query, mode: 'insensitive' } },
-          { sku: { contains: query, mode: 'insensitive' } },
-          { codigoBarras: { contains: query, mode: 'insensitive' } },
-        ];
-      }
-
-      const dbProducts = await prisma.producto.findMany({
-        where,
-        include: { categoria: { select: { id: true, nombre: true } } },
-        orderBy: { nombre: 'asc' },
-      });
-
-      products = dbProducts.map((p) => ({
-        ...p,
-        categoriaNombre: p.categoria?.nombre || 'General',
-      }));
-    } catch (dbErr) {
-      products = [...memoryProducts];
-
-      if (includeInactive !== 'true') {
-        products = products.filter((p) => p.estado);
-      }
-
-      if (categoriaId) {
-        products = products.filter((p) => p.categoriaId === categoriaId);
-      }
-
-      if (search) {
-        const q = String(search).toLowerCase().trim();
-        products = products.filter(
-          (p) =>
-            p.nombre.toLowerCase().includes(q) ||
-            (p.sku && p.sku.toLowerCase().includes(q)) ||
-            (p.codigoBarras && p.codigoBarras.includes(q))
-        );
-      }
+    if (includeInactive !== 'true') {
+      where.estado = true;
     }
+
+    if (categoriaId) {
+      where.categoriaId = String(categoriaId);
+    }
+
+    if (search) {
+      const query = String(search).trim();
+      where.OR = [
+        { nombre: { contains: query, mode: 'insensitive' } },
+        { sku: { contains: query, mode: 'insensitive' } },
+        { codigoBarras: { contains: query, mode: 'insensitive' } },
+      ];
+    }
+
+    let products = await prisma.producto.findMany({
+      where,
+      include: { categoria: { select: { id: true, nombre: true } } },
+      orderBy: { nombre: 'asc' },
+    });
 
     if (lowStock === 'true') {
       products = products.filter((p) => p.stock <= p.stockMinimo);
     }
 
+    const formatted = products.map((p) => ({
+      ...p,
+      categoriaNombre: p.categoria?.nombre || 'General',
+    }));
+
     res.json({
       success: true,
-      data: products,
-      message: 'Catálogo de productos obtenido correctamente',
+      data: formatted,
+      message: 'Catálogo de productos obtenido correctamente.',
     });
   } catch (error) {
-    console.error('Error al obtener productos:', error);
-    res.status(500).json({ success: false, message: 'Error interno al consultar productos.' });
+    next(error);
   }
 };
 
-export const getProductById = async (req: Request, res: Response): Promise<void> => {
+export const getProductById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
 
-    let product: any = null;
-    try {
-      product = await prisma.producto.findUnique({
-        where: { id },
-        include: { categoria: true, movimientos: { take: 10, orderBy: { fecha: 'desc' } } },
-      });
-    } catch (dbErr) {
-      product = memoryProducts.find((p) => p.id === id);
-    }
+    const product = await prisma.producto.findUnique({
+      where: { id },
+      include: {
+        categoria: true,
+        movimientos: {
+          take: 20,
+          orderBy: { fecha: 'desc' },
+          include: { usuario: { select: { nombre: true } } },
+        },
+      },
+    });
 
     if (!product) {
-      res.status(404).json({ success: false, message: 'Producto no encontrado.' });
-      return;
+      throw new NotFoundError('Producto no encontrado.');
     }
 
-    res.json({ success: true, data: product, message: 'Producto obtenido correctamente' });
+    res.json({
+      success: true,
+      data: product,
+      message: 'Detalle de producto obtenido correctamente.',
+    });
   } catch (error) {
-    console.error('Error al obtener detalle de producto:', error);
-    res.status(500).json({ success: false, message: 'Error interno.' });
+    next(error);
   }
 };
 
-export const createProduct = async (req: Request, res: Response): Promise<void> => {
+export const createProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const {
       nombre,
@@ -117,179 +96,235 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       unidadMedida,
     } = req.body;
 
-    if (!nombre || precioVenta === undefined || costo === undefined) {
-      res.status(400).json({
-        success: false,
-        message: 'Nombre, precio de venta y costo son obligatorios.',
-      });
-      return;
-    }
-    
-    // Fallback if categoriaId is empty
-    const finalCategoriaId = categoriaId || 'cat-demo-1';
-
     const initialStock = Number(stock || 0);
     const minStock = Number(stockMinimo || 5);
     const salePrice = Number(precioVenta);
     const costPrice = Number(costo);
 
-    if (salePrice <= 0 || costPrice < 0) {
-      res.status(400).json({
-        success: false,
-        message: 'El precio de venta debe ser mayor a 0 y el costo no puede ser negativo.',
+    const newProduct = await prisma.$transaction(async (tx) => {
+      // Validar categoría existente
+      const category = await tx.categoria.findUnique({ where: { id: categoriaId } });
+      if (!category) {
+        throw new NotFoundError('La categoría seleccionada no existe.');
+      }
+
+      const prod = await tx.producto.create({
+        data: {
+          nombre: nombre.trim(),
+          codigoBarras: codigoBarras ? codigoBarras.trim() : null,
+          sku: sku ? sku.trim() : null,
+          descripcion: descripcion ? descripcion.trim() : null,
+          imagenUrl: imagenUrl ? imagenUrl.trim() : null,
+          categoriaId,
+          precioVenta: salePrice,
+          costo: costPrice,
+          stock: initialStock,
+          stockMinimo: minStock,
+          unidadMedida: unidadMedida || 'Unidad',
+          estado: true,
+        },
       });
-      return;
-    }
 
-    let newProduct: any = null;
-
-    try {
-      newProduct = await prisma.$transaction(async (tx) => {
-        const prod = await tx.producto.create({
+      if (initialStock > 0 && req.user?.id) {
+        await tx.movimientoInventario.create({
           data: {
-            nombre: nombre.trim(),
-            codigoBarras: codigoBarras ? codigoBarras.trim() : null,
-            sku: sku ? sku.trim() : null,
-            descripcion: descripcion ? descripcion.trim() : null,
-            imagenUrl: imagenUrl ? imagenUrl.trim() : null,
-            categoriaId: finalCategoriaId,
-            precioVenta: salePrice,
-            costo: costPrice,
-            stock: initialStock,
-            stockMinimo: minStock,
-            unidadMedida: unidadMedida || 'Unidad',
-            estado: true,
+            productoId: prod.id,
+            usuarioId: req.user.id,
+            tipo: 'ENTRADA',
+            cantidad: initialStock,
+            stockAnterior: 0,
+            stockNuevo: initialStock,
+            motivo: 'Inventario inicial al registrar el producto',
           },
         });
+      }
 
-        if (initialStock > 0 && req.user?.id) {
-          await tx.movimientoInventario.create({
-            data: {
-              productoId: prod.id,
-              usuarioId: req.user.id,
-              tipo: 'ENTRADA',
-              cantidad: initialStock,
-              stockAnterior: 0,
-              stockNuevo: initialStock,
-              motivo: 'Inventario inicial al crear el producto en el catálogo',
-            },
-          });
-        }
-
-        return prod;
-      });
-    } catch (dbErr) {
-      newProduct = {
-        id: `prod-${Date.now()}`,
-        codigoBarras: codigoBarras || null,
-        sku: sku || `SKU-${Date.now()}`,
-        nombre: nombre.trim(),
-        descripcion: descripcion || null,
-        imagenUrl: imagenUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80',
-        categoriaId: finalCategoriaId,
-        categoriaNombre: 'General',
-        precioVenta: salePrice,
-        costo: costPrice,
-        stock: initialStock,
-        stockMinimo: minStock,
-        unidadMedida: unidadMedida || 'Unidad',
-        estado: true,
-      };
-      memoryProducts.unshift(newProduct);
-    }
+      return prod;
+    });
 
     res.status(201).json({
       success: true,
       data: newProduct,
-      message: 'Producto registrado correctamente con foto de presentación',
+      message: 'Producto registrado correctamente.',
     });
   } catch (error) {
-    console.error('Error al registrar producto:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar el producto.' });
+    next(error);
   }
 };
 
-export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+export const updateProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
     const data = req.body;
 
-    let updatedProduct: any = null;
-
-    try {
-      updatedProduct = await prisma.producto.update({
-        where: { id },
-        data: {
-          ...(data.nombre && { nombre: data.nombre.trim() }),
-          ...(data.codigoBarras !== undefined && { codigoBarras: data.codigoBarras }),
-          ...(data.sku !== undefined && { sku: data.sku }),
-          ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
-          ...(data.imagenUrl !== undefined && { imagenUrl: data.imagenUrl }),
-          ...(data.categoriaId && { categoriaId: data.categoriaId }),
-          ...(data.precioVenta !== undefined && { precioVenta: Number(data.precioVenta) }),
-          ...(data.costo !== undefined && { costo: Number(data.costo) }),
-          ...(data.stockMinimo !== undefined && { stockMinimo: Number(data.stockMinimo) }),
-          ...(data.unidadMedida && { unidadMedida: data.unidadMedida }),
-          ...(data.estado !== undefined && { estado: data.estado }),
-        },
-      });
-    } catch (dbErr) {
-      const idx = memoryProducts.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        memoryProducts[idx] = { ...memoryProducts[idx], ...data };
-        updatedProduct = memoryProducts[idx];
-      } else {
-        res.status(404).json({ success: false, message: 'Producto no encontrado.' });
-        return;
-      }
+    const existing = await prisma.producto.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundError('Producto no encontrado.');
     }
+
+    const updatedProduct = await prisma.producto.update({
+      where: { id },
+      data: {
+        ...(data.nombre && { nombre: data.nombre.trim() }),
+        ...(data.codigoBarras !== undefined && { codigoBarras: data.codigoBarras ? data.codigoBarras.trim() : null }),
+        ...(data.sku !== undefined && { sku: data.sku ? data.sku.trim() : null }),
+        ...(data.descripcion !== undefined && { descripcion: data.descripcion ? data.descripcion.trim() : null }),
+        ...(data.imagenUrl !== undefined && { imagenUrl: data.imagenUrl ? data.imagenUrl.trim() : null }),
+        ...(data.categoriaId && { categoriaId: data.categoriaId }),
+        ...(data.precioVenta !== undefined && { precioVenta: Number(data.precioVenta) }),
+        ...(data.costo !== undefined && { costo: Number(data.costo) }),
+        ...(data.stockMinimo !== undefined && { stockMinimo: Number(data.stockMinimo) }),
+        ...(data.unidadMedida && { unidadMedida: data.unidadMedida }),
+        ...(data.estado !== undefined && { estado: Boolean(data.estado) }),
+      },
+      include: {
+        categoria: { select: { id: true, nombre: true } },
+      },
+    });
 
     res.json({
       success: true,
       data: updatedProduct,
-      message: 'Producto actualizado correctamente',
+      message: 'Producto actualizado correctamente.',
     });
   } catch (error) {
-    console.error('Error al actualizar producto:', error);
-    res.status(500).json({ success: false, message: 'Error interno al actualizar producto.' });
+    next(error);
   }
 };
 
-export const toggleProductStatus = async (req: Request, res: Response): Promise<void> => {
+export const toggleProductStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
 
-    let updatedProduct: any = null;
-
-    try {
-      const current = await prisma.producto.findUnique({ where: { id } });
-      if (!current) {
-        res.status(404).json({ success: false, message: 'Producto no encontrado.' });
-        return;
-      }
-
-      updatedProduct = await prisma.producto.update({
-        where: { id },
-        data: { estado: !current.estado },
-      });
-    } catch (dbErr) {
-      const idx = memoryProducts.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        memoryProducts[idx].estado = !memoryProducts[idx].estado;
-        updatedProduct = memoryProducts[idx];
-      } else {
-        res.status(404).json({ success: false, message: 'Producto no encontrado.' });
-        return;
-      }
+    const current = await prisma.producto.findUnique({ where: { id } });
+    if (!current) {
+      throw new NotFoundError('Producto no encontrado.');
     }
+
+    const updatedProduct = await prisma.producto.update({
+      where: { id },
+      data: { estado: !current.estado },
+    });
 
     res.json({
       success: true,
       data: updatedProduct,
-      message: `Producto ${updatedProduct.estado ? 'activado' : 'desactivado'} correctamente`,
+      message: `Producto ${updatedProduct.estado ? 'activado' : 'desactivado'} correctamente.`,
     });
   } catch (error) {
-    console.error('Error al cambiar estado de producto:', error);
-    res.status(500).json({ success: false, message: 'Error al cambiar estado.' });
+    next(error);
+  }
+};
+
+// T-06: Ajuste manual de inventario (conteo físico, merma, daño) con motivo obligatorio
+export const adjustProductStock = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { productoId, cantidad, motivo } = req.body;
+    const usuarioId = req.user?.id;
+
+    if (!usuarioId) {
+      throw new ForbiddenError('No autenticado.');
+    }
+
+    const adjustmentAmount = Number(cantidad);
+    if (!Number.isInteger(adjustmentAmount) || adjustmentAmount === 0) {
+      throw new ValidationError('La cantidad de ajuste debe ser un entero diferente de 0.');
+    }
+
+    if (!motivo || !motivo.trim()) {
+      throw new ValidationError('El motivo del ajuste es obligatorio.');
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const prod = await tx.producto.findUnique({ where: { id: productoId } });
+      if (!prod) {
+        throw new NotFoundError('Producto no encontrado.');
+      }
+
+      const stockAnterior = prod.stock;
+      const stockNuevo = stockAnterior + adjustmentAmount;
+
+      if (stockNuevo < 0) {
+        throw new ValidationError(`El ajuste resultaría en un stock negativo (${stockNuevo}). El stock actual es ${stockAnterior}.`);
+      }
+
+      const updated = await tx.producto.update({
+        where: { id: productoId },
+        data: { stock: stockNuevo },
+      });
+
+      const mov = await tx.movimientoInventario.create({
+        data: {
+          productoId,
+          usuarioId,
+          tipo: 'AJUSTE',
+          cantidad: Math.abs(adjustmentAmount),
+          stockAnterior,
+          stockNuevo,
+          motivo: motivo.trim(),
+        },
+      });
+
+      return { product: updated, movement: mov };
+    });
+
+    res.json({
+      success: true,
+      data: result,
+      message: `Ajuste de inventario aplicado correctamente. Nuevo stock: ${result.product.stock}.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// T-07: Consulta paginada y filtrable del historial de movimientos Kardex
+export const getInventoryMovements = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { productoId, tipo, desde, hasta, page = '1', limit = '50' } = req.query;
+    const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 50));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = {};
+    if (productoId) where.productoId = String(productoId);
+    if (tipo) where.tipo = String(tipo);
+    if (desde || hasta) {
+      where.fecha = {};
+      if (desde) where.fecha.gte = new Date(String(desde));
+      if (hasta) {
+        const hastaDate = new Date(String(hasta));
+        hastaDate.setHours(23, 59, 59, 999);
+        where.fecha.lte = hastaDate;
+      }
+    }
+
+    const [movements, total] = await Promise.all([
+      prisma.movimientoInventario.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { fecha: 'desc' },
+        include: {
+          producto: { select: { id: true, nombre: true, sku: true, unidadMedida: true } },
+          usuario: { select: { id: true, nombre: true, email: true } },
+        },
+      }),
+      prisma.movimientoInventario.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: movements,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+      message: 'Historial de movimientos Kardex obtenido correctamente.',
+    });
+  } catch (error) {
+    next(error);
   }
 };

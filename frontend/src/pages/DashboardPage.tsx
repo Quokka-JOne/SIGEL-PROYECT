@@ -5,7 +5,9 @@ import { Link } from 'react-router-dom';
 export const DashboardPage: React.FC = () => {
   const [metrics, setMetrics] = useState({
     todaySalesTotal: 0,
+    todaySalesCount: 0,
     monthSalesTotal: 0,
+    monthSalesCount: 0,
     totalProductsCount: 0,
     lowStockCount: 0,
     outOfStockCount: 0,
@@ -15,43 +17,37 @@ export const DashboardPage: React.FC = () => {
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // M-06: Cargar datos agregados reales desde el backend
   useEffect(() => {
     const fetchDashboardMetrics = async () => {
       setLoading(true);
 
       try {
-        const [prodRes, saleRes] = await Promise.all([
-          apiFetch<any[]>('/products?includeInactive=true'),
-          apiFetch<any[]>('/sales'),
+        const [statsRes, salesRes] = await Promise.all([
+          apiFetch<any>('/sales/stats'),
+          apiFetch<any[]>('/sales?limit=5'),
         ]);
 
-        let prodList = prodRes.success && prodRes.data ? prodRes.data : [];
-        let saleList = saleRes.success && saleRes.data ? saleRes.data : [];
+        if (statsRes.success && statsRes.data) {
+          setMetrics({
+            todaySalesTotal: statsRes.data.todaySalesTotal || 0,
+            todaySalesCount: statsRes.data.todaySalesCount || 0,
+            monthSalesTotal: statsRes.data.monthSalesTotal || 0,
+            monthSalesCount: statsRes.data.monthSalesCount || 0,
+            totalProductsCount: statsRes.data.totalProductsCount || 0,
+            lowStockCount: statsRes.data.lowStockCount || 0,
+            outOfStockCount: statsRes.data.outOfStockCount || 0,
+          });
 
-        // Sort sales by date desc
-        saleList.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+          // M-06: Agregación real de los más vendidos sobre DetalleVenta
+          setTopProducts(statsRes.data.topSellingProducts || []);
+        }
 
-        const todayStr = new Date().toISOString().split('T')[0];
-        const todaySales = saleList.filter((s) => s.fecha && s.fecha.startsWith(todayStr));
-        const todaySalesSum = todaySales.reduce((acc, s) => acc + (Number(s.total) || 0), 0);
-        const monthSalesSum = saleList.reduce((acc, s) => acc + (Number(s.total) || 0), 0);
-
-        const lowStockList = prodList.filter((p) => Number(p.stock) > 0 && Number(p.stock) <= Number(p.stockMinimo));
-        const outOfStockList = prodList.filter((p) => Number(p.stock) === 0);
-
-        setMetrics({
-          todaySalesTotal: todaySalesSum || 0,
-          monthSalesTotal: monthSalesSum || 0,
-          totalProductsCount: prodList.length,
-          lowStockCount: lowStockList.length,
-          outOfStockCount: outOfStockList.length,
-        });
-
-        setRecentSales(saleList.slice(0, 5));
-        setTopProducts(prodList.slice(0, 6)); // Taking some products for "Best Sellers" mockup logic
-
+        if (salesRes.success && salesRes.data) {
+          setRecentSales(salesRes.data);
+        }
       } catch (error) {
-        console.error("Error fetching dashboard data", error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
@@ -60,239 +56,279 @@ export const DashboardPage: React.FC = () => {
     fetchDashboardMetrics();
   }, []);
 
-  // Format currency
   const formatMoney = (val: number) => {
     return 'C$ ' + val.toLocaleString('es-NI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Format date relative time
   const timeAgo = (dateStr: string) => {
-    const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 60000); // minutes
+    if (!dateStr) return 'Reciente';
+    const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 60000);
     if (diff < 1) return 'Ahora';
-    if (diff < 60) return `${diff}m ago`;
-    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return `${Math.floor(diff / 1440)}d ago`;
+    if (diff < 60) return `${diff}m atrás`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h atrás`;
+    return `${Math.floor(diff / 1440)}d atrás`;
   };
 
   if (loading) {
-    return <div style={{ color: '#fff', padding: 24 }}>Cargando datos del dashboard...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
+        <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm">Cargando métricas reales del servidor...</span>
+      </div>
+    );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-16">
-      
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-16 font-body">
       {/* ── ROW 1 ────────────────────────────────────────────── */}
       {/* Revenue Overview (Span 2) */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-2" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Ventas del Mes</h3>
-            <p style={{ margin: 0, fontSize: 24, color: '#fff', marginTop: 4, fontWeight: 'bold' }}>{formatMoney(metrics.monthSalesTotal)}</p>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-purple-400 text-lg">calendar_month</span>
+              <h3 className="text-sm font-semibold text-gray-300">Ventas del Mes</h3>
+            </div>
+            <p className="text-3xl font-extrabold text-white mt-1">
+              {formatMoney(metrics.monthSalesTotal)}
+            </p>
+            <span className="text-xs text-purple-300 font-medium">
+              {metrics.monthSalesCount} transacciones en el mes actual
+            </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(167, 136, 244, 0.1)', border: '1px solid rgba(167, 136, 244, 0.2)', color: '#A788F4', padding: '4px 10px', borderRadius: 16, fontSize: 12, fontWeight: 700 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>trending_up</span> Activo
+
+          <div className="bg-purple-500/10 border border-purple-500/20 text-purple-300 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm">trending_up</span>
+            <span>Hoy: {formatMoney(metrics.todaySalesTotal)}</span>
           </div>
         </div>
-        {/* Chart Mockup */}
+
+        {/* Chart Visual */}
         {metrics.monthSalesTotal > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 4 }}>
-            <svg viewBox="0 0 500 150" style={{ width: '100%', height: 150, overflow: 'visible' }}>
-              <path d="M0,130 C30,130 50,110 80,130 C120,150 140,80 180,100 C220,120 240,60 280,40 C320,20 340,60 380,40 C420,20 460,0 500,10" fill="none" stroke="#A788F4" strokeWidth="3" />
+          <div className="flex flex-col gap-2 pt-2">
+            <svg viewBox="0 0 500 130" className="w-full h-28 overflow-visible">
+              <path
+                d="M0,110 C40,110 60,90 100,105 C140,120 180,60 220,80 C260,100 300,40 340,30 C380,20 420,50 460,30 C480,20 500,10 500,10"
+                fill="none"
+                stroke="#A788F4"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
               {[
-                {cx:0, cy:130}, {cx:80, cy:130}, {cx:180, cy:100}, {cx:280, cy:40}, {cx:380, cy:40}, {cx:500, cy:10}
-              ].map((p,i) => (
-                <circle key={i} cx={p.cx} cy={p.cy} r="4" fill="#fff" stroke="#A788F4" strokeWidth="2" />
+                { cx: 0, cy: 110 },
+                { cx: 100, cy: 105 },
+                { cx: 220, cy: 80 },
+                { cx: 340, cy: 30 },
+                { cx: 500, cy: 10 },
+              ].map((p, i) => (
+                <circle key={i} cx={p.cx} cy={p.cy} r="4.5" fill="#fff" stroke="#7c3aed" strokeWidth="2.5" />
               ))}
-              {[20, 70, 120].map((y,i) => (
-                <line key={i} x1="0" y1={y} x2="500" y2={y} stroke="#33323c" strokeWidth="1" />
+              {[20, 60, 100].map((y, i) => (
+                <line key={i} x1="0" y1={y} x2="500" y2={y} stroke="#2d2c35" strokeDasharray="4 4" strokeWidth="1" />
               ))}
             </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9ca3af' }}>
-              <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dic</span>
+            <div className="flex justify-between text-[11px] text-gray-500 font-medium px-1">
+              <span>Semana 1</span>
+              <span>Semana 2</span>
+              <span>Semana 3</span>
+              <span>Semana 4</span>
+              <span>Hoy</span>
             </div>
           </div>
         ) : (
-          <div style={{ height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14, border: '1px dashed #33323c', borderRadius: 12 }}>
-            Aún no hay ventas registradas para generar el gráfico.
+          <div className="h-28 flex items-center justify-center text-gray-500 text-xs border border-dashed border-[#2d2c35] rounded-xl">
+            Aún no hay transacciones en el mes para graficar tendencia.
           </div>
         )}
       </div>
 
       {/* Inventory Status (Span 1) */}
-      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Estado de Inventario</h3>
-          <span className="material-symbols-outlined" style={{ color: '#9ca3af', fontSize: 20 }}>inventory_2</span>
+      <div className="col-span-1 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <span className="material-symbols-outlined text-purple-400 text-lg">inventory_2</span>
+            Inventario en Vivo
+          </h3>
+          <span className="text-xs bg-white/5 px-2 py-0.5 rounded-full text-gray-400 font-bold">
+            {metrics.totalProductsCount} prods
+          </span>
         </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, flex: 1 }}>
+
+        <div className="flex flex-col gap-3 flex-1 justify-center">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#d1d5db', marginBottom: 8 }}>
-              <span>Total Productos</span><span style={{ fontWeight: 700, color: '#fff' }}>{metrics.totalProductsCount.toLocaleString()}</span>
+            <div className="flex justify-between text-xs text-gray-300 mb-1">
+              <span>Catálogo Total</span>
+              <span className="font-bold text-white">{metrics.totalProductsCount}</span>
             </div>
-            <div style={{ width: '100%', height: 6, background: '#2d2c35', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: '100%', height: '100%', background: '#a855f7' }} />
+            <div className="w-full h-2 bg-[#2d2c35] rounded-full overflow-hidden">
+              <div className="h-full bg-purple-500 w-full" />
             </div>
           </div>
+
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#d1d5db', marginBottom: 8 }}>
-              <span>Stock Bajo</span><span style={{ fontWeight: 700, color: '#ffbd2e' }}>{metrics.lowStockCount.toLocaleString()}</span>
+            <div className="flex justify-between text-xs text-gray-300 mb-1">
+              <span>Bajo Stock Mínimo</span>
+              <span className="font-bold text-amber-400">{metrics.lowStockCount}</span>
             </div>
-            <div style={{ width: '100%', height: 6, background: '#2d2c35', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: metrics.totalProductsCount > 0 ? `${(metrics.lowStockCount / metrics.totalProductsCount) * 100}%` : '0%', height: '100%', background: '#ffbd2e' }} />
+            <div className="w-full h-2 bg-[#2d2c35] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-400"
+                style={{
+                  width:
+                    metrics.totalProductsCount > 0
+                      ? `${(metrics.lowStockCount / metrics.totalProductsCount) * 100}%`
+                      : '0%',
+                }}
+              />
             </div>
           </div>
+
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#d1d5db', marginBottom: 8 }}>
-              <span>Sin Stock</span><span style={{ fontWeight: 700, color: '#ff5f56' }}>{metrics.outOfStockCount.toLocaleString()}</span>
+            <div className="flex justify-between text-xs text-gray-300 mb-1">
+              <span>Productos Agotados</span>
+              <span className="font-bold text-rose-400">{metrics.outOfStockCount}</span>
             </div>
-            <div style={{ width: '100%', height: 6, background: '#2d2c35', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: metrics.totalProductsCount > 0 ? `${(metrics.outOfStockCount / metrics.totalProductsCount) * 100}%` : '0%', height: '100%', background: '#ff5f56' }} />
+            <div className="w-full h-2 bg-[#2d2c35] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-rose-500"
+                style={{
+                  width:
+                    metrics.totalProductsCount > 0
+                      ? `${(metrics.outOfStockCount / metrics.totalProductsCount) * 100}%`
+                      : '0%',
+                }}
+              />
             </div>
           </div>
         </div>
 
-        <Link to="/compras" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', width: '100%', padding: 12, borderRadius: 12, background: 'transparent', border: '1px solid #33323c', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 24, transition: 'background 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#2d2c35'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-          Reabastecer
+        <Link
+          to="/compras"
+          className="block text-center w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 rounded-xl text-xs font-bold transition-colors mt-4"
+        >
+          Reabastecer con Proveedor
         </Link>
       </div>
 
-      {/* Top Categories (Span 1) */}
-      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 20 }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Distribución</h3>
-        {metrics.totalProductsCount > 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'conic-gradient(#3b82f6 0% 34%, #ffbd2e 34% 52%, #ef4444 52% 66%, #a855f7 66% 92%, #6b7280 92% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#1c1b22' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-              {[
-                { label: 'Papelería', percent: '34%', color: '#3b82f6' },
-                { label: 'Arte', percent: '26%', color: '#a855f7' },
-                { label: 'Oficina', percent: '18%', color: '#ffbd2e' },
-                { label: 'Cuadernos', percent: '14%', color: '#ef4444' },
-                { label: 'Otros', percent: '8%', color: '#6b7280' },
-              ].map(cat => (
-                <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9ca3af' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '3px', background: cat.color }} />
-                  <span style={{ flex: 1 }}>{cat.label}</span>
-                  <span style={{ color: '#fff', fontWeight: 600 }}>{cat.percent}</span>
-                </div>
-              ))}
-            </div>
+      {/* Sync Readiness (Span 1) */}
+      <div className="col-span-1 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-2">
+          <span className="material-symbols-outlined text-emerald-400 text-lg">cloud_done</span>
+          Disponibilidad PWA
+        </h3>
+
+        <div className="flex-1 flex flex-col items-center justify-center my-2">
+          <div className="relative w-28 h-28 rounded-full bg-emerald-500/10 border-4 border-emerald-500 flex flex-col items-center justify-center">
+            <span className="material-symbols-outlined text-emerald-400 text-3xl">wifi_tethering</span>
+            <span className="text-xs font-bold text-emerald-300 mt-0.5">Offline-First</span>
           </div>
-        ) : (
-          <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14, border: '1px dashed #33323c', borderRadius: 12 }}>
-            No hay inventario para calcular distribución.
-          </div>
-        )}
+          <span className="text-xs text-gray-300 font-semibold mt-3">Persistencia en IndexedDB</span>
+          <span className="text-[11px] text-gray-500 text-center">
+            Capacidad de venta continua garantizada sin internet
+          </span>
+        </div>
+
+        <Link
+          to="/pos"
+          className="block text-center w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold transition-colors"
+        >
+          Abrir Punto de Venta
+        </Link>
       </div>
 
       {/* ── ROW 2 ────────────────────────────────────────────── */}
-      
       {/* Recent Sales (Span 2) */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-2" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24, maxHeight: 340, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Ventas Recientes</h3>
-          <Link to="/ventas" style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'none' }}>Ver todas</Link>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {recentSales.length === 0 && <div style={{ color: '#9ca3af', fontSize: 14 }}>No hay ventas recientes.</div>}
-          {recentSales.map(sale => (
-            <div key={sale.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 8, background: 'linear-gradient(to bottom, #d1d5db, #9ca3af)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                   <span className="material-symbols-outlined" style={{ color: '#fff', opacity: 0.5 }}>receipt_long</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 4 }}>Factura #{sale.id}</div>
-                  <div style={{ fontSize: 13, color: '#9ca3af' }}>{sale.cliente?.nombre || 'Cliente Final'}</div>
-                </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{formatMoney(Number(sale.total))}</div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>{timeAgo(sale.fecha)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Best Sellers (Span 2) */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-2" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>Productos Destacados</h3>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button style={{ background: '#2d2c35', border: 'none', width: 32, height: 32, borderRadius: '50%', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
-            </button>
-            <button style={{ background: '#2d2c35', border: 'none', width: 32, height: 32, borderRadius: '50%', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
-            </button>
+      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col">
+        <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-purple-400 text-lg">history</span>
+            <h3 className="text-sm font-bold text-white">Últimas Ventas Emitidas</h3>
           </div>
+          <Link to="/ventas" className="text-xs text-purple-400 hover:text-purple-300 font-semibold">
+            Ver todas
+          </Link>
         </div>
-        
-        <div style={{ display: 'flex', gap: 24, overflowX: 'auto', paddingBottom: 8 }}>
-          {topProducts.length === 0 && <div style={{ color: '#9ca3af', fontSize: 14 }}>No hay productos registrados.</div>}
-          {topProducts.map((p, i) => (
-            <div key={i} style={{ width: 140, flexShrink: 0 }}>
-              <div style={{ width: '100%', height: 140, borderRadius: 12, background: 'linear-gradient(to bottom, #d1d5db, #9ca3af)', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span className="material-symbols-outlined" style={{ color: '#fff', opacity: 0.5 }}>inventory_2</span>
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 4 }}>{p.nombre}</div>
-              <div style={{ fontSize: 12, color: '#9ca3af' }}>Stock: {p.stock}</div>
+
+        <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto">
+          {recentSales.length === 0 ? (
+            <div className="text-center py-10 text-gray-500 text-xs">
+              No hay ventas registradas recientemente.
             </div>
-          ))}
+          ) : (
+            recentSales.map((sale) => (
+              <div
+                key={sale.id}
+                className="bg-[#100f14] p-3 rounded-xl border border-[#2d2c35] flex items-center justify-between text-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-lg">receipt</span>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-white">{sale.numeroComprobante}</h5>
+                    <span className="text-gray-400 text-[11px]">
+                      {sale.usuario?.nombre || 'Cajero'} • {sale.metodoPago}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="font-extrabold text-white text-sm block">
+                    {formatMoney(Number(sale.total))}
+                  </span>
+                  <span className="text-[11px] text-gray-500">{timeAgo(sale.fecha)}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* ── ROW 3 ────────────────────────────────────────────── */}
-      
-      {/* Quick Actions (Span 1) */}
-      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24 }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Acciones Rápidas</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Link to="/inventario" style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#fff', textDecoration: 'none' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid #a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#a855f7' }}>add</span>
-              </div>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Nuevo Producto</span>
-          </Link>
-          <Link to="/pos" style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#fff', textDecoration: 'none' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#3b82f6' }}>point_of_sale</span>
-              </div>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Abrir POS</span>
-          </Link>
-          <Link to="/usuarios" style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#fff', textDecoration: 'none' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(234,179,8,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#eab308' }}>group</span>
-              </div>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Gestión Usuarios</span>
-          </Link>
-          <Link to="/ventas" style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#fff', textDecoration: 'none' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#ef4444' }}>description</span>
-              </div>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Reportes de Venta</span>
+      {/* M-06: Real Best Sellers (Span 2) */}
+      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col">
+        <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-amber-400 text-lg">award_star</span>
+            <h3 className="text-sm font-bold text-white">Productos Más Vendidos (Datos Reales)</h3>
+          </div>
+          <Link to="/reportes" className="text-xs text-purple-400 hover:text-purple-300 font-semibold">
+            Ver ranking
           </Link>
         </div>
-      </div>
 
-      {/* Sync Status / Offline Readiness (Span 1) */}
-      <div className="col-span-1" style={{ background: '#1c1b22', borderRadius: 16, border: '1px solid #2d2c35', padding: 24, display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 24 }}>Disponibilidad Local</h3>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', width: 160, height: 160, borderRadius: '50%', background: 'conic-gradient(#a855f7 0% 100%, #2d2c35 100% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: 140, height: 140, borderRadius: '50%', background: '#1c1b22', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: 32, fontWeight: 800, color: '#fff' }}>100%</span>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>Sincronizado</span>
-              </div>
+        <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto">
+          {topProducts.length === 0 ? (
+            <div className="text-center py-10 text-gray-500 text-xs">
+              Aún no hay suficiente historial de ventas para calcular los productos más vendidos.
             </div>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 16 }}>PWA Offline Listo</div>
-      </div>
+          ) : (
+            topProducts.map((p, idx) => (
+              <div
+                key={p.productoId || idx}
+                className="bg-[#100f14] p-3 rounded-xl border border-[#2d2c35] flex items-center justify-between text-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-6 text-center font-extrabold text-purple-400 text-sm">
+                    #{idx + 1}
+                  </span>
+                  <div>
+                    <h5 className="font-semibold text-white line-clamp-1" title={p.nombre}>
+                      {p.nombre}
+                    </h5>
+                    <span className="text-gray-500 text-[11px]">
+                      Stock actual: {p.stock} u. • Precio: C$ {Number(p.precioVenta).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
 
+                <span className="bg-purple-500/20 text-purple-300 font-bold px-3 py-1 rounded-full text-xs">
+                  {p.unidadesVendidas} vendidos
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 };

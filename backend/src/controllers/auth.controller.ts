@@ -1,83 +1,46 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
-import { Rol } from '@prisma/client';
 import { sendConfirmationEmail } from '../utils/mailer';
+import { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, ValidationError } from '../utils/errors';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jinstock-jwt-super-secret-key-nicaragua-2026';
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured.');
+  }
+  return secret;
+};
 
-// Fallback in-memory demo users when DB is offline or initializing
-const DEMO_USERS = [
-  {
-    id: 'usr-admin-demo-001',
-    nombre: 'Administrador Principal',
-    email: 'admin@jinstock.ni',
-    passwordHash: '$2a$10$wKzY6Z1FvFk9mP6KzY6Z1eW2X4Y5Z6A7B8C9D0E1F2G3H4I5J6K7L', // admin123
-    passwordPlain: 'admin123',
-    rol: 'ADMINISTRADOR' as Rol,
-    estado: true,
-  },
-  {
-    id: 'usr-cajero-demo-002',
-    nombre: 'Cajero Estación Central',
-    email: 'cajero@jinstock.ni',
-    passwordHash: '$2a$10$wKzY6Z1FvFk9mP6KzY6Z1eW2X4Y5Z6A7B8C9D0E1F2G3H4I5J6K7L', // cajero123
-    passwordPlain: 'cajero123',
-    rol: 'CAJERO' as Rol,
-    estado: true,
-  },
-];
-
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Por favor proporcione su usuario/correo y contraseña.',
-      });
-      return;
+      throw new ValidationError('Por favor proporcione su correo y contraseña.');
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
-    let user: any = null;
-
-    try {
-      user = await prisma.usuario.findUnique({
-        where: { email: cleanEmail },
-      });
-    } catch (dbErr) {
-      console.warn('⚠️ Base de datos no disponible, utilizando autenticación local de respaldo.');
-      user = DEMO_USERS.find((u) => u.email === cleanEmail);
-    }
-
-    // Check demo user fallback if DB returned null
-    if (!user) {
-      user = DEMO_USERS.find((u) => u.email === cleanEmail);
-    }
+    // Consultar usuario en base de datos real (sin fallback en memoria falso)
+    const user = await prisma.usuario.findUnique({
+      where: { email: cleanEmail },
+    });
 
     if (!user) {
-      res.status(401).json({
-        success: false,
-        message: 'Credenciales inválidas. Verifique su correo o contraseña.',
-      });
-      return;
+      throw new UnauthorizedError('Credenciales inválidas. Verifique su correo o contraseña.');
     }
 
     if (!user.estado) {
-      res.status(403).json({
-        success: false,
-        message: 'Su cuenta se encuentra desactivada. Contacte al Administrador.',
-      });
-      return;
+      throw new ForbiddenError('Su cuenta se encuentra desactivada. Contacte al Administrador.');
     }
 
+    // Si el usuario requiere verificación y no está verificado
     if (user.verificado === false) {
       res.status(403).json({
         success: false,
+        code: 'EMAIL_NOT_VERIFIED',
         message: 'Por favor, verifique su correo electrónico antes de iniciar sesión.',
         requireVerification: true,
         email: user.email,
@@ -85,19 +48,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    let isPasswordValid = false;
-    if (user.passwordPlain && password === user.passwordPlain) {
-      isPasswordValid = true;
-    } else if (user.passwordHash) {
-      isPasswordValid = await bcrypt.compare(password, user.passwordHash).catch(() => password === 'admin123' || password === 'cajero123');
-    }
+    // C-05: Validación estricta con bcrypt únicamente (sin contraseñas fijas ni puertas traseras)
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
-      res.status(401).json({
-        success: false,
-        message: 'Credenciales inválidas. Verifique su correo o contraseña.',
-      });
-      return;
+      throw new UnauthorizedError('Credenciales inválidas. Verifique su correo o contraseña.');
     }
 
     const payload = {
@@ -107,7 +62,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       rol: user.rol,
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign(payload, getJwtSecret(), { expiresIn: '24h' });
 
     res.json({
       success: true,
@@ -123,78 +78,59 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       message: 'Inicio de sesión exitoso',
     });
   } catch (error) {
-    console.error('Error en login:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error interno del servidor al procesar el inicio de sesión.',
-    });
+    next(error);
   }
 };
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { nombre, email, password, rol, adminCode } = req.body;
+    const { nombre, email, password } = req.body;
 
     if (!nombre || !email || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Nombre, correo electrónico y contraseña son campos obligatorios.',
-      });
-      return;
+      throw new ValidationError('Nombre, correo electrónico y contraseña son obligatorios.');
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const assignedRol: Rol = rol === 'CAJERO' ? 'CAJERO' : 'ADMINISTRADOR';
 
-    if (assignedRol === 'ADMINISTRADOR' && adminCode !== 'JINSTOCK-ADMIN-2026') {
-      res.status(403).json({
-        success: false,
-        message: 'Código de autorización de sistema incorrecto para registrar un Administrador.',
-      });
-      return;
+    const existingUser = await prisma.usuario.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    if (existingUser) {
+      throw new ConflictError('Ya existe un usuario registrado con este correo electrónico.');
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const codigoConfirmacion = Math.floor(100000 + Math.random() * 900000).toString();
 
-    let newUser: any = null;
+    // C-05: El registro público crea exclusivamente rol CAJERO. Los administradores se crean vía CLI seed o /users
+    const assignedRol = 'CAJERO';
 
-    try {
-      const existingUser = await prisma.usuario.findUnique({
-        where: { email: cleanEmail },
-      });
+    const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+    // Si no hay SMTP configurado en el entorno de desarrollo, auto-verificar para permitir uso fluido
+    const shouldAutoVerify = !hasSmtpConfigured;
 
-      if (existingUser) {
-        res.status(409).json({
-          success: false,
-          message: 'Ya existe un usuario registrado con este correo electrónico.',
-        });
-        return;
-      }
-
-      newUser = await prisma.usuario.create({
-        data: {
-          nombre: nombre.trim(),
-          email: cleanEmail,
-          passwordHash,
-          rol: assignedRol,
-          estado: true,
-          verificado: false,
-          codigoConfirmacion,
-        },
-      });
-
-      // Enviar correo de confirmación
-      await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
-    } catch (dbErr) {
-      console.warn('⚠️ Registro en base de datos falló, generando sesión en memoria de respaldo.');
-      newUser = {
-        id: `usr-${Date.now()}`,
+    const newUser = await prisma.usuario.create({
+      data: {
         nombre: nombre.trim(),
         email: cleanEmail,
+        passwordHash,
         rol: assignedRol,
         estado: true,
-      };
+        verificado: shouldAutoVerify,
+        codigoConfirmacion: shouldAutoVerify ? null : codigoConfirmacion,
+      },
+    });
+
+    if (!shouldAutoVerify) {
+      await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
+      res.status(201).json({
+        success: true,
+        message: 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',
+        requireVerification: true,
+        email: newUser.email,
+      });
+      return;
     }
 
     const payload = {
@@ -204,93 +140,101 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       rol: newUser.rol,
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign(payload, getJwtSecret(), { expiresIn: '24h' });
 
     res.status(201).json({
       success: true,
-      message: 'Cuenta creada. Por favor, verifique su correo electrónico ingresando el código enviado.',
-      requireVerification: true,
-      email: newUser.email,
+      data: {
+        token,
+        usuario: {
+          id: newUser.id,
+          nombre: newUser.nombre,
+          email: newUser.email,
+          rol: newUser.rol,
+        },
+      },
+      message: 'Cuenta de cajero registrada y activada exitosamente.',
     });
   } catch (error) {
-    console.error('Error en register:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error interno del servidor al crear la cuenta.',
-    });
+    next(error);
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+export const verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, code } = req.body;
 
     if (!email || !code) {
-      res.status(400).json({ success: false, message: 'Faltan datos de verificación.' });
-      return;
+      throw new ValidationError('Faltan datos de verificación (correo y código requeridos).');
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const user = await prisma.usuario.findUnique({ where: { email: cleanEmail } });
 
     if (!user) {
-      res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+      throw new NotFoundError('Usuario no encontrado.');
+    }
+
+    if (user.verificado) {
+      res.json({ success: true, message: 'La cuenta ya ha sido verificada previamente.' });
       return;
     }
 
     if (user.codigoConfirmacion !== code.trim()) {
-      res.status(400).json({ success: false, message: 'Código incorrecto.' });
-      return;
+      throw new ValidationError('Código de confirmación incorrecto.');
     }
 
-    await prisma.usuario.update({
+    const updatedUser = await prisma.usuario.update({
       where: { email: cleanEmail },
       data: { verificado: true, codigoConfirmacion: null },
     });
 
-    const payload = { id: user.id, email: user.email, nombre: user.nombre, rol: user.rol };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+    const payload = {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      nombre: updatedUser.nombre,
+      rol: updatedUser.rol,
+    };
+    const token = jwt.sign(payload, getJwtSecret(), { expiresIn: '24h' });
 
     res.json({
       success: true,
       data: {
         token,
-        usuario: { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol },
+        usuario: {
+          id: updatedUser.id,
+          nombre: updatedUser.nombre,
+          email: updatedUser.email,
+          rol: updatedUser.rol,
+        },
       },
       message: 'Correo verificado y sesión iniciada.',
     });
   } catch (error) {
-    console.error('Error en verifyEmail:', error);
-    res.status(500).json({ success: false, message: 'Error interno al verificar.' });
+    next(error);
   }
 };
 
-export const getMe = async (req: Request, res: Response): Promise<void> => {
+export const getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (!req.user) {
-      res.status(401).json({ success: false, message: 'No autenticado.' });
-      return;
+      throw new UnauthorizedError('No autenticado.');
     }
 
-    let user: any = null;
-    try {
-      user = await prisma.usuario.findUnique({
-        where: { id: req.user.id },
-        select: {
-          id: true,
-          nombre: true,
-          email: true,
-          rol: true,
-          estado: true,
-          createdAt: true,
-        },
-      });
-    } catch (dbErr) {
-      user = req.user;
-    }
+    const user = await prisma.usuario.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rol: true,
+        estado: true,
+        createdAt: true,
+      },
+    });
 
     if (!user) {
-      user = req.user;
+      throw new NotFoundError('Usuario no encontrado.');
     }
 
     res.json({
@@ -299,57 +243,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       message: 'Perfil de usuario obtenido correctamente',
     });
   } catch (error) {
-    console.error('Error en getMe:', error);
-    res.status(500).json({ success: false, message: 'Error interno del servidor.' });
-  }
-};
-
-export const seedInitialUsers = async (req: Request, res: Response): Promise<void> => {
-  try {
-    let seeded = false;
-    try {
-      const adminPasswordHash = await bcrypt.hash('admin123', 10);
-      const cajeroPasswordHash = await bcrypt.hash('cajero123', 10);
-
-      await prisma.usuario.upsert({
-        where: { email: 'admin@jinstock.ni' },
-        update: {},
-        create: {
-          nombre: 'Administrador Principal',
-          email: 'admin@jinstock.ni',
-          passwordHash: adminPasswordHash,
-          rol: 'ADMINISTRADOR',
-          estado: true,
-        },
-      });
-
-      await prisma.usuario.upsert({
-        where: { email: 'cajero@jinstock.ni' },
-        update: {},
-        create: {
-          nombre: 'Cajero Estación Central',
-          email: 'cajero@jinstock.ni',
-          passwordHash: cajeroPasswordHash,
-          rol: 'CAJERO',
-          estado: true,
-        },
-      });
-      seeded = true;
-    } catch (err) {
-      console.warn('⚠️ No se pudo sembrar en DB remota (servidor local/offline). Servidor listo con respaldo.');
-    }
-
-    res.json({
-      success: true,
-      data: {
-        admin: 'admin@jinstock.ni',
-        cajero: 'cajero@jinstock.ni',
-        dbSeeded: seeded,
-      },
-      message: 'Usuarios iniciales de demostración listos (admin@jinstock.ni / admin123 y cajero@jinstock.ni / cajero123).',
-    });
-  } catch (error) {
-    console.error('Error seeding users:', error);
-    res.status(500).json({ success: false, message: 'Error al sembrar usuarios iniciales.' });
+    next(error);
   }
 };
