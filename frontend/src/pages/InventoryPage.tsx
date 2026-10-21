@@ -662,6 +662,19 @@ export const InventoryPage: React.FC = () => {
               </div>
 
               <div className="flex gap-2 pt-3 border-t border-white/10 mt-2">
+                {editingProduct && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      handleDeleteProduct(editingProduct);
+                    }}
+                    className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-xl font-semibold flex items-center gap-1.5 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                    Eliminar
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
