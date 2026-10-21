@@ -1,6 +1,6 @@
 # 📚 SIGEL / JINStock
 
-> **Sistema Web Offline-First para la Gestión de Ventas e Inventario de la Librería y Papelería "Bendición de Dios" (Nicaragua)**
+> **Sistema Web Offline-First para la Gestión de Ventas e Inventario - JINStock (Nicaragua)**
 
 [![Backend Tests](https://img.shields.io/badge/tests-vitest%20passing-brightgreen)](backend/tests/api.test.ts)
 [![PWA Ready](https://img.shields.io/badge/PWA-offline--first-blue)](frontend/src/pwa/db.ts)

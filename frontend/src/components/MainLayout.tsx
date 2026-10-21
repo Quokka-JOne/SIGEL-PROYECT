@@ -85,12 +85,9 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         {/* Left: Logo & User role chip */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <div className="flex items-center gap-3">
-            <Link to={isAdmin ? '/dashboard' : '/pos'} className="flex items-center gap-2 text-decoration-none">
+            <Link to={isAdmin ? '/dashboard' : '/pos'} className="flex items-center gap-2.5 text-decoration-none">
               <img src="/logo.png" alt="JINStock" className="h-8 object-contain" />
-              <div className="flex flex-col">
-                <span className="font-extrabold text-sm tracking-wide text-white leading-none">JINStock</span>
-                <span className="text-[10px] text-purple-400 font-medium">Librería Bendición de Dios</span>
-              </div>
+              <span className="font-extrabold text-base tracking-wide text-white">JINStock</span>
             </Link>
             <span className="hidden sm:inline-block text-xs bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-purple-300 font-semibold ml-2">
               {user?.rol || 'CAJERO'}

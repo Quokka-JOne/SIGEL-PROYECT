@@ -54,7 +54,7 @@ export default defineConfig({
       manifest: {
         name: 'JINStock - Sistema Web de Gestión de Ventas e Inventario',
         short_name: 'JINStock',
-        description: 'Sistema Offline-First para Librería y Papelería Bendición de Dios',
+        description: 'Sistema Offline-First para Librería y Papelería',
         theme_color: '#1E3A8A',
         background_color: '#100f14',
         display: 'standalone',

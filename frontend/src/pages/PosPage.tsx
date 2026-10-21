@@ -823,8 +823,8 @@ export const PosPage: React.FC = () => {
               <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 mx-auto flex items-center justify-center overflow-hidden mb-2">
                 <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
               </div>
-              <h3 className="font-bold text-base">Librería Bendición de Dios</h3>
-              <p className="text-xs text-gray-400">JINStock POS Nicaragua</p>
+              <h3 className="font-bold text-base">JINStock</h3>
+              <p className="text-xs text-gray-400">Punto de Venta POS Nicaragua</p>
               <div className="mt-2 inline-block bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-xs font-bold">
                 {completedSale.numeroComprobante}
               </div>

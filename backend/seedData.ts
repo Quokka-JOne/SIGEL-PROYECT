@@ -151,7 +151,7 @@ export const INITIAL_PRODUCTS = [
 ];
 
 async function seed() {
-  console.log('--- Sembrando Datos Reales de Librería Bendición de Dios ---');
+  console.log('--- Sembrando Datos Reales de Librería y Papelería ---');
 
   // 1. Usuarios iniciales de prueba (con hashes seguros)
   const adminHash = await bcrypt.hash('admin123', 10);
