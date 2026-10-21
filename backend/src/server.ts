@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes';
 import productRoutes from './routes/product.routes';
@@ -97,11 +98,54 @@ const startNeonKeepAlive = () => {
   }, intervalMs);
 };
 
+// Asegurar que el usuario administrador inicial exista y esté activo
+const ensureInitialAdmin = async () => {
+  try {
+    const adminEmail = process.env.INITIAL_ADMIN_EMAIL || 'admin@jinstock.ni';
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Admin.2026!Secure';
+    const adminName = process.env.INITIAL_ADMIN_NAME || 'Administrador JINStock';
+
+    const existing = await prisma.usuario.findUnique({
+      where: { email: adminEmail },
+    });
+
+    const passwordHash = await bcrypt.hash(adminPassword, 10);
+
+    if (!existing) {
+      await prisma.usuario.create({
+        data: {
+          nombre: adminName,
+          email: adminEmail,
+          passwordHash,
+          rol: 'ADMINISTRADOR',
+          estado: true,
+          verificado: true,
+        },
+      });
+      console.log(`✅ [Init] Administrador inicial creado: ${adminEmail}`);
+    } else {
+      await prisma.usuario.update({
+        where: { email: adminEmail },
+        data: {
+          passwordHash,
+          rol: 'ADMINISTRADOR',
+          estado: true,
+          verificado: true,
+        },
+      });
+      console.log(`✅ [Init] Administrador verificado y listo: ${adminEmail}`);
+    }
+  } catch (err: any) {
+    console.warn('⚠️ [Init] Auto-seed de administrador omitido:', err.message);
+  }
+};
+
 // Arrancar servidor solo si no estamos en entorno de testing
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     console.log(`🚀 JINStock Backend corriendo en http://localhost:${PORT}`);
     startNeonKeepAlive();
+    await ensureInitialAdmin();
   });
 }
 
