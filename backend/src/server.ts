@@ -13,6 +13,7 @@ import userRoutes from './routes/user.routes';
 import reportRoutes from './routes/report.routes';
 import { prisma } from './config/prisma';
 import { errorHandler } from './middlewares/error.middleware';
+import { INITIAL_CATEGORIES, INITIAL_SUPPLIERS, INITIAL_PRODUCTS } from './data/seedCatalog';
 
 dotenv.config();
 
@@ -98,25 +99,29 @@ const startNeonKeepAlive = () => {
   }, intervalMs);
 };
 
-// Asegurar que el usuario administrador inicial exista y esté activo
-const ensureInitialAdmin = async () => {
+// Asegurar que usuarios iniciales (Admin y Cajero) y catálogo básico existan
+const ensureInitialData = async () => {
   try {
     const adminEmail = process.env.INITIAL_ADMIN_EMAIL || 'admin@jinstock.ni';
     const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Admin.2026!Secure';
     const adminName = process.env.INITIAL_ADMIN_NAME || 'Administrador JINStock';
 
-    const existing = await prisma.usuario.findUnique({
+    const cajeroEmail = 'cajero@jinstock.ni';
+    const cajeroPassword = 'cajero123';
+    const cajeroName = 'Cajero Estación Central';
+
+    // 1. Administrador inicial
+    const adminHash = await bcrypt.hash(adminPassword, 10);
+    const existingAdmin = await prisma.usuario.findUnique({
       where: { email: adminEmail },
     });
 
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
-
-    if (!existing) {
+    if (!existingAdmin) {
       await prisma.usuario.create({
         data: {
           nombre: adminName,
           email: adminEmail,
-          passwordHash,
+          passwordHash: adminHash,
           rol: 'ADMINISTRADOR',
           estado: true,
           verificado: true,
@@ -127,7 +132,7 @@ const ensureInitialAdmin = async () => {
       await prisma.usuario.update({
         where: { email: adminEmail },
         data: {
-          passwordHash,
+          passwordHash: adminHash,
           rol: 'ADMINISTRADOR',
           estado: true,
           verificado: true,
@@ -135,8 +140,73 @@ const ensureInitialAdmin = async () => {
       });
       console.log(`✅ [Init] Administrador verificado y listo: ${adminEmail}`);
     }
+
+    // 2. Cajero inicial
+    const cajeroHash = await bcrypt.hash(cajeroPassword, 10);
+    const existingCajero = await prisma.usuario.findUnique({
+      where: { email: cajeroEmail },
+    });
+
+    if (!existingCajero) {
+      await prisma.usuario.create({
+        data: {
+          nombre: cajeroName,
+          email: cajeroEmail,
+          passwordHash: cajeroHash,
+          rol: 'CAJERO',
+          estado: true,
+          verificado: true,
+        },
+      });
+      console.log(`✅ [Init] Cajero inicial creado: ${cajeroEmail}`);
+    } else {
+      await prisma.usuario.update({
+        where: { email: cajeroEmail },
+        data: {
+          passwordHash: cajeroHash,
+          rol: 'CAJERO',
+          estado: true,
+          verificado: true,
+        },
+      });
+      console.log(`✅ [Init] Cajero verificado y listo: ${cajeroEmail}`);
+    }
+
+    // 3. Sembrar catálogo si la base de datos no tiene categorías
+    const catCount = await prisma.categoria.count();
+    if (catCount === 0) {
+      console.log('📦 Sembrando catálogo inicial de papelería...');
+      for (const cat of INITIAL_CATEGORIES) {
+        await prisma.categoria.upsert({
+          where: { id: cat.id },
+          update: { nombre: cat.nombre, descripcion: cat.descripcion },
+          create: { ...cat, estado: true },
+        });
+      }
+      for (const sup of INITIAL_SUPPLIERS) {
+        await prisma.proveedor.upsert({
+          where: { id: sup.id },
+          update: { nombre: sup.nombre, ruc: sup.ruc, telefono: sup.telefono, email: sup.email, direccion: sup.direccion },
+          create: { ...sup },
+        });
+      }
+      for (const prod of INITIAL_PRODUCTS) {
+        await prisma.producto.upsert({
+          where: { id: prod.id },
+          update: {
+            nombre: prod.nombre,
+            precioVenta: prod.precioVenta,
+            costo: prod.costo,
+            stock: prod.stock,
+            stockMinimo: prod.stockMinimo,
+          },
+          create: { ...prod },
+        });
+      }
+      console.log('✅ Catálogo inicial listo.');
+    }
   } catch (err: any) {
-    console.warn('⚠️ [Init] Auto-seed de administrador omitido:', err.message);
+    console.warn('⚠️ [Init] Auto-seed omitido o error:', err.message);
   }
 };
 
@@ -145,7 +215,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, async () => {
     console.log(`🚀 JINStock Backend corriendo en http://localhost:${PORT}`);
     startNeonKeepAlive();
-    await ensureInitialAdmin();
+    await ensureInitialData();
   });
 }
 
