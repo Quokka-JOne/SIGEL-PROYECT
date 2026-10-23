@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { cacheSalesLocally, getCachedSales } from '../services/syncService';
 import { db } from '../pwa/db';
 
 export const SalesHistoryPage: React.FC = () => {
@@ -25,24 +26,46 @@ export const SalesHistoryPage: React.FC = () => {
   const fetchSales = async () => {
     setLoading(true);
 
+    // Fallback offline: combina ventas cacheadas del servidor + ventas hechas offline
     const loadOfflineSales = async () => {
       try {
+        // 1. Ventas sincronizadas del servidor (cacheadas online)
+        const cachedSales = await getCachedSales();
+        const serverSales = cachedSales.map((s) => ({
+          id: s.id,
+          numeroComprobante: s.numeroComprobante,
+          fecha: s.fecha,
+          total: s.total,
+          estado: s.estado,
+          metodoPago: s.metodoPago,
+          usuario: { nombre: s.usuarioNombre || 'Sistema' },
+          detalles: s.detalles.map((d) => ({
+            ...d,
+            producto: { nombre: d.productoNombre || `Producto ${d.productoId}` },
+          })),
+          _source: 'cache',
+        }));
+
+        // 2. Ventas hechas mientras estaba offline (pendientes de sync)
         const offSales = await db.offlineSales.toArray();
-        setSales(
-          offSales.reverse().map((s) => ({
-            id: s.id,
-            numeroComprobante: s.numeroComprobante,
-            fecha: s.fecha,
-            total: s.total,
-            estado: s.estado,
-            metodoPago: s.metodoPago,
-            usuario: { nombre: 'Cajero Local (Offline)' },
-            detalles: s.detalles.map((d) => ({
-              ...d,
-              producto: { nombre: `Producto ID: ${d.productoId}` },
-            })),
-          }))
-        );
+        const pendingSales = offSales.reverse().map((s) => ({
+          id: s.id,
+          numeroComprobante: s.numeroComprobante,
+          fecha: s.fecha,
+          total: s.total,
+          estado: s.estado,
+          metodoPago: s.metodoPago,
+          usuario: { nombre: 'Cajero Local (Offline)' },
+          detalles: s.detalles.map((d) => ({
+            ...d,
+            producto: { nombre: `Producto ${d.productoId}` },
+          })),
+          _source: 'offline',
+        }));
+
+        // Combinar: primero las offline (más recientes), luego las del servidor
+        const combined = [...pendingSales, ...serverSales];
+        setSales(combined);
         setTotalPages(1);
       } catch (err) {
         console.warn('[SalesHistoryPage] Error cargando ventas offline:', err);
@@ -65,6 +88,8 @@ export const SalesHistoryPage: React.FC = () => {
       if (res.pagination) {
         setTotalPages(res.pagination.totalPages || 1);
       }
+      // Cachear las ventas obtenidas para uso offline futuro
+      cacheSalesLocally(res.data).catch(() => {});
     } else {
       await loadOfflineSales();
     }

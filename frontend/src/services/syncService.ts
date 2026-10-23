@@ -1,4 +1,4 @@
-import { db, type LocalProduct, type LocalCategory, type LocalSupplier } from '../pwa/db';
+import { db, type LocalProduct, type LocalCategory, type LocalSupplier, type LocalSale, type LocalUser } from '../pwa/db';
 import { apiFetch } from './api';
 
 type SyncListener = () => void;
@@ -425,5 +425,91 @@ export function initSyncManager() {
       refreshCatalogInBackground();
       syncPendingSales();
     }, 2000);
+  }
+}
+
+/**
+ * Cachear ventas del servidor en Dexie para modo offline
+ */
+export async function cacheSalesLocally(sales: any[]): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+    const localSales: LocalSale[] = sales.map((s) => ({
+      id: String(s.id),
+      numeroComprobante: s.numeroComprobante || '',
+      fecha: s.fecha || s.createdAt || now,
+      total: Number(s.total) || 0,
+      estado: s.estado || 'COMPLETADO',
+      metodoPago: s.metodoPago || '',
+      clienteNombre: s.clienteNombre ?? null,
+      usuarioNombre: s.usuario?.nombre || s.usuarioNombre || 'Sistema',
+      detalles: (s.detalles || []).map((d: any) => ({
+        productoId: String(d.productoId || d.producto?.id || ''),
+        productoNombre: d.producto?.nombre || d.productoNombre || `Producto ${d.productoId}`,
+        cantidad: Number(d.cantidad) || 0,
+        precioUnitario: Number(d.precioUnitario) || 0,
+        subtotal: Number(d.subtotal) || 0,
+      })),
+      cachedAt: now,
+    }));
+    if (localSales.length > 0) {
+      await db.localSales.bulkPut(localSales);
+    }
+    await db.metadata.put({ key: 'lastSalesSync', value: now });
+    console.log(`[SyncService] ${localSales.length} ventas cacheadas en Dexie.`);
+  } catch (err) {
+    console.warn('[SyncService] Error cacheando ventas:', err);
+  }
+}
+
+/**
+ * Obtener ventas cacheadas de Dexie (modo offline)
+ */
+export async function getCachedSales(): Promise<LocalSale[]> {
+  try {
+    const sales = await db.localSales.orderBy('fecha').reverse().toArray();
+    return sales;
+  } catch (err) {
+    console.warn('[SyncService] Error obteniendo ventas cacheadas:', err);
+    return [];
+  }
+}
+
+/**
+ * Cachear usuarios del servidor en Dexie para modo offline
+ */
+export async function cacheUsersLocally(users: any[]): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+    const localUsers: LocalUser[] = users.map((u) => ({
+      id: String(u.id),
+      nombre: u.nombre || '',
+      email: u.email || '',
+      rol: u.rol || 'CAJERO',
+      estado: Boolean(u.estado),
+      verificado: Boolean(u.verificado),
+      createdAt: u.createdAt,
+      cachedAt: now,
+    }));
+    if (localUsers.length > 0) {
+      await db.localUsers.bulkPut(localUsers);
+    }
+    await db.metadata.put({ key: 'lastUsersSync', value: now });
+    console.log(`[SyncService] ${localUsers.length} usuarios cacheados en Dexie.`);
+  } catch (err) {
+    console.warn('[SyncService] Error cacheando usuarios:', err);
+  }
+}
+
+/**
+ * Obtener usuarios cacheados de Dexie (modo offline)
+ */
+export async function getCachedUsers(): Promise<LocalUser[]> {
+  try {
+    const users = await db.localUsers.toArray();
+    return users;
+  } catch (err) {
+    console.warn('[SyncService] Error obteniendo usuarios cacheados:', err);
+    return [];
   }
 }

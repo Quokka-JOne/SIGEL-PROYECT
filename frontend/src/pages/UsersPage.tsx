@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth, type Rol } from '../context/AuthContext';
+import { cacheUsersLocally, getCachedUsers } from '../services/syncService';
 
 export interface UserAccount {
   id: string;
@@ -34,14 +35,40 @@ export const UsersPage: React.FC = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
+  const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
+
   const fetchUsers = async () => {
     setLoading(true);
     setActionError(null);
+    const online = navigator.onLine;
+    setIsOffline(!online);
+
+    if (!online) {
+      // Modo offline: mostrar usuarios cacheados de la última sesión online
+      const cached = await getCachedUsers();
+      if (cached.length > 0) {
+        setUsers(cached as any);
+      } else {
+        setActionError('Sin conexión. No hay usuarios cacheados disponibles.');
+      }
+      setLoading(false);
+      return;
+    }
+
     const res = await apiFetch<UserAccount[]>('/users');
     if (res.success && res.data) {
       setUsers(res.data);
+      // Cachear para uso offline futuro
+      cacheUsersLocally(res.data).catch(() => {});
     } else {
-      setActionError(res.message || 'Error al obtener usuarios.');
+      // Intentar mostrar caché si la API falla
+      const cached = await getCachedUsers();
+      if (cached.length > 0) {
+        setUsers(cached as any);
+        setActionError('No se pudo conectar al servidor. Mostrando datos en caché.');
+      } else {
+        setActionError(res.message || 'Error al obtener usuarios.');
+      }
     }
     setLoading(false);
   };
@@ -138,6 +165,13 @@ export const UsersPage: React.FC = () => {
           <button onClick={() => setActionError(null)} className="text-gray-400 hover:text-white">
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
+        </div>
+      )}
+
+      {isOffline && (
+        <div className="p-3 rounded-xl border bg-amber-950/60 border-amber-500/40 text-amber-200 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">wifi_off</span>
+          <span>Modo sin conexión — mostrando datos de la última sincronización. Las acciones de crear/editar no están disponibles.</span>
         </div>
       )}
 

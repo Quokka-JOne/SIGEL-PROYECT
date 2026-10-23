@@ -83,6 +83,38 @@ export interface LocalMetadata {
   value: string;
 }
 
+/** Ventas del servidor cacheadas localmente para acceso offline */
+export interface LocalSale {
+  id: string;
+  numeroComprobante: string;
+  fecha: string;
+  total: number;
+  estado: string;
+  metodoPago: string;
+  clienteNombre?: string | null;
+  usuarioNombre?: string;
+  detalles: Array<{
+    productoId: string;
+    productoNombre?: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+  }>;
+  cachedAt: string;
+}
+
+/** Usuarios cacheados localmente para acceso offline */
+export interface LocalUser {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: string;
+  estado: boolean;
+  verificado?: boolean;
+  createdAt?: string;
+  cachedAt: string;
+}
+
 export class JINStockDB extends Dexie {
   products!: Table<LocalProduct>;
   categories!: Table<LocalCategory>;
@@ -90,6 +122,8 @@ export class JINStockDB extends Dexie {
   suppliers!: Table<LocalSupplier>;
   purchases!: Table<LocalPurchase>;
   metadata!: Table<LocalMetadata>;
+  localSales!: Table<LocalSale>;
+  localUsers!: Table<LocalUser>;
 
   constructor() {
     super('JINStockDB');
@@ -115,6 +149,18 @@ export class JINStockDB extends Dexie {
       metadata: 'key',
       suppliers: 'id, nombre, ruc, estado',
       purchases: 'id, numeroFactura, proveedorId, fecha, estado',
+    });
+
+    // Versión 4: Caché de ventas del servidor y usuarios para modo offline
+    this.version(4).stores({
+      products: 'id, codigoBarras, sku, nombre, categoriaId, estado, stock',
+      categories: 'id, nombre, estado',
+      offlineSales: '++id, offlineId, numeroComprobante, estado, synced, fecha',
+      metadata: 'key',
+      suppliers: 'id, nombre, ruc, estado',
+      purchases: 'id, numeroFactura, proveedorId, fecha, estado',
+      localSales: 'id, numeroComprobante, fecha, estado, cachedAt',
+      localUsers: 'id, nombre, rol, estado, cachedAt',
     });
   }
 }
