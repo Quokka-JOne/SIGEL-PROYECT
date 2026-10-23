@@ -88,7 +88,7 @@ export const LandingPage: React.FC = () => {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 38, width: 'auto', objectFit: 'contain', borderRadius: 8 }} />
+            <img src="/JINSTOCK.png" alt="JINStock" style={{ height: 38, width: 'auto', objectFit: 'contain' }} />
             <span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>JINStock</span>
           </div>
           {/* Nav links */}
