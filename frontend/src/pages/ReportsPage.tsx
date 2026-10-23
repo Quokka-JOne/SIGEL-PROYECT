@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 
+const CACHE_KEY = 'jinstock_reports_cache';
+
+function saveReportCache(key: string, data: any) {
+  try {
+    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+    cache[key] = { data, savedAt: new Date().toISOString() };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch { /* silencioso */ }
+}
+
+function loadReportCache(key: string): any | null {
+  try {
+    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+    return cache[key]?.data ?? null;
+  } catch { return null; }
+}
+
 export const ReportsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'SALES' | 'PURCHASES' | 'TOP_PRODUCTS' | 'CASH_CLOSING'>('SALES');
 
@@ -23,20 +40,53 @@ export const ReportsPage: React.FC = () => {
   const [cashClosingReport, setCashClosingReport] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
+
   const fetchCurrentReport = async () => {
     setLoading(true);
+    const online = navigator.onLine;
+    setIsOffline(!online);
+
     if (activeTab === 'SALES') {
-      const res = await apiFetch(`/reports/sales?desde=${desde}&hasta=${hasta}`);
-      if (res.success) setSalesReport(res.data);
+      const cacheKey = `sales_${desde}_${hasta}`;
+      if (!online) {
+        const cached = loadReportCache(cacheKey);
+        if (cached) setSalesReport(cached);
+        else setSalesReport(null);
+      } else {
+        const res = await apiFetch(`/reports/sales?desde=${desde}&hasta=${hasta}`);
+        if (res.success) { setSalesReport(res.data); saveReportCache(cacheKey, res.data); }
+      }
     } else if (activeTab === 'PURCHASES') {
-      const res = await apiFetch(`/reports/purchases?desde=${desde}&hasta=${hasta}`);
-      if (res.success) setPurchasesReport(res.data);
+      const cacheKey = `purchases_${desde}_${hasta}`;
+      if (!online) {
+        const cached = loadReportCache(cacheKey);
+        if (cached) setPurchasesReport(cached);
+        else setPurchasesReport(null);
+      } else {
+        const res = await apiFetch(`/reports/purchases?desde=${desde}&hasta=${hasta}`);
+        if (res.success) { setPurchasesReport(res.data); saveReportCache(cacheKey, res.data); }
+      }
     } else if (activeTab === 'TOP_PRODUCTS') {
-      const res = await apiFetch(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
-      if (res.success) setTopProductsReport(res.data || []);
+      const cacheKey = `top_${desde}_${hasta}`;
+      if (!online) {
+        const cached = loadReportCache(cacheKey);
+        if (cached) setTopProductsReport(cached);
+        else setTopProductsReport([]);
+      } else {
+        const res = await apiFetch(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
+        if (res.success) { setTopProductsReport(res.data || []); saveReportCache(cacheKey, res.data || []); }
+      }
     } else if (activeTab === 'CASH_CLOSING') {
-      const res = await apiFetch(`/reports/cash-closing?fecha=${closingDate}`);
-      if (res.success) setCashClosingReport(res.data);
+      const cacheKey = `closing_${closingDate}`;
+      if (!online) {
+        const cached = loadReportCache(cacheKey);
+        if (cached) setCashClosingReport(cached);
+        else setCashClosingReport(null);
+      } else {
+        const res = await apiFetch(`/reports/cash-closing?fecha=${closingDate}`);
+        if (res.success) { setCashClosingReport(res.data); saveReportCache(cacheKey, res.data); }
+      }
     }
     setLoading(false);
   };
@@ -113,6 +163,13 @@ export const ReportsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {isOffline && (
+        <div className="p-3 rounded-xl border bg-amber-950/60 border-amber-500/40 text-amber-200 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">wifi_off</span>
+          <span>Modo sin conexión — mostrando el último reporte consultado. Los datos no están actualizados.</span>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
