@@ -51,10 +51,6 @@ export const PosPage: React.FC = () => {
   const [cashNIO, setCashNIO] = useState<string>('');
   const [cashUSD, setCashUSD] = useState<string>('');
 
-  // Customer details
-  const [customerName, setCustomerName] = useState<string>('Consumidor Final');
-  const [customerRUC, setCustomerRUC] = useState<string>('');
-  const [isEditingCustomer, setIsEditingCustomer] = useState<boolean>(false);
 
   // Checkout process
   const [submitting, setSubmitting] = useState<boolean>(false);

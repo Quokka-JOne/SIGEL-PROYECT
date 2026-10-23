@@ -1,4 +1,4 @@
-import { db, type LocalProduct, type LocalCategory, type LocalOfflineSale } from '../pwa/db';
+import { db, type LocalProduct, type LocalCategory } from '../pwa/db';
 import { apiFetch } from './api';
 
 type SyncListener = () => void;

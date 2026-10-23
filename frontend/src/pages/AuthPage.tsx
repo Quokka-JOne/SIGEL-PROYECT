@@ -85,7 +85,7 @@ export const AuthPage: React.FC = () => {
 
       if (res.success) {
         if (res.requireVerification) {
-          setSuccessMessage(res.message);
+          setSuccessMessage(res.message || 'Código de verificación enviado.');
           setVerificationEmail(res.email || regEmail);
           setIsVerifying(true);
         } else {
