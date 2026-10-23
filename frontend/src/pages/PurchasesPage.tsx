@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { db, type LocalPurchase } from '../pwa/db';
+import { getLocalSuppliersFromDexie, getLocalCatalogFromDexie } from '../services/syncService';
 
 export interface SupplierItem {
   id: string;
@@ -75,29 +77,78 @@ export const PurchasesPage: React.FC = () => {
   const [anulando, setAnulando] = useState<boolean>(false);
 
   const fetchData = async () => {
-    const [suppRes, prodRes, purRes] = await Promise.all([
-      apiFetch<SupplierItem[]>('/suppliers?includeInactive=true'),
-      apiFetch<ProductItem[]>('/products?includeInactive=true'),
-      apiFetch<any[]>('/purchases'),
-    ]);
+    const loadFromDexie = async () => {
+      try {
+        const localSupps = await getLocalSuppliersFromDexie();
+        const localCatalog = await getLocalCatalogFromDexie();
+        const localPurchases = await db.purchases.toArray();
 
-    if (suppRes.success && suppRes.data) {
-      setSuppliers(suppRes.data);
-      if (suppRes.data.length > 0 && !selectedSupplierId) {
-        setSelectedSupplierId(suppRes.data[0].id);
+        setSuppliers(localSupps);
+        if (localSupps.length > 0 && !selectedSupplierId) {
+          setSelectedSupplierId(localSupps[0].id);
+        }
+
+        setProducts(localCatalog.products as ProductItem[]);
+        if (localCatalog.products.length > 0 && !selectedProductId) {
+          setSelectedProductId(localCatalog.products[0].id);
+          setAddCost(localCatalog.products[0].costo);
+        }
+
+        setPurchasesHistory(localPurchases.reverse());
+      } catch (err) {
+        console.warn('[PurchasesPage] Error cargando datos offline:', err);
       }
+    };
+
+    if (!navigator.onLine) {
+      await loadFromDexie();
+      return;
     }
 
-    if (prodRes.success && prodRes.data) {
-      setProducts(prodRes.data);
-      if (prodRes.data.length > 0 && !selectedProductId) {
-        setSelectedProductId(prodRes.data[0].id);
-        setAddCost(prodRes.data[0].costo);
-      }
-    }
+    try {
+      const [suppRes, prodRes, purRes] = await Promise.all([
+        apiFetch<SupplierItem[]>('/suppliers?includeInactive=true'),
+        apiFetch<ProductItem[]>('/products?includeInactive=true'),
+        apiFetch<any[]>('/purchases'),
+      ]);
 
-    if (purRes.success && purRes.data) {
-      setPurchasesHistory(purRes.data);
+      if (suppRes.success && suppRes.data) {
+        setSuppliers(suppRes.data);
+        if (suppRes.data.length > 0 && !selectedSupplierId) {
+          setSelectedSupplierId(suppRes.data[0].id);
+        }
+        db.suppliers.bulkPut(suppRes.data).catch(() => {});
+      } else {
+        const localSupps = await getLocalSuppliersFromDexie();
+        setSuppliers(localSupps);
+        if (localSupps.length > 0 && !selectedSupplierId) {
+          setSelectedSupplierId(localSupps[0].id);
+        }
+      }
+
+      if (prodRes.success && prodRes.data) {
+        setProducts(prodRes.data);
+        if (prodRes.data.length > 0 && !selectedProductId) {
+          setSelectedProductId(prodRes.data[0].id);
+          setAddCost(prodRes.data[0].costo);
+        }
+      } else {
+        const localCatalog = await getLocalCatalogFromDexie();
+        setProducts(localCatalog.products as ProductItem[]);
+        if (localCatalog.products.length > 0 && !selectedProductId) {
+          setSelectedProductId(localCatalog.products[0].id);
+          setAddCost(localCatalog.products[0].costo);
+        }
+      }
+
+      if (purRes.success && purRes.data) {
+        setPurchasesHistory(purRes.data);
+      } else {
+        const localPurchases = await db.purchases.toArray();
+        setPurchasesHistory(localPurchases.reverse());
+      }
+    } catch {
+      await loadFromDexie();
     }
   };
 
@@ -182,6 +233,50 @@ export const PurchasesPage: React.FC = () => {
       })),
     };
 
+    const recordLocalPurchase = async () => {
+      const selectedSupp = suppliers.find((s) => s.id === selectedSupplierId);
+      const newLocalPur: LocalPurchase = {
+        id: `pur-local-${Date.now()}`,
+        numeroFactura: invoiceNumber.trim() || `FAC-OFF-${Date.now().toString().slice(-6)}`,
+        proveedorId: selectedSupplierId,
+        proveedor: { nombre: selectedSupp?.nombre || 'Proveedor Local' },
+        fecha: new Date().toISOString(),
+        total: grandTotal,
+        estado: 'COMPLETADA',
+        detalles: purchaseItems.map((item) => ({
+          productoId: item.productoId,
+          producto: { nombre: item.nombre, sku: item.sku },
+          cantidad: item.cantidad,
+          costoUnitario: item.costoUnitario,
+          subtotal: item.subtotal,
+        })),
+      };
+
+      await db.purchases.put(newLocalPur);
+
+      // Incrementar stock en productos de Dexie
+      for (const item of purchaseItems) {
+        const p = await db.products.get(item.productoId);
+        if (p) {
+          await db.products.update(item.productoId, {
+            stock: p.stock + item.cantidad,
+            costo: item.costoUnitario,
+          });
+        }
+      }
+
+      setMessage({ type: 'success', text: 'Compra registrada localmente y existencias aumentadas en inventario.' });
+      setPurchaseItems([]);
+      setInvoiceNumber('');
+      fetchData();
+    };
+
+    if (!navigator.onLine) {
+      await recordLocalPurchase();
+      setSubmitting(false);
+      return;
+    }
+
     const res = await apiFetch('/purchases', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -192,6 +287,8 @@ export const PurchasesPage: React.FC = () => {
       setPurchaseItems([]);
       setInvoiceNumber('');
       fetchData();
+    } else if (res.networkError) {
+      await recordLocalPurchase();
     } else {
       setMessage({ type: 'error', text: res.message || 'Error al procesar la compra.' });
     }
@@ -200,8 +297,18 @@ export const PurchasesPage: React.FC = () => {
 
   // M-05: Toggle de estado de proveedor
   const handleToggleSupplierStatus = async (supp: SupplierItem) => {
+    if (!navigator.onLine) {
+      await db.suppliers.update(supp.id, { estado: !supp.estado });
+      fetchData();
+      return;
+    }
+
     const res = await apiFetch(`/suppliers/${supp.id}/status`, { method: 'PATCH' });
     if (res.success) {
+      await db.suppliers.update(supp.id, { estado: !supp.estado });
+      fetchData();
+    } else if (res.networkError) {
+      await db.suppliers.update(supp.id, { estado: !supp.estado });
       fetchData();
     } else {
       setMessage({ type: 'error', text: res.message || 'Error al cambiar estado del proveedor.' });
@@ -213,14 +320,48 @@ export const PurchasesPage: React.FC = () => {
     e.preventDefault();
     if (!newSuppData.nombre.trim()) return;
 
-    const res = await apiFetch('/suppliers', {
+    if (!navigator.onLine) {
+      const localSupp: SupplierItem = {
+        id: `prov-local-${Date.now()}`,
+        nombre: newSuppData.nombre.trim(),
+        ruc: newSuppData.ruc.trim() || undefined,
+        telefono: newSuppData.telefono.trim() || undefined,
+        email: newSuppData.email.trim() || undefined,
+        direccion: newSuppData.direccion.trim() || undefined,
+        estado: true,
+      };
+      await db.suppliers.put(localSupp);
+      setIsSupplierModalOpen(false);
+      setNewSuppData({ nombre: '', ruc: '', telefono: '', email: '', direccion: '' });
+      setMessage({ type: 'success', text: 'Proveedor registrado localmente en modo offline.' });
+      fetchData();
+      return;
+    }
+
+    const res = await apiFetch<SupplierItem>('/suppliers', {
       method: 'POST',
       body: JSON.stringify(newSuppData),
     });
 
-    if (res.success) {
+    if (res.success && res.data) {
+      await db.suppliers.put(res.data);
       setIsSupplierModalOpen(false);
       setNewSuppData({ nombre: '', ruc: '', telefono: '', email: '', direccion: '' });
+      fetchData();
+    } else if (res.networkError) {
+      const localSupp: SupplierItem = {
+        id: `prov-local-${Date.now()}`,
+        nombre: newSuppData.nombre.trim(),
+        ruc: newSuppData.ruc.trim() || undefined,
+        telefono: newSuppData.telefono.trim() || undefined,
+        email: newSuppData.email.trim() || undefined,
+        direccion: newSuppData.direccion.trim() || undefined,
+        estado: true,
+      };
+      await db.suppliers.put(localSupp);
+      setIsSupplierModalOpen(false);
+      setNewSuppData({ nombre: '', ruc: '', telefono: '', email: '', direccion: '' });
+      setMessage({ type: 'success', text: 'Servidor no disponible. Proveedor guardado localmente.' });
       fetchData();
     } else {
       setMessage({ type: 'error', text: res.message || 'Error al registrar proveedor.' });
@@ -232,13 +373,52 @@ export const PurchasesPage: React.FC = () => {
     if (!purchaseToAnular || !motivoCancelacion.trim()) return;
     setAnulando(true);
 
+    if (!navigator.onLine) {
+      await db.purchases.update(purchaseToAnular.id, {
+        estado: 'ANULADA',
+        motivoCancelacion: motivoCancelacion.trim(),
+      });
+      // Deducir stock si es posible
+      if (purchaseToAnular.detalles) {
+        for (const item of purchaseToAnular.detalles) {
+          const p = await db.products.get(item.productoId);
+          if (p) {
+            await db.products.update(item.productoId, {
+              stock: Math.max(0, p.stock - item.cantidad),
+            });
+          }
+        }
+      }
+      setMessage({ type: 'success', text: 'Compra cancelada correctamente en almacenamiento local.' });
+      setAnularModalOpen(false);
+      setPurchaseToAnular(null);
+      setMotivoCancelacion('');
+      fetchData();
+      setAnulando(false);
+      return;
+    }
+
     const res = await apiFetch(`/purchases/${purchaseToAnular.id}/anular`, {
       method: 'PATCH',
       body: JSON.stringify({ motivo: motivoCancelacion.trim() }),
     });
 
     if (res.success) {
+      await db.purchases.update(purchaseToAnular.id, {
+        estado: 'ANULADA',
+        motivoCancelacion: motivoCancelacion.trim(),
+      });
       setMessage({ type: 'success', text: res.message || 'Compra cancelada correctamente y stock deducido.' });
+      setAnularModalOpen(false);
+      setPurchaseToAnular(null);
+      setMotivoCancelacion('');
+      fetchData();
+    } else if (res.networkError) {
+      await db.purchases.update(purchaseToAnular.id, {
+        estado: 'ANULADA',
+        motivoCancelacion: motivoCancelacion.trim(),
+      });
+      setMessage({ type: 'success', text: 'Sin conexión. Compra cancelada localmente.' });
       setAnularModalOpen(false);
       setPurchaseToAnular(null);
       setMotivoCancelacion('');
@@ -270,9 +450,17 @@ export const PurchasesPage: React.FC = () => {
             <span className="material-symbols-outlined text-purple-400 text-3xl">local_shipping</span>
             Gestión de Compras & Proveedores
           </h1>
-          <p className="text-xs text-gray-400 mt-1">
-            Abastecimiento de mercadería escolar, actualización de costos e ingreso de facturas.
-          </p>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <p className="text-xs text-gray-400">
+              Abastecimiento de mercadería escolar, actualización de costos e ingreso de facturas.
+            </p>
+            {!navigator.onLine && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Modo Offline (Proveedores en Dexie)
+              </span>
+            )}
+          </div>
         </div>
 
         <button

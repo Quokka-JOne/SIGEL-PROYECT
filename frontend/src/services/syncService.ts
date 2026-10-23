@@ -1,4 +1,4 @@
-import { db, type LocalProduct, type LocalCategory } from '../pwa/db';
+import { db, type LocalProduct, type LocalCategory, type LocalSupplier } from '../pwa/db';
 import { apiFetch } from './api';
 
 type SyncListener = () => void;
@@ -114,6 +114,36 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
 
   return { processed, successCount, errorsCount };
 }
+
+export const DEFAULT_OFFLINE_SUPPLIERS: LocalSupplier[] = [
+  {
+    id: 'prov-001',
+    nombre: 'Distribuidora Papelera Hispamer S.A.',
+    ruc: 'J0310000123456',
+    telefono: '+505 2278-1234',
+    email: 'ventas@hispamer.com.ni',
+    direccion: 'Managua, Rotonda Rubén Darío 2c abajo',
+    estado: true,
+  },
+  {
+    id: 'prov-002',
+    nombre: 'Papelería y Suministros Castellanos Nicaragua',
+    ruc: 'J0310000987654',
+    telefono: '+505 2250-9988',
+    email: 'pedidos@castellanos.ni',
+    direccion: 'Managua, Plaza España Módulo E-4',
+    estado: true,
+  },
+  {
+    id: 'prov-003',
+    nombre: 'Comercializadora Escolar & Arte Gutenberg',
+    ruc: 'J0310000456789',
+    telefono: '+505 2311-4455',
+    email: 'contacto@gutenberg.com.ni',
+    direccion: 'León, De la Catedral 1c al Norte',
+    estado: true,
+  },
+];
 
 export const DEFAULT_OFFLINE_CATEGORIES: LocalCategory[] = [
   { id: 'cat-001', nombre: 'Cuadernos y Libretas', descripcion: 'Cuadernos universitarios y libretas escolares', estado: true },
@@ -262,8 +292,31 @@ export async function ensureLocalCatalogInitialized(): Promise<void> {
       console.log('⚡ [SyncService] Inicializando catálogo predeterminado en Dexie para funcionamiento offline...');
       await cacheCatalogLocally(DEFAULT_OFFLINE_PRODUCTS, DEFAULT_OFFLINE_CATEGORIES);
     }
+
+    const suppCount = await db.suppliers.count();
+    if (suppCount === 0) {
+      console.log('⚡ [SyncService] Inicializando proveedores predeterminados en Dexie para funcionamiento offline...');
+      await db.suppliers.bulkPut(DEFAULT_OFFLINE_SUPPLIERS);
+    }
   } catch (err) {
     console.warn('[SyncService] Error verificando catálogo local Dexie:', err);
+  }
+}
+
+/**
+ * Obtener proveedores desde caché local Dexie
+ */
+export async function getLocalSuppliersFromDexie(): Promise<LocalSupplier[]> {
+  try {
+    let supps = await db.suppliers.toArray();
+    if (supps.length === 0) {
+      await ensureLocalCatalogInitialized();
+      supps = await db.suppliers.toArray();
+    }
+    return supps.length > 0 ? supps : DEFAULT_OFFLINE_SUPPLIERS;
+  } catch (err) {
+    console.warn('[SyncService] Error obteniendo proveedores de Dexie:', err);
+    return DEFAULT_OFFLINE_SUPPLIERS;
   }
 }
 

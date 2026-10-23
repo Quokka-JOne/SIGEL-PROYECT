@@ -50,6 +50,34 @@ export interface LocalOfflineSale {
   updatedAt?: string;
 }
 
+export interface LocalSupplier {
+  id: string;
+  nombre: string;
+  ruc?: string;
+  telefono?: string;
+  email?: string;
+  direccion?: string;
+  estado: boolean;
+}
+
+export interface LocalPurchase {
+  id: string;
+  numeroFactura?: string;
+  proveedorId: string;
+  proveedor?: { nombre: string };
+  fecha: string;
+  total: number;
+  estado: string;
+  motivoCancelacion?: string;
+  detalles: Array<{
+    productoId: string;
+    producto?: { nombre: string; sku?: string };
+    cantidad: number;
+    costoUnitario: number;
+    subtotal: number;
+  }>;
+}
+
 export interface LocalMetadata {
   key: string;
   value: string;
@@ -59,6 +87,8 @@ export class JINStockDB extends Dexie {
   products!: Table<LocalProduct>;
   categories!: Table<LocalCategory>;
   offlineSales!: Table<LocalOfflineSale>;
+  suppliers!: Table<LocalSupplier>;
+  purchases!: Table<LocalPurchase>;
   metadata!: Table<LocalMetadata>;
 
   constructor() {
@@ -75,6 +105,16 @@ export class JINStockDB extends Dexie {
       categories: 'id, nombre, estado',
       offlineSales: '++id, offlineId, numeroComprobante, estado, synced, fecha',
       metadata: 'key',
+    });
+
+    // Versión 3: Soporte para proveedores y compras offline
+    this.version(3).stores({
+      products: 'id, codigoBarras, sku, nombre, categoriaId, estado, stock',
+      categories: 'id, nombre, estado',
+      offlineSales: '++id, offlineId, numeroComprobante, estado, synced, fecha',
+      metadata: 'key',
+      suppliers: 'id, nombre, ruc, estado',
+      purchases: 'id, numeroFactura, proveedorId, fecha, estado',
     });
   }
 }
