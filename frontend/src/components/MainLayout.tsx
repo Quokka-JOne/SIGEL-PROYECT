@@ -81,7 +81,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   return (
     <div className="bg-[#100f14] text-white min-h-screen flex flex-col font-sans">
       {/* ── TOP HEADER ───────────────────────────────────────── */}
-      <header className="px-4 py-3 md:px-8 md:py-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-white/5 bg-[#14131a] sticky top-0 z-40 backdrop-blur-md">
+      <header className="print:hidden px-4 py-3 md:px-8 md:py-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-white/5 bg-[#14131a] sticky top-0 z-40 backdrop-blur-md">
         {/* Left: Logo & User role chip */}
         <div className="flex items-center justify-between w-full md:w-auto">
           <div className="flex items-center gap-3">
@@ -278,10 +278,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       </header>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────── */}
-      <main className="flex-1 px-4 md:px-8 py-6 pb-28">{children}</main>
+      <main className="flex-1 px-4 md:px-8 py-6 pb-28 print:p-0 print:pb-0">{children}</main>
 
       {/* ── BOTTOM NAV (DOCK) ─────────────────────────────────── */}
       <nav
+        className="print:hidden"
         style={{
           position: 'fixed',
           bottom: 20,

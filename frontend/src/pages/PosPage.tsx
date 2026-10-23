@@ -394,8 +394,10 @@ export const PosPage: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full font-body">
-      {/* PWA Offline-First Status Strip (C-01 & F-01) */}
-      <div className="w-full bg-[#1c1b22] border border-[#2d2c35] px-4 py-3 rounded-2xl mb-4 flex flex-wrap items-center justify-between gap-3 shadow-md">
+      {/* Main POS Interface (Hidden during printing to avoid blank extra pages) */}
+      <div className="print:hidden w-full flex flex-col">
+        {/* PWA Offline-First Status Strip (C-01 & F-01) */}
+        <div className="w-full bg-[#1c1b22] border border-[#2d2c35] px-4 py-3 rounded-2xl mb-4 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div className="flex items-center gap-3">
           <span className="relative flex h-3 w-3">
             <span
@@ -840,85 +842,195 @@ export const PosPage: React.FC = () => {
         </div>
       )}
 
-      {/* RECEIPT TICKET MODAL (F-08) */}
+      </div>
+
+      {/* RECEIPT TICKET MODAL (F-08) - 2 COPIAS: CLIENTE & LIBRERÍA */}
       {isReceiptModalOpen && completedSale && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:m-0 print:bg-white print:overflow-visible">
           <div
             id="receipt-ticket-printable"
-            className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col gap-4 text-white print:bg-white print:text-black print:p-2 print:border-none"
+            className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col gap-4 text-white print:bg-white print:text-black print:p-0 print:border-none print:shadow-none print:w-full print:max-w-none"
           >
-            {/* Header Ticket */}
-            <div className="text-center pb-3 border-b border-dashed border-gray-700">
-              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 mx-auto flex items-center justify-center overflow-hidden mb-2">
-                <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
+            {/* Modal Header & Notification on Screen */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-purple-400 text-xl">receipt_long</span>
+                <div>
+                  <h3 className="font-bold text-sm text-white">Comprobante de Venta</h3>
+                  <span className="text-[11px] text-gray-400">2 Copias: Cliente y Librería</span>
+                </div>
               </div>
-              <h3 className="font-bold text-base">JINStock</h3>
-              <p className="text-xs text-gray-400">Punto de Venta POS Nicaragua</p>
-              <div className="mt-2 inline-block bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-xs font-bold">
-                {completedSale.numeroComprobante}
-              </div>
-              {completedSale.isOffline && (
-                <span className="block mt-1 text-[11px] text-amber-400 font-semibold">
-                  (Emitido sin conexión - En cola local)
-                </span>
-              )}
+              <button
+                onClick={() => setIsReceiptModalOpen(false)}
+                className="text-gray-400 hover:text-white p-1 rounded-lg"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
             </div>
 
-            {/* Date & Cashier info */}
-            <div className="flex justify-between text-xs text-gray-400 pb-2 border-b border-dashed border-gray-700">
-              <span>Cajero: {user?.nombre || 'Caja Central'}</span>
-              <span>{new Date().toLocaleTimeString()}</span>
-            </div>
-
-            {/* Items Table */}
-            <div className="space-y-2 max-h-48 overflow-y-auto text-xs">
-              {completedSale.detalles?.map((det: any, idx: number) => (
-                <div key={idx} className="flex justify-between">
-                  <div className="flex-1 pr-2">
-                    <span className="font-semibold block">{det.producto?.nombre || 'Artículo escolar'}</span>
-                    <span className="text-gray-400 text-[11px]">
-                      {det.cantidad} x C$ {det.precioUnitario?.toFixed(2) || '0.00'}
-                    </span>
+            {/* Scrollable Container for on-screen view */}
+            <div className="max-h-[70vh] overflow-y-auto space-y-4 pr-1 print:max-h-none print:overflow-visible print:space-y-0 print:pr-0">
+              {/* ═══════════════════════════════════════════════════ */}
+              {/* ── COPIA 1: CLIENTE ────────────────────────────── */}
+              {/* ═══════════════════════════════════════════════════ */}
+              <div className="receipt-single-copy bg-white/5 p-4 rounded-2xl border border-white/5 print:bg-white print:border-none print:p-2">
+                {/* Header Ticket */}
+                <div className="text-center pb-2.5 border-b border-dashed border-gray-600 print:border-gray-400">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 mx-auto flex items-center justify-center overflow-hidden mb-1.5 print:bg-transparent">
+                    <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
                   </div>
-                  <span className="font-bold">C$ {det.subtotal?.toFixed(2) || '0.00'}</span>
-                </div>
-              ))}
-            </div>
+                  <h3 className="font-extrabold text-base tracking-wide text-white print:text-black">JINStock</h3>
+                  <p className="text-[11px] text-gray-400 print:text-gray-600">Librería & Papelería OS</p>
+                  
+                  {/* Badge Copia Cliente */}
+                  <div className="mt-1.5 inline-block border border-purple-400/40 bg-purple-500/10 text-purple-300 px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase print:border-black print:bg-transparent print:text-black">
+                    *** ORIGINAL: CLIENTE ***
+                  </div>
 
-            {/* Totals Summary */}
-            <div className="pt-3 border-t border-dashed border-gray-700 space-y-1.5 text-xs">
-              <div className="flex justify-between text-gray-400">
-                <span>Método de Pago:</span>
-                <span className="font-semibold text-white">{completedSale.metodoPago}</span>
-              </div>
-              <div className="flex justify-between text-sm font-bold pt-1 border-t border-white/5">
-                <span>TOTAL PAGADO:</span>
-                <span className="text-purple-400">C$ {completedSale.total?.toFixed(2)}</span>
-              </div>
-              {completedSale.cambioNIO > 0 && (
-                <div className="flex justify-between text-emerald-400 font-bold">
-                  <span>SU CAMBIO:</span>
-                  <span>C$ {completedSale.cambioNIO.toFixed(2)}</span>
+                  <div className="mt-1 font-mono text-xs font-bold text-gray-200 print:text-black">
+                    {completedSale.numeroComprobante}
+                  </div>
+                  {completedSale.isOffline && (
+                    <span className="block mt-0.5 text-[10px] text-amber-400 font-semibold print:text-gray-600">
+                      (Emitido sin conexión - En cola local)
+                    </span>
+                  )}
                 </div>
-              )}
-              <div className="flex justify-between text-gray-500 text-[11px]">
-                <span>Equivalente en Dólares ($):</span>
-                <span>$ {(completedSale.total / EXCHANGE_RATE_USD_NIO).toFixed(2)} USD</span>
+
+                {/* Date & Cashier info */}
+                <div className="flex justify-between text-[11px] text-gray-400 print:text-gray-700 py-1.5 border-b border-dashed border-gray-600 print:border-gray-400">
+                  <span>Cajero: {user?.nombre || 'Caja Central'}</span>
+                  <span>{new Date(completedSale.fecha || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+
+                {/* Items Table */}
+                <div className="space-y-1.5 py-2 text-xs">
+                  {completedSale.detalles?.map((det: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-start text-[11px]">
+                      <div className="flex-1 pr-2">
+                        <span className="font-semibold block text-white print:text-black leading-tight">
+                          {det.producto?.nombre || 'Artículo escolar'}
+                        </span>
+                        <span className="text-gray-400 print:text-gray-600 text-[10px]">
+                          {det.cantidad} x C$ {det.precioUnitario?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                      <span className="font-bold text-white print:text-black whitespace-nowrap">
+                        C$ {det.subtotal?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Totals Summary */}
+                <div className="pt-2 border-t border-dashed border-gray-600 print:border-gray-400 space-y-1 text-xs">
+                  <div className="flex justify-between text-gray-400 print:text-gray-700 text-[11px]">
+                    <span>Método de Pago:</span>
+                    <span className="font-semibold text-white print:text-black">{completedSale.metodoPago}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-white/10 print:border-gray-300">
+                    <span className="text-white print:text-black">TOTAL PAGADO:</span>
+                    <span className="text-purple-400 print:text-black font-black">C$ {completedSale.total?.toFixed(2)}</span>
+                  </div>
+                  {completedSale.cambioNIO > 0 && (
+                    <div className="flex justify-between text-emerald-400 print:text-black text-xs font-bold">
+                      <span>SU CAMBIO:</span>
+                      <span>C$ {completedSale.cambioNIO.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-500 text-[10px]">
+                    <span>Equivalente en Dólares ($):</span>
+                    <span>$ {(completedSale.total / EXCHANGE_RATE_USD_NIO).toFixed(2)} USD</span>
+                  </div>
+                </div>
+
+                <div className="mt-2.5 pt-2 text-center text-[10px] text-gray-400 print:text-gray-600 border-t border-dashed border-gray-600 print:border-gray-400">
+                  ¡Gracias por su compra!<br />Conserve este comprobante para cualquier reclamo.
+                </div>
+              </div>
+
+              {/* ── SEPARADOR DE CORTE ENTRE COPIAS ─────────────── */}
+              <div className="receipt-cutter-line text-center text-gray-500 font-mono text-[10px] py-1 select-none">
+                ✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - ✂
+              </div>
+
+              {/* ═══════════════════════════════════════════════════ */}
+              {/* ── COPIA 2: LIBRERÍA / CONTABILIDAD ─────────────── */}
+              {/* ═══════════════════════════════════════════════════ */}
+              <div className="receipt-single-copy bg-white/5 p-4 rounded-2xl border border-white/5 print:bg-white print:border-none print:p-2">
+                {/* Header Ticket */}
+                <div className="text-center pb-2.5 border-b border-dashed border-gray-600 print:border-gray-400">
+                  <h3 className="font-extrabold text-base tracking-wide text-white print:text-black">JINStock</h3>
+                  <p className="text-[11px] text-gray-400 print:text-gray-600">Librería & Papelería OS</p>
+                  
+                  {/* Badge Copia Librería */}
+                  <div className="mt-1.5 inline-block border border-blue-400/40 bg-blue-500/10 text-blue-300 px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase print:border-black print:bg-transparent print:text-black">
+                    *** COPIA: LIBRERÍA / CAJA ***
+                  </div>
+
+                  <div className="mt-1 font-mono text-xs font-bold text-gray-200 print:text-black">
+                    {completedSale.numeroComprobante}
+                  </div>
+                </div>
+
+                {/* Date & Cashier info */}
+                <div className="flex justify-between text-[11px] text-gray-400 print:text-gray-700 py-1.5 border-b border-dashed border-gray-600 print:border-gray-400">
+                  <span>Cajero: {user?.nombre || 'Caja Central'}</span>
+                  <span>{new Date(completedSale.fecha || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+
+                {/* Items Table */}
+                <div className="space-y-1.5 py-2 text-xs">
+                  {completedSale.detalles?.map((det: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-start text-[11px]">
+                      <div className="flex-1 pr-2">
+                        <span className="font-semibold block text-white print:text-black leading-tight">
+                          {det.producto?.nombre || 'Artículo escolar'}
+                        </span>
+                        <span className="text-gray-400 print:text-gray-600 text-[10px]">
+                          {det.cantidad} x C$ {det.precioUnitario?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                      <span className="font-bold text-white print:text-black whitespace-nowrap">
+                        C$ {det.subtotal?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Totals Summary */}
+                <div className="pt-2 border-t border-dashed border-gray-600 print:border-gray-400 space-y-1 text-xs">
+                  <div className="flex justify-between text-gray-400 print:text-gray-700 text-[11px]">
+                    <span>Método de Pago:</span>
+                    <span className="font-semibold text-white print:text-black">{completedSale.metodoPago}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-white/10 print:border-gray-300">
+                    <span className="text-white print:text-black">TOTAL VENTA:</span>
+                    <span className="text-blue-400 print:text-black font-black">C$ {completedSale.total?.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Signature box for internal bookkeeping */}
+                <div className="mt-4 pt-2 text-center border-t border-dashed border-gray-600 print:border-gray-400">
+                  <div className="w-36 border-t border-dotted border-gray-500 mx-auto mt-4 pt-1 text-[9px] text-gray-400 print:text-gray-600">
+                    Firma / Conforme Caja
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Actions (Hidden when printing) */}
-            <div className="pt-3 flex gap-3 print:hidden">
+            <div className="pt-2 flex gap-3 print:hidden border-t border-white/10">
               <button
                 onClick={() => window.print()}
-                className="flex-1 py-2.5 px-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors"
+                className="flex-1 py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors shadow-lg shadow-purple-900/30 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">print</span>
-                Imprimir
+                Imprimir Factura (2 Copias)
               </button>
               <button
                 onClick={() => setIsReceiptModalOpen(false)}
-                className="flex-1 py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md"
+                className="py-2.5 px-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">add</span>
                 Nueva Venta
