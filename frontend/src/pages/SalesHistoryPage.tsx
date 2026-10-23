@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../pwa/db';
 
 export const SalesHistoryPage: React.FC = () => {
   const { user } = useAuth();
@@ -23,6 +24,37 @@ export const SalesHistoryPage: React.FC = () => {
 
   const fetchSales = async () => {
     setLoading(true);
+
+    const loadOfflineSales = async () => {
+      try {
+        const offSales = await db.offlineSales.toArray();
+        setSales(
+          offSales.reverse().map((s) => ({
+            id: s.id,
+            numeroComprobante: s.numeroComprobante,
+            fecha: s.fecha,
+            total: s.total,
+            estado: s.estado,
+            metodoPago: s.metodoPago,
+            usuario: { nombre: 'Cajero Local (Offline)' },
+            detalles: s.detalles.map((d) => ({
+              ...d,
+              producto: { nombre: `Producto ID: ${d.productoId}` },
+            })),
+          }))
+        );
+        setTotalPages(1);
+      } catch (err) {
+        console.warn('[SalesHistoryPage] Error cargando ventas offline:', err);
+      }
+    };
+
+    if (!navigator.onLine) {
+      await loadOfflineSales();
+      setLoading(false);
+      return;
+    }
+
     let query = `?page=${page}&limit=20`;
     if (desde) query += `&desde=${encodeURIComponent(desde)}`;
     if (hasta) query += `&hasta=${encodeURIComponent(hasta)}`;
@@ -33,6 +65,8 @@ export const SalesHistoryPage: React.FC = () => {
       if (res.pagination) {
         setTotalPages(res.pagination.totalPages || 1);
       }
+    } else {
+      await loadOfflineSales();
     }
     setLoading(false);
   };

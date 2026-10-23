@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../pwa/db';
+import { getLocalCatalogFromDexie, cacheCatalogLocally } from '../services/syncService';
 
 export interface ProductItem {
   id: string;
@@ -75,31 +77,82 @@ export const InventoryPage: React.FC = () => {
   const [catError, setCatError] = useState<string | null>(null);
 
   const fetchCategories = async () => {
-    const res = await apiFetch<CategoryItem[]>('/categories?includeInactive=true');
-    if (res.success && res.data) {
-      setCategories(res.data);
-      if (!formData.categoriaId && res.data.length > 0) {
-        setFormData((prev) => ({ ...prev, categoriaId: res.data![0].id }));
+    try {
+      if (!navigator.onLine) {
+        const local = await getLocalCatalogFromDexie();
+        setCategories(local.categories as CategoryItem[]);
+        if (!formData.categoriaId && local.categories.length > 0) {
+          setFormData((prev) => ({ ...prev, categoriaId: local.categories[0].id }));
+        }
+        return;
       }
+
+      const res = await apiFetch<CategoryItem[]>('/categories?includeInactive=true');
+      if (res.success && res.data) {
+        setCategories(res.data);
+        if (!formData.categoriaId && res.data.length > 0) {
+          setFormData((prev) => ({ ...prev, categoriaId: res.data![0].id }));
+        }
+        db.categories.bulkPut(res.data as any).catch(() => {});
+      } else {
+        const local = await getLocalCatalogFromDexie();
+        setCategories(local.categories as CategoryItem[]);
+        if (!formData.categoriaId && local.categories.length > 0) {
+          setFormData((prev) => ({ ...prev, categoriaId: local.categories[0].id }));
+        }
+      }
+    } catch {
+      const local = await getLocalCatalogFromDexie();
+      setCategories(local.categories as CategoryItem[]);
     }
   };
 
   const fetchProducts = async () => {
     setLoading(true);
-    let query = '?includeInactive=true';
-    if (searchTerm) query += `&search=${encodeURIComponent(searchTerm)}`;
-    if (selectedCategory && selectedCategory !== 'all') query += `&categoriaId=${encodeURIComponent(selectedCategory)}`;
-    if (statusFilter === 'low') query += `&lowStock=true`;
-
-    const res = await apiFetch<ProductItem[]>(`/products${query}`);
-    if (res.success && res.data) {
-      let filtered = res.data;
-      if (statusFilter === 'out') {
-        filtered = filtered.filter((p) => p.stock === 0);
+    try {
+      if (!navigator.onLine) {
+        const local = await getLocalCatalogFromDexie(searchTerm, selectedCategory);
+        let filtered = local.products as ProductItem[];
+        if (statusFilter === 'low') {
+          filtered = filtered.filter((p) => p.stock > 0 && p.stock <= p.stockMinimo);
+        } else if (statusFilter === 'out') {
+          filtered = filtered.filter((p) => p.stock === 0);
+        }
+        setProducts(filtered);
+        setLoading(false);
+        return;
       }
-      setProducts(filtered);
+
+      let query = '?includeInactive=true';
+      if (searchTerm) query += `&search=${encodeURIComponent(searchTerm)}`;
+      if (selectedCategory && selectedCategory !== 'all') query += `&categoriaId=${encodeURIComponent(selectedCategory)}`;
+      if (statusFilter === 'low') query += `&lowStock=true`;
+
+      const res = await apiFetch<ProductItem[]>(`/products${query}`);
+      if (res.success && res.data) {
+        let filtered = res.data;
+        if (statusFilter === 'out') {
+          filtered = filtered.filter((p) => p.stock === 0);
+        }
+        setProducts(filtered);
+        cacheCatalogLocally(res.data as any, categories as any).catch(() => {});
+      } else {
+        const local = await getLocalCatalogFromDexie(searchTerm, selectedCategory);
+        let filtered = local.products as ProductItem[];
+        if (statusFilter === 'low') {
+          filtered = filtered.filter((p) => p.stock > 0 && p.stock <= p.stockMinimo);
+        } else if (statusFilter === 'out') {
+          filtered = filtered.filter((p) => p.stock === 0);
+        }
+        setProducts(filtered);
+      }
+    } catch (err) {
+      console.warn('[InventoryPage] Error cargando catálogo:', err);
+      const local = await getLocalCatalogFromDexie(searchTerm, selectedCategory);
+      setProducts(local.products as ProductItem[]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -173,6 +226,23 @@ export const InventoryPage: React.FC = () => {
     const endpoint = editingProduct ? `/products/${editingProduct.id}` : '/products';
     const method = editingProduct ? 'PUT' : 'POST';
 
+    if (!navigator.onLine) {
+      const catObj = categories.find((c) => c.id === formData.categoriaId);
+      const localProd: ProductItem = {
+        id: editingProduct ? editingProduct.id : `prod-local-${Date.now()}`,
+        ...payload,
+        stock: editingProduct ? editingProduct.stock : (payload.stock || 0),
+        estado: editingProduct ? editingProduct.estado : true,
+        categoriaNombre: catObj?.nombre || 'General',
+      };
+      await db.products.put(localProd as any);
+      setIsModalOpen(false);
+      setActionMessage({ type: 'success', text: `Producto ${editingProduct ? 'actualizado' : 'creado'} localmente (modo offline).` });
+      fetchProducts();
+      setFormLoading(false);
+      return;
+    }
+
     const res = await apiFetch(endpoint, {
       method,
       body: JSON.stringify(payload),
@@ -182,6 +252,19 @@ export const InventoryPage: React.FC = () => {
       setIsModalOpen(false);
       setActionMessage({ type: 'success', text: `Producto ${editingProduct ? 'actualizado' : 'creado'} exitosamente.` });
       fetchProducts();
+    } else if (res.networkError) {
+      const catObj = categories.find((c) => c.id === formData.categoriaId);
+      const localProd: ProductItem = {
+        id: editingProduct ? editingProduct.id : `prod-local-${Date.now()}`,
+        ...payload,
+        stock: editingProduct ? editingProduct.stock : (payload.stock || 0),
+        estado: editingProduct ? editingProduct.estado : true,
+        categoriaNombre: catObj?.nombre || 'General',
+      };
+      await db.products.put(localProd as any);
+      setIsModalOpen(false);
+      setActionMessage({ type: 'success', text: `Sin conexión al servidor. Producto ${editingProduct ? 'actualizado' : 'creado'} en memoria local.` });
+      fetchProducts();
     } else {
       setFormError(res.message || 'Error al guardar producto.');
     }
@@ -189,8 +272,20 @@ export const InventoryPage: React.FC = () => {
   };
 
   const handleToggleProductStatus = async (p: ProductItem) => {
+    if (!navigator.onLine) {
+      const updated = { ...p, estado: !p.estado };
+      await db.products.put(updated as any);
+      setActionMessage({ type: 'success', text: `Estado cambiado a ${!p.estado ? 'Activo' : 'Inactivo'} (local).` });
+      fetchProducts();
+      return;
+    }
+
     const res = await apiFetch(`/products/${p.id}/status`, { method: 'PATCH' });
     if (res.success) {
+      fetchProducts();
+    } else if (res.networkError) {
+      const updated = { ...p, estado: !p.estado };
+      await db.products.put(updated as any);
       fetchProducts();
     } else {
       setActionMessage({ type: 'error', text: res.message || 'Error al cambiar estado.' });
@@ -201,9 +296,21 @@ export const InventoryPage: React.FC = () => {
     const confirmed = window.confirm(`¿Estás seguro de que deseas eliminar el producto "${p.nombre}"?`);
     if (!confirmed) return;
 
+    if (!navigator.onLine) {
+      await db.products.delete(p.id);
+      setActionMessage({ type: 'success', text: 'Producto eliminado del catálogo local.' });
+      fetchProducts();
+      return;
+    }
+
     const res = await apiFetch(`/products/${p.id}`, { method: 'DELETE' });
     if (res.success) {
+      await db.products.delete(p.id);
       setActionMessage({ type: 'success', text: res.message || 'Producto eliminado correctamente.' });
+      fetchProducts();
+    } else if (res.networkError) {
+      await db.products.delete(p.id);
+      setActionMessage({ type: 'success', text: 'Sin conexión al servidor. Producto eliminado de la base local.' });
       fetchProducts();
     } else {
       setActionMessage({ type: 'error', text: res.message || 'Error al eliminar producto.' });
@@ -224,14 +331,27 @@ export const InventoryPage: React.FC = () => {
     e.preventDefault();
     if (!adjustProduct || !adjustQty || !adjustMotivo.trim()) return;
 
+    const qtyNumber = parseInt(adjustQty, 10);
+    if (isNaN(qtyNumber)) return;
+
     setAdjustLoading(true);
     setAdjustError(null);
+
+    if (!navigator.onLine) {
+      const newStock = Math.max(0, adjustProduct.stock + qtyNumber);
+      await db.products.update(adjustProduct.id, { stock: newStock });
+      setIsAdjustModalOpen(false);
+      setActionMessage({ type: 'success', text: `Ajuste de inventario aplicado localmente (Nuevo stock: ${newStock}).` });
+      fetchProducts();
+      setAdjustLoading(false);
+      return;
+    }
 
     const res = await apiFetch('/products/adjust', {
       method: 'POST',
       body: JSON.stringify({
         productoId: adjustProduct.id,
-        cantidad: parseInt(adjustQty, 10),
+        cantidad: qtyNumber,
         motivo: adjustMotivo.trim(),
       }),
     });
@@ -239,6 +359,12 @@ export const InventoryPage: React.FC = () => {
     if (res.success) {
       setIsAdjustModalOpen(false);
       setActionMessage({ type: 'success', text: res.message || 'Ajuste de inventario aplicado correctamente.' });
+      fetchProducts();
+    } else if (res.networkError) {
+      const newStock = Math.max(0, adjustProduct.stock + qtyNumber);
+      await db.products.update(adjustProduct.id, { stock: newStock });
+      setIsAdjustModalOpen(false);
+      setActionMessage({ type: 'success', text: `Ajuste guardado localmente (Nuevo stock: ${newStock}).` });
       fetchProducts();
     } else {
       setAdjustError(res.message || 'Error al registrar el ajuste de existencias.');
@@ -252,12 +378,38 @@ export const InventoryPage: React.FC = () => {
     if (!newCatNombre.trim()) return;
     setCatError(null);
 
-    const res = await apiFetch('/categories', {
+    if (!navigator.onLine) {
+      const newCat: CategoryItem = {
+        id: `cat-local-${Date.now()}`,
+        nombre: newCatNombre.trim(),
+        descripcion: newCatDesc.trim() || null,
+        estado: true,
+      };
+      await db.categories.put(newCat as any);
+      setNewCatNombre('');
+      setNewCatDesc('');
+      fetchCategories();
+      return;
+    }
+
+    const res = await apiFetch<CategoryItem>('/categories', {
       method: 'POST',
       body: JSON.stringify({ nombre: newCatNombre.trim(), descripcion: newCatDesc.trim() || undefined }),
     });
 
-    if (res.success) {
+    if (res.success && res.data) {
+      await db.categories.put(res.data as any);
+      setNewCatNombre('');
+      setNewCatDesc('');
+      fetchCategories();
+    } else if (res.networkError) {
+      const newCat: CategoryItem = {
+        id: `cat-local-${Date.now()}`,
+        nombre: newCatNombre.trim(),
+        descripcion: newCatDesc.trim() || null,
+        estado: true,
+      };
+      await db.categories.put(newCat as any);
       setNewCatNombre('');
       setNewCatDesc('');
       fetchCategories();
@@ -286,9 +438,17 @@ export const InventoryPage: React.FC = () => {
             <span className="material-symbols-outlined text-purple-400 text-3xl">inventory_2</span>
             Control de Inventario & Kardex
           </h1>
-          <p className="text-xs text-gray-400 mt-1">
-            Catálogo de papelería, existencias, precios, categorías y ajustes de inventario de la Librería.
-          </p>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <p className="text-xs text-gray-400">
+              Catálogo de papelería, existencias, precios, categorías y ajustes de inventario de la Librería.
+            </p>
+            {!navigator.onLine && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Modo Offline (Base de datos local)
+              </span>
+            )}
+          </div>
         </div>
 
         {isAdmin && (
