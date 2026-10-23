@@ -106,6 +106,17 @@ export const PosPage: React.FC = () => {
     setLoading(true);
     setErrorMessage(null);
 
+    // Si el navegador no tiene internet, leer inmediatamente de Dexie local sin demoras
+    if (!navigator.onLine) {
+      setIsOfflineMode(true);
+      const local = await getLocalCatalogFromDexie(searchTerm, selectedCategory);
+      setProducts(local.products.filter((p) => p.stock > 0) as any);
+      setCategories(local.categories as any);
+      setLastSyncTime(local.lastSync);
+      setLoading(false);
+      return;
+    }
+
     let query = '?includeInactive=false';
     if (searchTerm) query += `&search=${encodeURIComponent(searchTerm)}`;
     if (selectedCategory && selectedCategory !== 'all') query += `&categoriaId=${encodeURIComponent(selectedCategory)}`;
@@ -125,15 +136,17 @@ export const PosPage: React.FC = () => {
 
       // Guardar en almacenamiento local Dexie (F-02)
       cacheCatalogLocally(prodRes.data as any, (catRes.data || []) as any);
-    } else if (prodRes.networkError) {
-      // C-01 & F-02: Servidor sin conexión, leer del almacenamiento local Dexie
+    } else {
+      // C-01 & F-02: Servidor sin conexión o con error de backend, leer del almacenamiento local Dexie
       setIsOfflineMode(true);
       const local = await getLocalCatalogFromDexie(searchTerm, selectedCategory);
       setProducts(local.products.filter((p) => p.stock > 0) as any);
       setCategories(local.categories as any);
       setLastSyncTime(local.lastSync);
-    } else {
-      setErrorMessage(prodRes.message || 'Error al consultar catálogo.');
+
+      if (local.products.length === 0) {
+        setErrorMessage(prodRes.message || 'Sin conexión y no se encontraron productos en caché local.');
+      }
     }
 
     setLoading(false);
@@ -245,6 +258,69 @@ export const PosPage: React.FC = () => {
   const effectivePaidInNIO = paidNIOVal + (paidUSDVal * EXCHANGE_RATE_USD_NIO);
   const changeNIO = effectivePaidInNIO > totalNIO ? Number((effectivePaidInNIO - totalNIO).toFixed(2)) : 0;
 
+  // Función dedicada para persistir venta fuera de línea en Dexie
+  const saveOfflineSale = async () => {
+    console.warn('⚡ [POS Offline] Servidor inaccesible. Guardando venta localmente en Dexie.');
+    const offlineSaleId = `off-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const localReceiptNumber = `FAC-OFF-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const offlineRecord: LocalOfflineSale = {
+      offlineId: offlineSaleId,
+      numeroComprobante: localReceiptNumber,
+      usuarioId: user?.id || 'usr-offline',
+      fecha: new Date().toISOString(),
+      total: totalNIO,
+      metodoPago: paymentMethod,
+      montoPagadoNIO: paidNIOVal > 0 ? paidNIOVal : totalNIO,
+      montoPagadoUSD: paidUSDVal > 0 ? paidUSDVal : null,
+      cambioNIO: changeNIO,
+      detalles: cart.map((i) => ({
+        productoId: i.producto.id,
+        cantidad: i.cantidad,
+        precioUnitario: i.precioUnitario,
+        subtotal: i.subtotal,
+      })),
+      estado: 'PENDIENTE',
+      synced: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    await db.offlineSales.add(offlineRecord);
+
+    // Actualizar stock local en Dexie para reducir sobreventa offline (F-02)
+    for (const item of cart) {
+      const localProd = await db.products.get(item.producto.id);
+      if (localProd) {
+        await db.products.update(item.producto.id, {
+          stock: Math.max(0, localProd.stock - item.cantidad),
+        });
+      }
+    }
+
+    // Descontar stock visual en pantalla
+    setProducts((prev) =>
+      prev.map((p) => {
+        const inCart = cart.find((c) => c.producto.id === p.id);
+        return inCart ? { ...p, stock: Math.max(0, p.stock - inCart.cantidad) } : p;
+      })
+    );
+
+    setCompletedSale({
+      ...offlineRecord,
+      isOffline: true,
+      detalles: cart.map((c) => ({
+        producto: { nombre: c.producto.nombre, sku: c.producto.sku },
+        cantidad: c.cantidad,
+        precioUnitario: c.precioUnitario,
+        subtotal: c.subtotal,
+      })),
+    });
+
+    setIsReceiptModalOpen(true);
+    clearCart();
+    refreshPendingCount();
+  };
+
   // C-01 & C-02: Procesamiento estricto distinguiendo rechazo del servidor vs fallo de red
   const handleConfirmSale = async () => {
     if (cart.length === 0) {
@@ -254,6 +330,18 @@ export const PosPage: React.FC = () => {
 
     setSubmitting(true);
     setErrorMessage(null);
+
+    // Si ya estamos desconectados u operando offline, guardar de inmediato sin esperar petición fallida
+    if (!navigator.onLine || isOfflineMode) {
+      try {
+        await saveOfflineSale();
+      } catch (err: any) {
+        setErrorMessage(err.message || 'Error guardando venta offline.');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
 
     const payload = {
       detalles: cart.map((i) => ({
@@ -280,74 +368,19 @@ export const PosPage: React.FC = () => {
         setIsReceiptModalOpen(true);
         clearCart();
         fetchCatalog();
-      } else if (res.networkError) {
-        // C-02 Punto 2: Fallback offline ÚNICAMENTE cuando networkError es true
-        console.warn('⚡ [POS Offline] Servidor inaccesible. Guardando venta localmente en Dexie.');
-        const offlineSaleId = `off-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-        const localReceiptNumber = `FAC-OFF-${Math.floor(1000 + Math.random() * 9000)}`;
-
-        const offlineRecord: LocalOfflineSale = {
-          offlineId: offlineSaleId,
-          numeroComprobante: localReceiptNumber,
-          usuarioId: user?.id || 'usr-offline',
-          fecha: new Date().toISOString(),
-          total: totalNIO,
-          metodoPago: paymentMethod,
-          montoPagadoNIO: paidNIOVal > 0 ? paidNIOVal : totalNIO,
-          montoPagadoUSD: paidUSDVal > 0 ? paidUSDVal : null,
-          cambioNIO: changeNIO,
-          detalles: cart.map((i) => ({
-            productoId: i.producto.id,
-            cantidad: i.cantidad,
-            precioUnitario: i.precioUnitario,
-            subtotal: i.subtotal,
-          })),
-          estado: 'PENDIENTE',
-          synced: 0,
-          createdAt: new Date().toISOString(),
-        };
-
-        await db.offlineSales.add(offlineRecord);
-
-        // Actualizar stock local en Dexie para reducir sobreventa offline (F-02)
-        for (const item of cart) {
-          const localProd = await db.products.get(item.producto.id);
-          if (localProd) {
-            await db.products.update(item.producto.id, {
-              stock: Math.max(0, localProd.stock - item.cantidad),
-            });
-          }
-        }
-
-        // Descontar stock visual en pantalla
-        setProducts((prev) =>
-          prev.map((p) => {
-            const inCart = cart.find((c) => c.producto.id === p.id);
-            return inCart ? { ...p, stock: Math.max(0, p.stock - inCart.cantidad) } : p;
-          })
-        );
-
-        setCompletedSale({
-          ...offlineRecord,
-          isOffline: true,
-          detalles: cart.map((c) => ({
-            producto: { nombre: c.producto.nombre, sku: c.producto.sku },
-            cantidad: c.cantidad,
-            precioUnitario: c.precioUnitario,
-            subtotal: c.subtotal,
-          })),
-        });
-
-        setIsReceiptModalOpen(true);
-        clearCart();
-        refreshPendingCount();
+      } else if (res.networkError || (res.status && res.status >= 500)) {
+        // C-02 Punto 2: Fallback offline cuando hay fallo de red o error de servidor (5xx)
+        setIsOfflineMode(true);
+        await saveOfflineSale();
       } else {
-        // C-02 Punto 2: El servidor respondió con 400/409/422 (ej. Existencias insuficientes)
+        // C-02 Punto 2: El servidor respondió con 400/409/422 (ej. regla de negocio rechazada)
         // NO GUARDAR EN OFFLINE y mostrar el mensaje al cajero
         setErrorMessage(res.message || 'Error del servidor al registrar la venta.');
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Error inesperado.');
+      console.warn('Excepción en confirmación de venta, aplicando fallback offline:', err);
+      setIsOfflineMode(true);
+      await saveOfflineSale();
     } finally {
       setSubmitting(false);
     }

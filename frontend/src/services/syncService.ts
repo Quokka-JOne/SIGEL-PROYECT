@@ -78,8 +78,8 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
           updatedAt: new Date().toISOString(),
         });
         successCount++;
-      } else if (res.networkError) {
-        // Fallo de red: devolver a PENDIENTE para el próximo reintento
+      } else if (res.networkError || (res.status && res.status >= 500)) {
+        // Fallo de red o servidor 5xx: devolver a PENDIENTE para el próximo reintento automático
         await db.offlineSales.update(sale.id!, {
           estado: 'PENDIENTE',
           updatedAt: new Date().toISOString(),
@@ -115,6 +115,122 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
   return { processed, successCount, errorsCount };
 }
 
+export const DEFAULT_OFFLINE_CATEGORIES: LocalCategory[] = [
+  { id: 'cat-001', nombre: 'Cuadernos y Libretas', descripcion: 'Cuadernos universitarios y libretas escolares', estado: true },
+  { id: 'cat-002', nombre: 'Escritura y Corrección', descripcion: 'Lápices, lapiceros y borradores', estado: true },
+  { id: 'cat-003', nombre: 'Papelería y Resmas', descripcion: 'Resmas bond y cartulinas', estado: true },
+  { id: 'cat-004', nombre: 'Mochilas y Estuches', descripcion: 'Mochilas escolares y cartucheras', estado: true },
+  { id: 'cat-005', nombre: 'Arte y Manualidades', descripcion: 'Pinturas acrílicas, colores y pinceles', estado: true },
+];
+
+export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = [
+  {
+    id: 'prod-001',
+    nombre: 'Cuaderno Universitario Líder 200 Págs Cosido Rayado',
+    codigoBarras: '7411002230012',
+    sku: 'CUAD-LID-200R',
+    descripcion: 'Cuaderno con pasta dura resistente, papel bond blanco de alta blancura',
+    categoriaId: 'cat-001',
+    categoriaNombre: 'Cuadernos y Libretas',
+    precioVenta: 75.0,
+    costo: 50.0,
+    stock: 120,
+    stockMinimo: 15,
+    unidadMedida: 'Unidad',
+    estado: true,
+  },
+  {
+    id: 'prod-002',
+    nombre: 'Cuaderno Universitario Líder 200 Págs Cuadriculado',
+    codigoBarras: '7411002230029',
+    sku: 'CUAD-LID-200C',
+    descripcion: 'Cuaderno espiral cuadro grande para matemáticas y cálculo',
+    categoriaId: 'cat-001',
+    categoriaNombre: 'Cuadernos y Libretas',
+    precioVenta: 78.0,
+    costo: 52.0,
+    stock: 95,
+    stockMinimo: 15,
+    unidadMedida: 'Unidad',
+    estado: true,
+  },
+  {
+    id: 'prod-003',
+    nombre: 'Resma Papel Bond Chamex Carta 75g (500 Hojas)',
+    codigoBarras: '7891048035222',
+    sku: 'PAP-CHAM-75C',
+    descripcion: 'Papel bond multiuso para fotocopias e impresiones de nitidez láser',
+    categoriaId: 'cat-003',
+    categoriaNombre: 'Papelería y Resmas',
+    precioVenta: 185.0,
+    costo: 140.0,
+    stock: 45,
+    stockMinimo: 10,
+    unidadMedida: 'Resma',
+    estado: true,
+  },
+  {
+    id: 'prod-004',
+    nombre: 'Caja Lapiceros Bic Cristal Azul (12 Unidades)',
+    codigoBarras: '070330113884',
+    sku: 'LAP-BIC-AZ12',
+    descripcion: 'Punta media 1.0mm, tinta suave duradera clásica de uso escolar y oficina',
+    categoriaId: 'cat-002',
+    categoriaNombre: 'Escritura y Corrección',
+    precioVenta: 120.0,
+    costo: 85.0,
+    stock: 60,
+    stockMinimo: 10,
+    unidadMedida: 'Caja',
+    estado: true,
+  },
+  {
+    id: 'prod-005',
+    nombre: 'Caja Lápices de Color Prismacolor Junior 24 Colores',
+    codigoBarras: '7501006528741',
+    sku: 'COL-PRIS-24',
+    descripcion: 'Minas suaves y resistentes de 4mm, colores intensos y mezclables',
+    categoriaId: 'cat-005',
+    categoriaNombre: 'Arte y Manualidades',
+    precioVenta: 260.0,
+    costo: 195.0,
+    stock: 25,
+    stockMinimo: 5,
+    unidadMedida: 'Caja',
+    estado: true,
+  },
+  {
+    id: 'prod-006',
+    nombre: 'Mochila Escolar Totto Acuarela Resistente',
+    codigoBarras: '7704758362145',
+    sku: 'MOC-TOT-ACU',
+    descripcion: 'Compartimento para laptop 14", lona impermeable y correas ergonómicas',
+    categoriaId: 'cat-004',
+    categoriaNombre: 'Mochilas y Estuches',
+    precioVenta: 950.0,
+    costo: 720.0,
+    stock: 8,
+    stockMinimo: 3,
+    unidadMedida: 'Unidad',
+    estado: true,
+  },
+  {
+    id: 'prod-007',
+    nombre: 'Borrador de Nata Pelikan Blanco Grande WS-30',
+    codigoBarras: '4012700720444',
+    sku: 'BOR-PEL-WS30',
+    descripcion: 'No mancha ni rompe el papel, libre de látex y residuos suaves',
+    categoriaId: 'cat-002',
+    categoriaNombre: 'Escritura y Corrección',
+    precioVenta: 15.0,
+    costo: 8.5,
+    stock: 80,
+    stockMinimo: 20,
+    unidadMedida: 'Unidad',
+    estado: true,
+  },
+];
+
 /**
  * F-02: Guardar catálogo en caché local Dexie
  */
@@ -137,6 +253,21 @@ export async function cacheCatalogLocally(products: LocalProduct[], categories: 
 }
 
 /**
+ * Inicializar catálogo predeterminado si Dexie está vacío
+ */
+export async function ensureLocalCatalogInitialized(): Promise<void> {
+  try {
+    const prodCount = await db.products.count();
+    if (prodCount === 0) {
+      console.log('⚡ [SyncService] Inicializando catálogo predeterminado en Dexie para funcionamiento offline...');
+      await cacheCatalogLocally(DEFAULT_OFFLINE_PRODUCTS, DEFAULT_OFFLINE_CATEGORIES);
+    }
+  } catch (err) {
+    console.warn('[SyncService] Error verificando catálogo local Dexie:', err);
+  }
+}
+
+/**
  * F-02: Obtener catálogo desde caché local Dexie cuando no hay red
  */
 export async function getLocalCatalogFromDexie(query?: string, categoryId?: string): Promise<{
@@ -146,7 +277,15 @@ export async function getLocalCatalogFromDexie(query?: string, categoryId?: stri
 }> {
   try {
     let prods = await db.products.toArray();
-    const cats = await db.categories.toArray();
+    let cats = await db.categories.toArray();
+
+    // Si Dexie está vacío, auto-poblar con catálogo inicial
+    if (prods.length === 0) {
+      await ensureLocalCatalogInitialized();
+      prods = await db.products.toArray();
+      cats = await db.categories.toArray();
+    }
+
     const meta = await db.metadata.get('lastCatalogSync');
 
     // Filtros locales
@@ -171,7 +310,29 @@ export async function getLocalCatalogFromDexie(query?: string, categoryId?: stri
     };
   } catch (err) {
     console.error('[SyncService] Error leyendo Dexie local:', err);
-    return { products: [], categories: [], lastSync: null };
+    return {
+      products: DEFAULT_OFFLINE_PRODUCTS,
+      categories: DEFAULT_OFFLINE_CATEGORIES,
+      lastSync: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Refrescar catálogo en segundo plano desde el servidor
+ */
+export async function refreshCatalogInBackground(): Promise<void> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  try {
+    const [pRes, cRes] = await Promise.all([
+      apiFetch<LocalProduct[]>('/products?includeInactive=false'),
+      apiFetch<LocalCategory[]>('/categories'),
+    ]);
+    if (pRes.success && pRes.data && pRes.data.length > 0) {
+      await cacheCatalogLocally(pRes.data, cRes.data || []);
+    }
+  } catch (e) {
+    // Silencioso en segundo plano
   }
 }
 
@@ -181,9 +342,13 @@ export async function getLocalCatalogFromDexie(query?: string, categoryId?: stri
 export function initSyncManager() {
   if (typeof window === 'undefined') return;
 
+  // Garantizar catálogo base local de inmediato
+  ensureLocalCatalogInitialized();
+
   // Escuchar cuando el navegador recupera la conexión a internet
   window.addEventListener('online', () => {
-    console.log('🌐 [SyncManager] Conexión a Internet detectada. Iniciando sincronización de ventas...');
+    console.log('🌐 [SyncManager] Conexión a Internet detectada. Sincronizando catálogo y ventas...');
+    refreshCatalogInBackground();
     syncPendingSales();
   });
 
@@ -204,6 +369,7 @@ export function initSyncManager() {
   // Sincronizar inmediatamente al cargar si hay conexión
   if (navigator.onLine) {
     setTimeout(() => {
+      refreshCatalogInBackground();
       syncPendingSales();
     }, 2000);
   }

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const AuthPage: React.FC = () => {
-  const { login, register } = useAuth();
+  const { login, register, loginOffline } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
@@ -160,6 +160,43 @@ export const AuthPage: React.FC = () => {
             <h2 style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Bienvenido</h2>
             <p style={{ fontSize: 14, color: '#9ca3af', marginBottom: 24 }}>Ingresa tus credenciales para acceder</p>
             
+            {typeof navigator !== 'undefined' && !navigator.onLine && (
+              <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#fef08a', padding: 14, borderRadius: 12, fontSize: 13, marginBottom: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#facc15' }}>wifi_off</span>
+                  <span>Sin conexión a Internet</span>
+                </div>
+                <p style={{ margin: '0 0 10px 0', fontSize: 12, color: '#d1d5db', lineHeight: 1.4 }}>
+                  El sistema puede operar sin internet. Puedes acceder al Punto de Venta (POS) con el catálogo local y facturar normalmente.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    loginOffline('CAJERO');
+                    navigate('/pos');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    background: '#facc15',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>point_of_sale</span>
+                  Entrar al POS en Modo Offline
+                </button>
+              </div>
+            )}
+
             {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
             {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
 

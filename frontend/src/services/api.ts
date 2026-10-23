@@ -7,6 +7,7 @@ export interface ApiResponse<T = any> {
   code?: string;
   status?: number;
   networkError?: boolean;
+  isServerError?: boolean;
   pagination?: {
     page: number;
     limit: number;
@@ -37,6 +38,18 @@ export const apiFetch = async <T = any>(
   endpoint: string,
   options: ApiFetchOptions = {}
 ): Promise<ApiResponse<T>> => {
+  // Detección instantánea de offline para evitar esperas y bloqueos de interfaz
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return {
+      success: false,
+      status: 0,
+      code: 'OFFLINE',
+      message: 'Sin conexión a internet (modo fuera de línea).',
+      networkError: true,
+      isServerError: false,
+    };
+  }
+
   const token = getAuthToken();
   const { timeoutMs = 8000, ...fetchOptions } = options;
 
@@ -72,12 +85,14 @@ export const apiFetch = async <T = any>(
 
     // C-02 Punto 1: Conservar status y code cuando el servidor responde con error HTTP
     if (!response.ok) {
+      const is5xx = response.status >= 500;
       return {
         success: false,
         status: response.status,
         code: data.code || `HTTP_${response.status}`,
         message: data.message || `Error del servidor (${response.status})`,
-        networkError: false,
+        networkError: is5xx, // Si la BD en la nube es inaccesible o el server falla con 5xx, se activa fallback offline
+        isServerError: is5xx,
         ...data,
       };
     }
@@ -86,6 +101,7 @@ export const apiFetch = async <T = any>(
       success: true,
       status: response.status,
       networkError: false,
+      isServerError: false,
       ...data,
     };
   } catch (error: any) {
@@ -103,6 +119,7 @@ export const apiFetch = async <T = any>(
         ? 'Tiempo de espera agotado al conectar con el servidor (8s).'
         : 'Sin conexión con el servidor (servidor inaccesible o sin internet).',
       networkError: true,
+      isServerError: true,
     };
   }
 };

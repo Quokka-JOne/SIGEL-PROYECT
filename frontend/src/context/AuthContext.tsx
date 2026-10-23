@@ -14,8 +14,9 @@ interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string; requireVerification?: boolean; email?: string }>;
-  register: (data: { nombre: string; email: string; password: string }) => Promise<{ success: boolean; message?: string; requireVerification?: boolean; email?: string }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string; requireVerification?: boolean; email?: string; usuario?: UserProfile }>;
+  loginOffline: (role?: Rol) => void;
+  register: (data: { nombre: string; email: string; password: string; rol?: Rol }) => Promise<{ success: boolean; message?: string; requireVerification?: boolean; email?: string }>;
   logout: () => void;
 }
 
@@ -41,9 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // C-05: Si el token está vencido o inválido (401/403), cerrar sesión y limpiar almacenamiento
           console.warn('[Auth] Sesión inválida o expirada (401/403). Cerrando sesión.');
           handleLogout();
-        } else if (res.networkError) {
-          // C-05: Si hay fallo de red (offline), mantener la sesión local para poder seguir operando offline
-          console.log('[Auth] Servidor no disponible. Manteniendo sesión local offline.');
+        } else {
+          // C-05: Si hay fallo de red o servidor no disponible, mantener la sesión local para seguir operando offline
+          console.log('[Auth] Servidor no disponible o modo offline. Manteniendo sesión local offline.');
         }
       }
       setLoading(false);
@@ -52,7 +53,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
+  const loginOffline = (role: Rol = 'CAJERO') => {
+    const cachedUserRaw = localStorage.getItem('jinstock_user');
+    const cachedUser = cachedUserRaw ? JSON.parse(cachedUserRaw) : null;
+
+    const offlineUser: UserProfile = {
+      id: cachedUser?.id || (role === 'ADMINISTRADOR' ? 'usr-admin-offline' : 'usr-cajero-offline'),
+      nombre: cachedUser?.nombre || (role === 'ADMINISTRADOR' ? 'Administrador (Offline)' : 'Cajero (Offline)'),
+      email: cachedUser?.email || (role === 'ADMINISTRADOR' ? 'admin@jinstock.ni' : 'cajero@jinstock.ni'),
+      rol: role,
+    };
+
+    const dummyToken = 'offline-token-' + Date.now();
+    setAuthToken(dummyToken);
+    setToken(dummyToken);
+    setUser(offlineUser);
+    localStorage.setItem('jinstock_user', JSON.stringify(offlineUser));
+  };
+
   const handleLogin = async (email: string, pass: string) => {
+    // Si no hay red, permitir acceso offline directo
+    if (!navigator.onLine) {
+      const offlineRole: Rol = email.toLowerCase().includes('admin') ? 'ADMINISTRADOR' : 'CAJERO';
+      loginOffline(offlineRole);
+      return {
+        success: true,
+        message: 'Acceso offline concedido. Operando en modo fuera de línea.',
+        usuario: JSON.parse(localStorage.getItem('jinstock_user')!),
+      };
+    }
+
     const res = await apiFetch<{ token: string; usuario: UserProfile }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password: pass }),
@@ -63,7 +93,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(res.data.token);
       setUser(res.data.usuario);
       localStorage.setItem('jinstock_user', JSON.stringify(res.data.usuario));
-      return { success: true, message: res.message };
+      return { success: true, message: res.message, usuario: res.data.usuario };
+    }
+
+    // Fallback offline si el servidor está caído o devuelve 5xx por desconexión de base de datos
+    if (res.networkError || (res.status && res.status >= 500)) {
+      const offlineRole: Rol = email.toLowerCase().includes('admin') ? 'ADMINISTRADOR' : 'CAJERO';
+      loginOffline(offlineRole);
+      return {
+        success: true,
+        message: 'Servidor no accesible. Entrando en Modo Fuera de Línea.',
+        usuario: JSON.parse(localStorage.getItem('jinstock_user')!),
+      };
     }
 
     return {
@@ -74,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  const handleRegister = async (data: { nombre: string; email: string; password: string }) => {
+  const handleRegister = async (data: { nombre: string; email: string; password: string; rol?: Rol }) => {
     const res = await apiFetch<{ token: string; usuario: UserProfile }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -109,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         loading,
         login: handleLogin,
+        loginOffline,
         register: handleRegister,
         logout: handleLogout,
       }}
