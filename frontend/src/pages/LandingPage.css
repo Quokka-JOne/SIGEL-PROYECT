@@ -460,21 +460,26 @@
   .landing-faq-item[open] summary span.chevron { transform: rotate(180deg); }
   .landing-faq-item summary span.chevron { transition: transform 0.2s ease; }
   
-  /* ---------- CTA final ---------- */
-  /* ---------- CTA final (estilo landing-card, versión coral) ---------- */
+  /* ---------- CTA final (estilo landing-card, versión celeste / sky) ---------- */
 .landing-cta {
-  border-radius: 20px;                 /* mismo radio que las tarjetas */
+  border-radius: 20px;
   color: var(--ink);
-  box-shadow: 0 24px 60px -28px rgba(255, 107, 107, 0.45);
+  box-shadow: 0 24px 60px -24px rgba(95, 143, 255, 0.45);
 }
 .landing-cta p { color: var(--muted); }
 
-/* variante coral de la tarjeta */
-.landing-card.is-coral {
-  background: linear-gradient(180deg, rgba(255, 107, 107, 0.09), rgba(25, 23, 30, 0.85) 45%);
+/* variante celeste (sky) de la tarjeta con borde degradado celeste */
+.landing-card.is-sky {
+  background: linear-gradient(180deg, rgba(95, 143, 255, 0.12), rgba(25, 23, 30, 0.88) 45%);
 }
-.landing-card.is-coral::before {
-  background: linear-gradient(160deg, rgba(255, 107, 107, 0.55), rgba(255, 107, 107, 0.06) 42%, rgba(255, 142, 142, 0.22));
+.landing-card.is-sky::before {
+  background: linear-gradient(160deg, rgba(95, 143, 255, 0.85), rgba(95, 143, 255, 0.12) 42%, rgba(143, 177, 255, 0.4));
+}
+.landing-card.is-sky:hover::before {
+  background: linear-gradient(160deg, rgba(143, 177, 255, 1), rgba(95, 143, 255, 0.4) 42%, rgba(95, 143, 255, 0.7));
+}
+.landing-card.is-sky:hover {
+  box-shadow: 0 30px 75px -20px rgba(95, 143, 255, 0.6) !important;
 }
 
 

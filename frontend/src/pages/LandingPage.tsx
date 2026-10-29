@@ -766,7 +766,7 @@ export const LandingPage: React.FC = () => {
 
         <section className="landing-wrap" style={{ padding: '0 0 80px' }}>
           <div
-            className="landing-card is-coral landing-cta landing-ledger"
+            className="landing-card is-sky landing-cta landing-ledger"
             style={{
               display: 'flex',
               alignItems: 'center',
