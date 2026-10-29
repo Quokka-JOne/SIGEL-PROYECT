@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @theme {
   --color-error: #FF6B6B;
@@ -66,19 +67,19 @@
   --spacing-space-sm: 0.5rem;
   --spacing-gutter-desktop: 1.5rem;
 
-  --font-label-md: 'Inter', sans-serif;
-  --font-body-md: 'Plus Jakarta Sans', sans-serif;
-  --font-label-lg: 'Inter', sans-serif;
-  --font-body-sm: 'Plus Jakarta Sans', sans-serif;
-  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
-  --font-headline-lg: 'Plus Jakarta Sans', sans-serif;
-  --font-headline-xl: 'Plus Jakarta Sans', sans-serif;
-  --font-headline-xl-mobile: 'Plus Jakarta Sans', sans-serif;
-  --font-headline-sm: 'Plus Jakarta Sans', sans-serif;
-  --font-headline-lg-mobile: 'Plus Jakarta Sans', sans-serif;
-  --font-numeric-pos: 'Inter', sans-serif;
-  --font-headline-md: 'Plus Jakarta Sans', sans-serif;
-  --font-label-sm: 'Inter', sans-serif;
+  --font-label-md: 'Geist', sans-serif;
+  --font-body-md: 'Geist', sans-serif;
+  --font-label-lg: 'Geist', sans-serif;
+  --font-body-sm: 'Geist', sans-serif;
+  --font-body-lg: 'Geist', sans-serif;
+  --font-headline-lg: 'Geist', sans-serif;
+  --font-headline-xl: 'Geist', sans-serif;
+  --font-headline-xl-mobile: 'Geist', sans-serif;
+  --font-headline-sm: 'Geist', sans-serif;
+  --font-headline-lg-mobile: 'Geist', sans-serif;
+  --font-numeric-pos: 'Geist', sans-serif;
+  --font-headline-md: 'Geist', sans-serif;
+  --font-label-sm: 'Geist', sans-serif;
 
   --text-label-md: 12px;
   --text-label-md--line-height: 16px;
@@ -137,11 +138,13 @@
   html, body {
     margin: 0;
     padding: 0;
+    font-family: 'Geist', sans-serif;
   }
   body {
     overscroll-behavior: none;
     background-color: var(--color-surface);
     color: var(--color-on-surface);
+    font-family: 'Geist', sans-serif;
   }
   main > :first-child {
     margin-top: 0 !important;

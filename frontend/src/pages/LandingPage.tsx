@@ -762,25 +762,25 @@ export const LandingPage: React.FC = () => {
         </section>
 
         <section className="landing-wrap" style={{ padding: '0 0 80px' }}>
-          <div
-            className="landing-card is-coral landing-cta landing-ledger"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 24,
-              padding: "40px",
-            }}
-          >
-            <div>
-              <h2 className="landing-serif">¿Listo para dejar el cuaderno de ventas?</h2>
-              <p>Empieza gratis hoy. Si te encaja, subes de plan. Si no, cancelas.</p>
-            </div>
-            <a className="landing-btn landing-btn-sun" href="#planes">
-              Comenzar ahora — es gratis
-            </a>
-          </div>
+        <div
+  className="landing-card is-coral landing-cta landing-ledger"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 24,
+    padding: "40px",
+  }}
+>
+  <div>
+    <h2 className="landing-serif">¿Listo para dejar el cuaderno de ventas?</h2>
+    <p>Empieza gratis hoy. Si te encaja, subes de plan. Si no, cancelas.</p>
+  </div>
+  <a className="landing-btn landing-btn-sun" href="#planes">
+    Comenzar ahora — es gratis
+  </a>
+</div>
         </section>
       </main>
 
