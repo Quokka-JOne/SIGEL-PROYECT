@@ -9,6 +9,7 @@ import { PurchasesPage } from './pages/PurchasesPage';
 import { UsersPage } from './pages/UsersPage';
 import { CopilotPage } from './pages/CopilotPage';
 import { LandingPage } from './pages/LandingPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 import { SalesHistoryPage } from './pages/SalesHistoryPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { MainLayout } from './components/MainLayout';
@@ -80,6 +81,8 @@ export const App: React.FC = () => {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/cobro" element={<Navigate to="/checkout" replace />} />
           <Route
             path="/auth"
             element={

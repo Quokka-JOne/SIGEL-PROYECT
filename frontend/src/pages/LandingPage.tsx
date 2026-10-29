@@ -85,6 +85,7 @@ const STEPS = [
 
 const PLANS = [
   {
+    id: 'basico',
     plan: 'Básico',
     price: 'Gratis',
     period: '',
@@ -99,6 +100,7 @@ const PLANS = [
     cta: 'Empezar gratis',
   },
   {
+    id: 'profesional',
     plan: 'Profesional',
     price: 'C$ 499',
     period: 'mes',
@@ -116,6 +118,7 @@ const PLANS = [
     cta: 'Probar Profesional',
   },
   {
+    id: 'empresarial',
     plan: 'Empresarial',
     price: 'C$ 999',
     period: 'mes',
@@ -656,7 +659,7 @@ export const LandingPage: React.FC = () => {
             {PLANS.map((plan) => (
               <article
                 key={plan.plan}
-                className="landing-card"
+                className={`landing-card landing-plan-card ${plan.highlighted ? 'landing-plan-card-featured' : ''}`}
                 style={{
                   padding: 28,
                   display: 'flex',
@@ -666,11 +669,11 @@ export const LandingPage: React.FC = () => {
                   background: plan.highlighted ? '#4A148C' : '#fff',
                   color: plan.highlighted ? '#fff' : '#111',
                   position: 'relative',
-                  transform: plan.highlighted ? 'translateY(-8px)' : undefined,
                 }}
               >
                 {plan.badge && (
                   <span
+                    className="landing-plan-badge"
                     style={{
                       position: 'absolute',
                       top: -12,
@@ -709,8 +712,8 @@ export const LandingPage: React.FC = () => {
                   ))}
                 </ul>
                 <Link
-                  to="/auth"
-                  className="landing-btn"
+                  to={`/checkout?plan=${plan.id}`}
+                  className="landing-btn landing-plan-btn"
                   style={{
                     background: plan.highlighted ? '#FDDB35' : '#4A148C',
                     color: plan.highlighted ? '#111' : '#fff',
@@ -762,25 +765,30 @@ export const LandingPage: React.FC = () => {
         </section>
 
         <section className="landing-wrap" style={{ padding: '0 0 80px' }}>
-        <div
-  className="landing-card is-coral landing-cta landing-ledger"
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: 24,
-    padding: "40px",
-  }}
->
-  <div>
-    <h2 className="landing-serif">¿Listo para dejar el cuaderno de ventas?</h2>
-    <p>Empieza gratis hoy. Si te encaja, subes de plan. Si no, cancelas.</p>
-  </div>
-  <a className="landing-btn landing-btn-sun" href="#planes">
-    Comenzar ahora — es gratis
-  </a>
-</div>
+          <div
+            className="landing-card is-coral landing-cta landing-ledger"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 32,
+              padding: '44px 48px',
+            }}
+          >
+            <div style={{ maxWidth: 640 }}>
+              <h2 className="landing-serif" style={{ margin: '0 0 10px', fontSize: 'clamp(24px, 3.2vw, 36px)', lineHeight: 1.15 }}>
+                ¿Listo para dejar el cuaderno de ventas?
+              </h2>
+              <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'var(--muted)' }}>
+                Empieza gratis hoy. Si te encaja, subes de plan. Si no, cancelas.
+              </p>
+            </div>
+            <div style={{ flexShrink: 0 }}>
+              <a className="landing-btn landing-btn-sky" href="#precios">
+                Comenzar ahora — es gratis
+              </a>
+            </div>
+          </div>
         </section>
       </main>
 
