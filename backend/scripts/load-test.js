@@ -124,11 +124,15 @@ function printReport(title, url, results, totalDurationSec) {
 
   const statusCounts = {};
   let errors5xx = 0;
+  let errorsNon2xx = 0;
 
   results.forEach((r) => {
     statusCounts[r.status] = (statusCounts[r.status] || 0) + 1;
     if (r.status >= 500 && r.status < 600) {
       errors5xx++;
+    }
+    if (!r.status || r.status < 200 || r.status >= 300) {
+      errorsNon2xx++;
     }
   });
 
@@ -137,17 +141,18 @@ function printReport(title, url, results, totalDurationSec) {
   console.log(`🎯 URL: ${url}`);
   console.log(`⏱️  Total solicitudes: ${total} | Concurrencia: 10 | Tiempo total: ${totalDurationSec.toFixed(2)}s`);
   console.log('----------------------------------------------------------------');
-  console.log(`⚡ Latencia Min:    ${min.toFixed(2)} ms`);
+  console.log(`⚡ Latencia Min:           ${min.toFixed(2)} ms`);
   console.log(`⚡ Latencia Mediana (p50): ${p50.toFixed(2)} ms`);
-  console.log(`⚡ Latencia Media:  ${avg.toFixed(2)} ms`);
-  console.log(`⚡ Latencia p95:    ${p95.toFixed(2)} ms  ${p95 < 500 ? '✅ (Cumple < 500ms)' : '⚠️ (Supera 500ms)'}`);
-  console.log(`⚡ Latencia Max:    ${max.toFixed(2)} ms`);
+  console.log(`⚡ Latencia Media:         ${avg.toFixed(2)} ms`);
+  console.log(`⚡ Latencia p95:           ${p95.toFixed(2)} ms  ${p95 < 500 ? '✅ (Cumple < 500ms)' : '⚠️ (Supera 500ms)'}`);
+  console.log(`⚡ Latencia Max:           ${max.toFixed(2)} ms`);
   console.log('----------------------------------------------------------------');
-  console.log(`🚨 Errores HTTP 5xx: ${errors5xx} ${errors5xx === 0 ? '✅ (Cero caídas)' : '❌ (Fallos detectados)'}`);
+  console.log(`🚨 Errores HTTP 5xx:       ${errors5xx} ${errors5xx === 0 ? '✅ (Cero caídas)' : '❌ (Fallos 5xx detectados)'}`);
+  console.log(`🚨 Respuestas no 2xx:      ${errorsNon2xx} ${errorsNon2xx === 0 ? '✅ (100% exitosas)' : '❌ (Respuestas fallidas)'}`);
   console.log('📋 Códigos HTTP recibidos:', JSON.stringify(statusCounts));
   console.log('================================================================');
 
-  return { errors5xx, p95, avg };
+  return { errors5xx, errorsNon2xx, p95, avg };
 }
 
 async function main() {
@@ -159,11 +164,11 @@ async function main() {
   const warmupRes = await requestAsync(`${baseUrl}/api/health`, { timeout: 30000 });
   const warmupSec = (Date.now() - warmupStart) / 1000;
 
-  if (warmupRes.ok && (warmupRes.status === 200 || warmupRes.status === 503)) {
-    console.log(`✅ Warm-up completado en ${warmupSec.toFixed(2)}s (HTTP ${warmupRes.status}).`);
-  } else {
-    console.warn(`⚠️ Aviso: Warm-up falló o devolvió ${warmupRes.status} (${warmupRes.error || 'sin respuesta'}).`);
+  if (!warmupRes.ok || warmupRes.status !== 200) {
+    console.error(`❌ ERROR: Warm-up falló. Se esperaba HTTP 200 en ${baseUrl}/api/health pero se recibió HTTP ${warmupRes.status} (${warmupRes.error || 'código no 200'}).`);
+    process.exit(1);
   }
+  console.log(`✅ Warm-up completado en ${warmupSec.toFixed(2)}s (HTTP 200).`);
 
   // 2. Medición 1: /api/health (50 solicitudes, concurrencia 10)
   console.log('\n⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...');
@@ -179,12 +184,12 @@ async function main() {
   const t2Sec = (Date.now() - t2Start) / 1000;
   const rep2 = printReport('Endpoint Catálogo Informativo (/api)', `${baseUrl}/api`, apiResults, t2Sec);
 
-  const totalErrors = rep1.errors5xx + rep2.errors5xx;
-  if (totalErrors > 0) {
-    console.error(`\n❌ La prueba finalizó con ${totalErrors} errores 5xx.`);
+  const totalNon2xx = rep1.errorsNon2xx + rep2.errorsNon2xx;
+  if (totalNon2xx > 0) {
+    console.error(`\n❌ La prueba falló: se registraron ${totalNon2xx} respuestas fuera del rango 2xx (incluyendo ${rep1.errors5xx + rep2.errors5xx} errores 5xx).`);
     process.exit(1);
   } else {
-    console.log('\n✅ Prueba de carga satisfactoria: 0 errores 5xx y tiempos en rango.');
+    console.log('\n✅ Prueba de carga satisfactoria: 100% respuestas 2xx, 0 caídas y latencias en rango.');
     process.exit(0);
   }
 }
