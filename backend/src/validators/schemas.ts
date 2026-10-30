@@ -6,11 +6,16 @@ export const loginSchema = z.object({
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
-export const registerSchema = z.object({
-  nombre: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  email: z.string().trim().email('Correo electrónico no válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-});
+export const registerSchema = z
+  .object({
+    nombre: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    email: z.string().trim().email('Correo electrónico no válido'),
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+  })
+  .refine((data) => data.password.toLowerCase() !== data.email.toLowerCase(), {
+    message: 'La contraseña no puede ser igual al correo electrónico',
+    path: ['password'],
+  });
 
 export const verifyEmailSchema = z.object({
   email: z.string().trim().email('Correo electrónico no válido'),
@@ -18,12 +23,17 @@ export const verifyEmailSchema = z.object({
 });
 
 // Usuarios
-export const createUserSchema = z.object({
-  nombre: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  email: z.string().trim().email('Correo electrónico no válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  rol: z.enum(['ADMINISTRADOR', 'CAJERO']).default('CAJERO'),
-});
+export const createUserSchema = z
+  .object({
+    nombre: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    email: z.string().trim().email('Correo electrónico no válido'),
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    rol: z.enum(['ADMINISTRADOR', 'CAJERO']).default('CAJERO'),
+  })
+  .refine((data) => data.password.toLowerCase() !== data.email.toLowerCase(), {
+    message: 'La contraseña no puede ser igual al correo electrónico',
+    path: ['password'],
+  });
 
 // Ventas
 export const saleDetailItemSchema = z.object({

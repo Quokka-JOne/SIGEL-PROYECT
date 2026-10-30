@@ -416,4 +416,57 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(res.body.message).toContain('operación idempotente');
     });
   });
+
+  describe('FASE 1: Seguridad y Políticas de Autenticación', () => {
+    it('Rechaza contraseña menor a 8 caracteres con 400 y código DATOS_INVALIDOS', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          nombre: 'Juan Perez',
+          email: 'juan@libreria.ni',
+          password: 'corta', // 5 caracteres < 8
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('DATOS_INVALIDOS');
+      expect(res.body.message).toContain('al menos 8 caracteres');
+    });
+
+    it('Rechaza contraseña idéntica al correo electrónico con 400 y código DATOS_INVALIDOS', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          nombre: 'Juan Perez',
+          email: 'juanperez@libreria.ni',
+          password: 'juanperez@libreria.ni', // Igual al email
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('DATOS_INVALIDOS');
+      expect(res.body.message).toContain('no puede ser igual al correo');
+    });
+
+    it('Login con cuenta desactivada devuelve 401 NO_AUTORIZADO idéntico a usuario inexistente', async () => {
+      // Simular usuario existente pero desactivado (estado: false)
+      (prisma.usuario.findUnique as any).mockResolvedValue({
+        id: 'user-deactivated',
+        nombre: 'Cajero Inactivo',
+        email: 'inactivo@libreria.ni',
+        passwordHash: '$2a$10$fwpnTfbUzBXPKYHWkMmhW.U.CpOpvmNG1uewY.44qZoSWjEROKoA.',
+        rol: 'CAJERO',
+        estado: false,
+      });
+
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'inactivo@libreria.ni',
+          password: 'Password123!',
+        });
+
+      expect(res.status).toBe(401);
+      expect(res.body.code).toBe('NO_AUTORIZADO');
+      expect(res.body.message).toBe('Credenciales inválidas. Verifique su correo o contraseña.');
+    });
+  });
 });

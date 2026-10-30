@@ -31,12 +31,22 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 4000;
 
+// En producción, CORS_ORIGIN es obligatorio y no debe ser comodín (*)
+const allowedOrigin = process.env.CORS_ORIGIN;
+if (process.env.NODE_ENV === 'production' && (!allowedOrigin || allowedOrigin.trim() === '*')) {
+  logger.error('❌ FATAL: En entorno de producción (NODE_ENV=production), la variable CORS_ORIGIN debe estar definida con dominios específicos y no puede ser "*".');
+  process.exit(1);
+}
+
 // Seguridad con Helmet y CORS restringido (C-05)
 app.use(helmet());
-const allowedOrigin = process.env.CORS_ORIGIN;
+const allowedOrigins = allowedOrigin
+  ? allowedOrigin.split(',').map((o) => o.trim()).filter(Boolean)
+  : [];
+
 app.use(
   cors({
-    origin: allowedOrigin ? allowedOrigin.split(',') : '*',
+    origin: allowedOrigins.length > 0 ? allowedOrigins : (process.env.NODE_ENV === 'production' ? false : '*'),
     credentials: true,
   })
 );

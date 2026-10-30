@@ -20,8 +20,21 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limit en registro para prevenir creación masiva de cuentas
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 10, // 10 registros por hora por IP
+  message: {
+    success: false,
+    code: 'RATE_LIMIT_EXCEEDED',
+    message: 'Demasiadas solicitudes de registro desde esta dirección IP. Intente de nuevo en una hora.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.post('/login', loginLimiter, validate(loginSchema), login);
-router.post('/register', validate(registerSchema), register);
+router.post('/register', registerLimiter, validate(registerSchema), register);
 router.post('/verify', validate(verifyEmailSchema), verifyEmail);
 router.get('/me', authenticateToken, getMe);
 

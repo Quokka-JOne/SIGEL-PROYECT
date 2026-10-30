@@ -28,12 +28,9 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       where: { email: cleanEmail },
     });
 
-    if (!user) {
+    // Anti-enumeración de usuarios: mismo error y código para usuario inexistente o desactivado
+    if (!user || !user.estado) {
       throw new UnauthorizedError('Credenciales inválidas. Verifique su correo o contraseña.');
-    }
-
-    if (!user.estado) {
-      throw new ForbiddenError('Su cuenta se encuentra desactivada. Contacte al Administrador.');
     }
 
     // Si el usuario requiere verificación y no está verificado
