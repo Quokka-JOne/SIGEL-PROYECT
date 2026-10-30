@@ -2,17 +2,29 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth, type Rol } from './context/AuthContext';
 import { AuthPage } from './pages/AuthPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { InventoryPage } from './pages/InventoryPage';
-import { PosPage } from './pages/PosPage';
-import { PurchasesPage } from './pages/PurchasesPage';
-import { UsersPage } from './pages/UsersPage';
-import { CopilotPage } from './pages/CopilotPage';
 import { LandingPage } from './pages/LandingPage';
 import { CheckoutPage } from './pages/CheckoutPage';
-import { SalesHistoryPage } from './pages/SalesHistoryPage';
-import { ReportsPage } from './pages/ReportsPage';
 import { MainLayout } from './components/MainLayout';
+
+// Las pantallas administrativas y de operación se cargan bajo demanda para que
+// la primera visita solo descargue autenticación y la landing pública.
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const InventoryPage = React.lazy(() => import('./pages/InventoryPage').then((m) => ({ default: m.InventoryPage })));
+const PosPage = React.lazy(() => import('./pages/PosPage').then((m) => ({ default: m.PosPage })));
+const PurchasesPage = React.lazy(() => import('./pages/PurchasesPage').then((m) => ({ default: m.PurchasesPage })));
+const UsersPage = React.lazy(() => import('./pages/UsersPage').then((m) => ({ default: m.UsersPage })));
+const CopilotPage = React.lazy(() => import('./pages/CopilotPage').then((m) => ({ default: m.CopilotPage })));
+const SalesHistoryPage = React.lazy(() => import('./pages/SalesHistoryPage').then((m) => ({ default: m.SalesHistoryPage })));
+const ReportsPage = React.lazy(() => import('./pages/ReportsPage').then((m) => ({ default: m.ReportsPage })));
+
+const PageFallback: React.FC = () => (
+  <div className="min-h-screen bg-[#100f14] flex items-center justify-center font-body text-white">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      <span className="text-sm font-semibold text-purple-300">Cargando módulo...</span>
+    </div>
+  </div>
+);
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -79,7 +91,8 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <React.Suspense fallback={<PageFallback />}>
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/cobro" element={<Navigate to="/checkout" replace />} />
@@ -177,7 +190,8 @@ export const App: React.FC = () => {
           />
 
           <Route path="*" element={<Navigate to="/auth" replace />} />
-        </Routes>
+          </Routes>
+        </React.Suspense>
       </AuthProvider>
     </BrowserRouter>
   );
