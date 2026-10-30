@@ -80,7 +80,7 @@ function calculatePercentile(sortedValues, percentile) {
   return sortedValues[Math.max(0, Math.min(index, sortedValues.length - 1))];
 }
 
-async function runConcurrentBatch(url, totalRequests = 50, concurrency = 10) {
+async function runConcurrentBatch(url, totalRequests = 50, concurrency = 10, headers = {}) {
   const results = [];
   let completed = 0;
   let active = 0;
@@ -91,7 +91,7 @@ async function runConcurrentBatch(url, totalRequests = 50, concurrency = 10) {
       while (active < concurrency && index < totalRequests) {
         const currentIndex = index++;
         active++;
-        requestAsync(url)
+        requestAsync(url, { headers })
           .then((res) => {
             results.push(res);
           })
@@ -177,12 +177,22 @@ async function main() {
   const t1Sec = (Date.now() - t1Start) / 1000;
   const rep1 = printReport('Endpoint de Salud (/api/health)', `${baseUrl}/api/health`, healthResults, t1Sec);
 
-  // 3. Medición 2: /api (Endpoint raíz informativo de la API)
-  console.log('\n⚡ Ejecutando 50 solicitudes a /api (concurrencia 10)...');
-  const t2Start = Date.now();
-  const apiResults = await runConcurrentBatch(`${baseUrl}/api`, 50, 10);
-  const t2Sec = (Date.now() - t2Start) / 1000;
-  const rep2 = printReport('Endpoint Catálogo Informativo (/api)', `${baseUrl}/api`, apiResults, t2Sec);
+  // 3. Medición 2: /api/products?all=true (Endpoint real de datos) o /api
+  const token = process.env.AUTH_TOKEN;
+  let rep2;
+  if (token) {
+    console.log('\n⚡ Ejecutando 50 solicitudes a /api/products?all=true con token (concurrencia 10)...');
+    const t2Start = Date.now();
+    const dataResults = await runConcurrentBatch('' + baseUrl + '/api/products?all=true', 50, 10, { Authorization: 'Bearer ' + token });
+    const t2Sec = (Date.now() - t2Start) / 1000;
+    rep2 = printReport('Catálogo con BD y Auth (/api/products?all=true)', baseUrl + '/api/products?all=true', dataResults, t2Sec);
+  } else {
+    console.log('\n⚡ Ejecutando 50 solicitudes a /api (concurrencia 10)...');
+    const t2Start = Date.now();
+    const apiResults = await runConcurrentBatch(baseUrl + '/api', 50, 10);
+    const t2Sec = (Date.now() - t2Start) / 1000;
+    rep2 = printReport('Endpoint Catálogo Informativo (/api)', baseUrl + '/api', apiResults, t2Sec);
+  }
 
   const totalNon2xx = rep1.errorsNon2xx + rep2.errorsNon2xx;
   if (totalNon2xx > 0) {
