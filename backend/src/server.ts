@@ -28,8 +28,11 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 // Render + Cloudflare actúan como proxy en cadena (Cloudflare -> Render Ingress -> Container)
-// Confiar en el proxy para extraer la IP del cliente final
-app.set('trust proxy', true);
+// Confiar únicamente en el número de saltos declarado para evitar evadir rate limits
+// mediante un X-Forwarded-For controlado por el cliente.
+const configuredProxyHops = Number(process.env.TRUST_PROXY_HOPS ?? (process.env.NODE_ENV === 'production' ? 2 : 0));
+const trustProxyHops = Number.isInteger(configuredProxyHops) && configuredProxyHops >= 0 ? configuredProxyHops : 0;
+app.set('trust proxy', trustProxyHops);
 const PORT = process.env.PORT || 4000;
 
 // En producción, CORS_ORIGIN es obligatorio y no debe ser comodín (*)
@@ -56,24 +59,35 @@ app.use(
 app.use(requestLogger);
 app.use(express.json());
 
-// CP-01 & FASE 3: Health check con chequeo ligero de base de datos (SELECT 1 con timeout de 2s)
+// CP-01 & FASE 3: Health check con chequeo ligero de base de datos (SELECT 1 con timeout de 2s).
+// El resultado saludable se reutiliza unos segundos para que el monitoreo concurrente
+// no abra una consulta independiente a PostgreSQL por cada sonda.
+const healthCacheTtlMs = process.env.NODE_ENV === 'test'
+  ? 0
+  : Math.max(0, Number(process.env.HEALTH_CACHE_TTL_MS) || 5000);
+let lastHealthyCheckAt = 0;
 const healthHandler = async (req: Request, res: Response) => {
-  try {
-    await Promise.race([
-      prisma.$queryRaw`SELECT 1`,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000)),
-    ]);
-  } catch (err: any) {
-    logger.warn('Health check: Base de datos no disponible o demoró más de 2 segundos', { error: err.message });
-    res.status(503).json({
-      success: false,
-      status: 'unhealthy',
-      message: 'El servicio de base de datos no se encuentra disponible temporalmente.',
-      timestamp: new Date().toISOString(),
-    });
-    return;
+  const now = Date.now();
+  if (healthCacheTtlMs === 0 || now - lastHealthyCheckAt >= healthCacheTtlMs) {
+    try {
+      await Promise.race([
+        prisma.$queryRaw`SELECT 1`,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000)),
+      ]);
+      lastHealthyCheckAt = Date.now();
+    } catch (err: any) {
+      logger.warn('Health check: Base de datos no disponible o demoró más de 2 segundos', { error: err.message });
+      res.status(503).json({
+        success: false,
+        status: 'unhealthy',
+        message: 'El servicio de base de datos no se encuentra disponible temporalmente.',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
   }
 
+  res.set('Cache-Control', 'no-store');
   res.status(200).json({
     success: true,
     message: 'Servidor JINStock Backend operativo',
@@ -83,12 +97,18 @@ const healthHandler = async (req: Request, res: Response) => {
     uptimeSeconds: Math.floor(process.uptime()),
   });
 };
+// Liveness no depende de PostgreSQL: permite distinguir proceso activo de servicio listo.
+app.get('/api/live', (_req: Request, res: Response) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(200).json({ success: true, status: 'alive' });
+});
 app.get('/api/health', healthHandler);
 app.get('/health', healthHandler);
 app.get('/status', healthHandler);
 
 // API root endpoint informativo
 app.get('/api', (req: Request, res: Response) => {
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
   res.json({
     success: true,
     message: 'API REST de JINStock Nicaragua - Sistema de Gestión PWA Offline-First',
