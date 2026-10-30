@@ -195,11 +195,15 @@ async function main() {
   }
 
   const totalNon2xx = rep1.errorsNon2xx + rep2.errorsNon2xx;
+  const anyP95OverThreshold = rep1.p95 >= 500 || rep2.p95 >= 500;
   if (totalNon2xx > 0) {
     console.error(`\n❌ La prueba falló: se registraron ${totalNon2xx} respuestas fuera del rango 2xx (incluyendo ${rep1.errors5xx + rep2.errors5xx} errores 5xx).`);
     process.exit(1);
+  } else if (anyP95OverThreshold) {
+    console.log('\n⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 superó el umbral estricto de 500 ms (Rendimiento Regular).');
+    process.exit(0);
   } else {
-    console.log('\n✅ Prueba de carga satisfactoria: 100% respuestas 2xx, 0 caídas y latencias en rango.');
+    console.log('\n✅ Prueba de carga óptima: 100% respuestas 2xx, 0 caídas y latencia p95 < 500ms en todos los endpoints.');
     process.exit(0);
   }
 }

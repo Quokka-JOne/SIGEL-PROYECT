@@ -97,11 +97,13 @@ class Logger {
   private output(entry: LogEntry) {
     const jsonString = JSON.stringify(entry);
 
-    if (entry.level === 'ERROR') {
-      console.error(jsonString);
+    if (entry.level === 'ERROR' || entry.level === 'WARN') {
+      if (entry.level === 'ERROR') {
+        console.error(jsonString);
+      } else {
+        console.warn(jsonString);
+      }
       writeToFile(ERROR_LOG, jsonString);
-    } else if (entry.level === 'WARN') {
-      console.warn(jsonString);
     } else {
       console.log(jsonString);
     }
@@ -190,13 +192,20 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
     const statusCode = res.statusCode;
     const level: LogLevel = statusCode >= 500 ? 'ERROR' : statusCode >= 400 ? 'WARN' : 'INFO';
 
+    const clientIp =
+      (req.headers['cf-connecting-ip'] as string) ||
+      ((req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()) ||
+      ip ||
+      req.socket.remoteAddress ||
+      'unknown';
+
     const logEntry = {
       requestId,
       method,
       url: originalUrl,
       status: statusCode,
       durationMs,
-      ip: ip || req.socket.remoteAddress,
+      ip: clientIp,
       userAgent: req.get('user-agent') || 'unknown',
     };
 

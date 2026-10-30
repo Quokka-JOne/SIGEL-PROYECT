@@ -59,28 +59,33 @@ Todas las rutas están bajo el prefijo `/api`. Todas las respuestas de error dev
 
 | Método | Ruta | Rol Requerido | Parámetros (Query / Body) | Ejemplo de Respuesta Exitosa | Errores Posibles |
 | :--- | :--- | :---: | :--- | :--- | :--- |
-| `GET` | `/health` | Público | Ninguno | `{"success": true, "status": "healthy", "timestamp": "..."}` | `503` (DB caída o timeout >2s) |
-| `POST` | `/auth/login` | Público | Body: `{ email, password }` | `{"success": true, "data": {"token": "ey...", "usuario": {...}}}` | `400` (datos vacíos), `401` (credenciales inválidas o cuenta desactivada), `429` (rate limit 5 req/15min) |
+| `GET` | `/health` | Público | Ninguno | `{"success": true, "status": "healthy", "timestamp": "...", "uptimeSeconds": 120}` | `503` (DB caída o timeout >2s) |
+| `POST` | `/auth/login` | Público | Body: `{ email, password }` | `{"success": true, "data": {"token": "ey...", "usuario": {...}}}` | `400` (datos vacíos), `401` (credenciales inválidas o cuenta inactiva), `429` (rate limit 20 req/15min) |
 | `POST` | `/auth/register` | Público | Body: `{ nombre, email, password }` | `{"success": true, "message": "Usuario registrado exitosamente"}` | `400` (política contraseña <8 chars), `409` (email duplicado), `429` (rate limit 10 req/hora) |
 | `GET` | `/products` | Autenticado | Query: `page`, `limit` (max 100), `search`, `categoriaId`, `lowStock=true`, `all=true` | `{"success": true, "data": [...], "pagination": {"page": 1, "limit": 20, "total": 45}}` | `400` (parámetros no numéricos), `401` (sin token) |
 | `GET` | `/products/:id` | Autenticado | Params: `id` | `{"success": true, "data": {"id": "...", "nombre": "Cuaderno", ...}}` | `401`, `404` (producto inexistente) |
-| `POST` | `/products` | `ADMINISTRADOR` | Body: `{ nombre, precioVenta, costo, stock, stockMinimo, categoriaId, codigoBarra? }` | `{"success": true, "data": {...}}` | `400` (validación Zod), `401`, `403` (cajero bloqueado), `409` (código de barra duplicado) |
+| `POST` | `/products` | `ADMINISTRADOR` | Body: `{ nombre, precioVenta, costo, stock, stockMinimo, categoriaId, codigoBarras?, sku?, unidadMedida? }` | `{"success": true, "data": {...}}` | `400` (validación Zod), `401`, `403` (rol insuficiente), `409` (código de barra duplicado) |
 | `PUT` | `/products/:id` | `ADMINISTRADOR` | Params: `id`, Body: campos a actualizar | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
-| `DELETE` | `/products/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Producto eliminado"}` | `401`, `403`, `404`, `409` (si tiene ventas asociadas) |
-| `POST` | `/sales` | Autenticado | Body: `{ detalles: [{ productoId, cantidad, precioUnitario? }], metodoPago, montoRecibido?, offlineId? }` | `{"success": true, "data": {"id": "...", "numeroComprobante": "FAC-2026-00001", "total": 150.0}}` | `400` (`STOCK_INSUFICIENTE`), `401`, `409` (reintento automático de número) |
+| `DELETE` | `/products/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Producto eliminado permanentemente del sistema."}` | `400` (si tiene ventas/compras históricas: se desactiva), `401`, `403`, `404` |
+| `POST` | `/sales` | Autenticado | Body: `{ detalles: [{ productoId, cantidad, precioUnitario?, subtotal? }], metodoPago, montoPagadoNIO?, montoPagadoUSD?, cambioNIO?, offlineId? }` | `{"success": true, "data": {"id": "...", "numeroComprobante": "FAC-2026-00001", "total": 150.0}}` | `400` (`STOCK_INSUFICIENTE`), `401`, `409` (reintento automático de número) |
 | `GET` | `/sales` | Autenticado | Query: `desde`, `hasta` (YYYY-MM-DD), `page`, `limit`, `cajeroId` | `{"success": true, "data": [...], "pagination": {...}}` | `400` (fechas inválidas), `401` |
+| `PATCH` | `/sales/:id/anular` | `ADMINISTRADOR` | Params: `id`, Body: `{ motivo }` | `{"success": true, "message": "Venta anulada exitosamente y stock restaurado en Kardex."}` | `400` (venta ya anulada o motivo < 3 chars), `401`, `403`, `404` |
 | `GET` | `/categories` | Autenticado | Query: `includeInactive=true/false` | `{"success": true, "data": [{"id": "...", "nombre": "Papelería"}]}` | `401` |
 | `POST` | `/categories` | `ADMINISTRADOR` | Body: `{ nombre, descripcion? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403` |
 | `GET` | `/suppliers` | `ADMINISTRADOR` | Ninguno | `{"success": true, "data": [...]}` | `401`, `403` |
-| `POST` | `/suppliers` | `ADMINISTRADOR` | Body: `{ nombre, ruc?, telefono?, email? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` |
+| `POST` | `/suppliers` | `ADMINISTRADOR` | Body: `{ nombre, ruc?, telefono?, email?, direccion? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` |
 | `GET` | `/purchases` | `ADMINISTRADOR` | Query: `desde`, `hasta`, `proveedorId` | `{"success": true, "data": [...]}` | `400`, `401`, `403` |
 | `POST` | `/purchases` | `ADMINISTRADOR` | Body: `{ proveedorId, detalles: [{ productoId, cantidad, costoUnitario }] }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` (P2003 proveedor inexistente) |
 | `GET` | `/users` | `ADMINISTRADOR` | Ninguno | `{"success": true, "data": [...]}` | `401`, `403` |
 | `POST` | `/users` | `ADMINISTRADOR` | Body: `{ nombre, email, password, rol }` | `{"success": true, "data": {...}}` | `400` (password <8 chars), `401`, `403`, `409` |
-| `PUT` | `/users/:id` | `ADMINISTRADOR` | Params: `id`, Body: `{ nombre?, rol?, estado? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
-| `DELETE` | `/users/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Usuario eliminado"}` | `400` (auto-eliminación no permitida), `401`, `403`, `404` |
-| `GET` | `/reports/dashboard`| `ADMINISTRADOR`| Ninguno | `{"success": true, "data": {"ventasHoy": 1250, "stockBajo": 3, ...}}` | `401`, `403` |
-| `GET` | `/logs` | `ADMINISTRADOR` | Query: `limit` (max 200), `type=all/error` | `{"success": true, "count": 25, "data": [...]}` | `401`, `403` (requiere ADMINISTRADOR) |
+| `PATCH` | `/users/:id/status` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}, "message": "Estado del usuario actualizado correctamente."}` | `400` (auto-desactivación no permitida), `401`, `403`, `404` |
+| `DELETE` | `/users/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Usuario eliminado correctamente."}` | `400` (auto-eliminación no permitida o con ventas registradas), `401`, `403`, `404` |
+| `GET` | `/sales/stats` | Autenticado | Ninguno | `{"success": true, "data": {"ventasHoy": 1250, "stockBajo": 3, ...}}` | `401` |
+| `GET` | `/reports/cash-closing` | Autenticado | Query: `fecha` (YYYY-MM-DD), `cajeroId?` | `{"success": true, "data": {...}}` | `400`, `401` |
+| `GET` | `/reports/sales` | `ADMINISTRADOR` | Query: `desde`, `hasta` (YYYY-MM-DD) | `{"success": true, "data": [...]}` | `400`, `401`, `403` |
+| `GET` | `/reports/purchases` | `ADMINISTRADOR` | Query: `desde`, `hasta` (YYYY-MM-DD) | `{"success": true, "data": [...]}` | `400`, `401`, `403` |
+| `GET` | `/reports/top-products` | `ADMINISTRADOR` | Query: `desde`, `hasta` (YYYY-MM-DD) | `{"success": true, "data": [...]}` | `400`, `401`, `403` |
+| `GET` | `/logs` | `ADMINISTRADOR` | Query: `limit` (max 100), `type=all/error` | `{"success": true, "count": 25, "data": [...]}` | `401`, `403` (requiere ADMINISTRADOR) |
 
 ---
 

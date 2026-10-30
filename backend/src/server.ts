@@ -27,8 +27,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-// Render/Cloudflare actúan como proxy: necesario para que rate-limit vea la IP real
-app.set('trust proxy', 1);
+// Render + Cloudflare actúan como proxy en cadena (Cloudflare -> Render Ingress -> Container)
+// Confiar en el proxy para extraer la IP del cliente final
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 4000;
 
 // En producción, CORS_ORIGIN es obligatorio y no debe ser comodín (*)
