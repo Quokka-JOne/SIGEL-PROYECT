@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
@@ -8,6 +9,7 @@ export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
+  requestId?: string;
   context?: Record<string, any>;
   error?: {
     code?: string;
@@ -37,16 +39,48 @@ const writeToFile = (filePath: string, line: string) => {
   }
 };
 
+/**
+ * FASE 4: Sanitiza objetos para que nunca se registren contraseñas, tokens ni credenciales
+ */
+export const sanitizeLogData = (data: any): any => {
+  if (!data || typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeLogData);
+
+  const sanitized: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const lower = key.toLowerCase();
+    if (
+      lower.includes('password') ||
+      lower.includes('token') ||
+      lower.includes('secret') ||
+      lower.includes('authorization') ||
+      lower.includes('cookie')
+    ) {
+      sanitized[key] = '[REDACTED]';
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = sanitizeLogData(value);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+};
+
 class Logger {
   private format(level: LogLevel, message: string, context?: Record<string, any>, error?: any): LogEntry {
+    const sanitizedContext = context ? sanitizeLogData(context) : undefined;
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
     };
 
-    if (context && Object.keys(context).length > 0) {
-      entry.context = context;
+    if (sanitizedContext && sanitizedContext.requestId) {
+      entry.requestId = sanitizedContext.requestId;
+    }
+
+    if (sanitizedContext && Object.keys(sanitizedContext).length > 0) {
+      entry.context = sanitizedContext;
     }
 
     if (error) {
@@ -141,10 +175,14 @@ class Logger {
 export const logger = new Logger();
 
 /**
- * Middleware para registrar todas las peticiones entrantes con latencia y status
+ * FASE 4: Middleware para registrar todas las peticiones con X-Request-Id y latencia
  */
 export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {
   const start = Date.now();
+  const requestId = (req.headers['x-request-id'] as string) || crypto.randomUUID();
+  (req as any).id = requestId;
+  res.setHeader('X-Request-Id', requestId);
+
   const { method, originalUrl, ip } = req;
 
   res.on('finish', () => {
@@ -153,6 +191,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
     const level: LogLevel = statusCode >= 500 ? 'ERROR' : statusCode >= 400 ? 'WARN' : 'INFO';
 
     const logEntry = {
+      requestId,
       method,
       url: originalUrl,
       status: statusCode,

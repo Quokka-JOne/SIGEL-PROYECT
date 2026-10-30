@@ -13,7 +13,10 @@ export const errorHandler = (
     return next(err);
   }
 
+  const requestId = (req as any).id || (req.headers['x-request-id'] as string);
+
   const context = {
+    requestId,
     method: req.method,
     url: req.originalUrl,
     ip: req.ip,
@@ -31,6 +34,7 @@ export const errorHandler = (
       success: false,
       code: err.code,
       message: err.message,
+      ...(requestId ? { requestId } : {}),
       ...(err.details ? { details: err.details } : {}),
     });
     return;
@@ -45,6 +49,7 @@ export const errorHandler = (
       message: err.type === 'entity.too.large'
         ? 'El cuerpo de la solicitud excede el tamaño permitido.'
         : 'El cuerpo de la solicitud no es un JSON válido.',
+      ...(requestId ? { requestId } : {}),
     });
     return;
   }
@@ -57,6 +62,7 @@ export const errorHandler = (
       success: false,
       code: 'DUPLICATE_KEY',
       message: `Ya existe un registro con el mismo valor para: ${target}.`,
+      ...(requestId ? { requestId } : {}),
     });
     return;
   }
@@ -68,6 +74,7 @@ export const errorHandler = (
       success: false,
       code: 'CONFLICTO',
       message: 'No se puede completar la operación debido a dependencias con otros registros relacionados.',
+      ...(requestId ? { requestId } : {}),
     });
     return;
   }
@@ -79,6 +86,7 @@ export const errorHandler = (
       success: false,
       code: 'NO_ENCONTRADO',
       message: 'El registro solicitado no fue encontrado en la base de datos.',
+      ...(requestId ? { requestId } : {}),
     });
     return;
   }
@@ -89,5 +97,6 @@ export const errorHandler = (
     success: false,
     code: 'INTERNAL_SERVER_ERROR',
     message: 'Error interno del servidor. Intente nuevamente más tarde.',
+    ...(requestId ? { requestId } : {}),
   });
 };

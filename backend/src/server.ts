@@ -50,10 +50,10 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
 
-// Fase 6: Middleware de logging estructurado JSON con latencias y estado HTTP
+// FASE 4: Middleware de logging estructurado JSON con X-Request-Id y latencias
 app.use(requestLogger);
+app.use(express.json());
 
 // CP-01 & FASE 3: Health check con chequeo ligero de base de datos (SELECT 1 con timeout de 2s)
 const healthHandler = async (req: Request, res: Response) => {
@@ -135,10 +135,12 @@ app.use('/api/reports', reportRoutes);
 
 // Rutas inexistentes -> 404 JSON consistente
 app.use((req: Request, res: Response) => {
+  const requestId = (req as any).id || (req.headers['x-request-id'] as string);
   res.status(404).json({
     success: false,
     code: 'RUTA_NO_ENCONTRADA',
     message: `La ruta ${req.method} ${req.originalUrl} no existe.`,
+    ...(requestId ? { requestId } : {}),
   });
 });
 

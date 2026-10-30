@@ -51,6 +51,7 @@ vi.mock('../src/utils/mailer', () => ({
 
 import app from '../src/server';
 import { prisma } from '../src/config/prisma';
+import { sanitizeLogData } from '../src/utils/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-test-jwt-key-minimum-32-chars-long';
 
@@ -69,6 +70,7 @@ const cajeroToken = jwt.sign(
 describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (prisma.$queryRaw as any).mockResolvedValue([{ 1: 1 }]);
   });
 
   // 1. Una venta con stock suficiente descuenta el inventario y crea el movimiento SALIDA.
@@ -563,6 +565,57 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(res.body.success).toBe(false);
       expect(res.body.status).toBe('unhealthy');
       expect(res.body.message).toContain('base de datos');
+    });
+  });
+
+  describe('FASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización', () => {
+    it('Todas las respuestas HTTP incluyen el header X-Request-Id', async () => {
+      const res = await request(app).get('/api/health');
+      expect(res.headers['x-request-id']).toBeDefined();
+      expect(typeof res.headers['x-request-id']).toBe('string');
+      expect(res.headers['x-request-id'].length).toBeGreaterThan(0);
+    });
+
+    it('Si el cliente envía X-Request-Id personalizado, se preserva en el header y la respuesta', async () => {
+      const customId = 'trace-id-abc-12345';
+      const res = await request(app)
+        .get('/api/health')
+        .set('X-Request-Id', customId);
+
+      expect(res.headers['x-request-id']).toBe(customId);
+    });
+
+    it('Las respuestas de error (ej. 404) devuelven el requestId en el cuerpo JSON', async () => {
+      const res = await request(app)
+        .get('/api/ruta-inexistente-para-test')
+        .set('X-Request-Id', 'req-error-404-test');
+
+      expect(res.status).toBe(404);
+      expect(res.body.code).toBe('RUTA_NO_ENCONTRADA');
+      expect(res.body.requestId).toBe('req-error-404-test');
+    });
+
+    it('sanitizeLogData redacta contraseñas, tokens y authorization de los logs', () => {
+      const payload = {
+        email: 'user@libreria.ni',
+        password: 'SuperSecretPassword123!',
+        token: 'eyJhbGciOi...',
+        nested: {
+          secret: 'shhh',
+          authorization: 'Bearer 12345',
+          cookie: 'session=xyz',
+          normalData: 42,
+        },
+      };
+
+      const sanitized = sanitizeLogData(payload);
+      expect(sanitized.email).toBe('user@libreria.ni');
+      expect(sanitized.password).toBe('[REDACTED]');
+      expect(sanitized.token).toBe('[REDACTED]');
+      expect(sanitized.nested.secret).toBe('[REDACTED]');
+      expect(sanitized.nested.authorization).toBe('[REDACTED]');
+      expect(sanitized.nested.cookie).toBe('[REDACTED]');
+      expect(sanitized.nested.normalData).toBe(42);
     });
   });
 });
