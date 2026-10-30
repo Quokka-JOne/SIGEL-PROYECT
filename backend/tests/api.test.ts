@@ -469,4 +469,46 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(res.body.message).toBe('Credenciales inválidas. Verifique su correo o contraseña.');
     });
   });
+
+  describe('FASE 2: Validación de Parámetros de Consulta y Manejo de Errores', () => {
+    it('GET /api/sales con fecha desde inválida responde 400 DATOS_INVALIDOS', async () => {
+      const res = await request(app)
+        .get('/api/sales?desde=fecha-invalida-123')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('DATOS_INVALIDOS');
+      expect(res.body.message).toContain('desde');
+    });
+
+    it('GET /api/sales con page no numérica responde 400 DATOS_INVALIDOS', async () => {
+      const res = await request(app)
+        .get('/api/sales?page=pagina-uno')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('DATOS_INVALIDOS');
+      expect(res.body.message).toContain('page');
+    });
+
+    it('Violación de clave foránea P2003 devuelve 409 CONFLICTO sin fugar datos sensibles', async () => {
+      (prisma.$transaction as any).mockImplementation(async () => {
+        const p2003Err: any = new Error('Foreign key constraint failed on proveedorId');
+        p2003Err.code = 'P2003';
+        throw p2003Err;
+      });
+
+      const res = await request(app)
+        .post('/api/purchases')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          proveedorId: 'prov-inexistente',
+          detalles: [{ productoId: 'prod-001', cantidad: 10, costoUnitario: 25.0 }],
+        });
+
+      expect(res.status).toBe(409);
+      expect(res.body.code).toBe('CONFLICTO');
+      expect(res.body.message).toBe('No se puede completar la operación debido a dependencias con otros registros relacionados.');
+    });
+  });
 });

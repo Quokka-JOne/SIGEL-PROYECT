@@ -17,3 +17,35 @@ export const validate = (schema: ZodSchema) => {
     }
   };
 };
+
+export const validateQuery = (schema: ZodSchema) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      req.query = schema.parse(req.query);
+      next();
+    } catch (err: any) {
+      if (err instanceof ZodError) {
+        const errorMessages = err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+        next(new ValidationError(errorMessages, err.errors));
+      } else {
+        next(err);
+      }
+    }
+  };
+};
+
+export const validateParams = (schema: ZodSchema) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      req.params = schema.parse(req.params);
+      next();
+    } catch (err: any) {
+      if (err instanceof ZodError) {
+        const errorMessages = err.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+        next(new ValidationError(errorMessages, err.errors));
+      } else {
+        next(err);
+      }
+    }
+  };
+};

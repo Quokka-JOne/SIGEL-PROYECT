@@ -119,3 +119,32 @@ export const inventoryAdjustmentSchema = z.object({
   cantidad: z.number().int().refine((val) => val !== 0, 'La cantidad de ajuste no puede ser 0'),
   motivo: z.string().trim().min(3, 'El motivo del ajuste es obligatorio (ej. conteo físico, merma, rotura)'),
 });
+
+// Validación de parámetros de consulta (Fechas y Paginación)
+const isValidDateString = (val?: string) => {
+  if (!val) return true;
+  return /^\d{4}-\d{2}-\d{2}/.test(val) && !isNaN(new Date(val).getTime());
+};
+
+export const dateRangeFilterSchema = z.object({
+  desde: z.string().refine(isValidDateString, 'La fecha "desde" no es válida').optional(),
+  hasta: z.string().refine(isValidDateString, 'La fecha "hasta" no es válida').optional(),
+  page: z.string().regex(/^\d+$/, 'El parámetro page debe ser un número entero positivo').optional(),
+  limit: z.string().regex(/^\d+$/, 'El parámetro limit debe ser un número entero positivo').optional(),
+  usuarioId: z.string().optional(),
+  proveedorId: z.string().optional(),
+  productoId: z.string().optional(),
+  tipo: z.string().optional(),
+  fecha: z.string().refine(isValidDateString, 'La fecha no es válida').optional(),
+  search: z.string().optional(),
+  categoriaId: z.string().optional(),
+  lowStock: z.string().optional(),
+  includeInactive: z.string().optional(),
+  all: z.string().optional(),
+  force: z.string().optional(),
+});
+
+export const idParamSchema = z.object({
+  id: z.string().min(1, 'El identificador no puede estar vacío'),
+});
+

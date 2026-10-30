@@ -61,6 +61,17 @@ export const errorHandler = (
     return;
   }
 
+  // Prisma foreign key violation (e.g. P2003)
+  if (err.code === 'P2003') {
+    logger.warn('Prisma P2003 Violación de clave foránea', context);
+    res.status(409).json({
+      success: false,
+      code: 'CONFLICTO',
+      message: 'No se puede completar la operación debido a dependencias con otros registros relacionados.',
+    });
+    return;
+  }
+
   // Prisma record not found (e.g. P2025)
   if (err.code === 'P2025') {
     logger.warn(`Prisma P2025 Registro no encontrado`, context);
