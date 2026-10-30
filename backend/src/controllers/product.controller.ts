@@ -44,15 +44,16 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       take = limitNum;
     }
 
-    // Cuando se solicita todo el catálogo (all=true) solo se proyectan los campos
-    // que usa el POS/offline para reducir la carga de red y mejorar p95.
-    const posSelect = all === 'true'
+    // Proyección optimizada tanto para all=true como para includeInactive=false (ruta real de sincronización PWA)
+    const isLeanCatalog = all === 'true' || includeInactive === 'false';
+    const posSelect = isLeanCatalog
       ? {
           id: true,
           nombre: true,
           sku: true,
           codigoBarras: true,
           precioVenta: true,
+          costo: true,
           stock: true,
           stockMinimo: true,
           imagenUrl: true,

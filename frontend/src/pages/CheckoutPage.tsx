@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Check,
@@ -10,17 +10,12 @@ import {
   Phone,
   Mail,
   User,
-  Calendar,
   Sparkles,
-  BadgePercent,
   CheckCircle2,
   Copy,
-  FileText,
   QrCode,
   Printer,
   ChevronRight,
-  HelpCircle,
-  Clock,
   Landmark,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -120,7 +115,6 @@ const BANK_ACCOUNTS = [
 
 export const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   // Plan selection from query param
@@ -152,7 +146,6 @@ export const CheckoutPage: React.FC = () => {
   // Bank Transfer details
   const [selectedBankId, setSelectedBankId] = useState('bac');
   const [transferReference, setTransferReference] = useState('');
-  const [voucherFile, setVoucherFile] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
 
   // Discount code

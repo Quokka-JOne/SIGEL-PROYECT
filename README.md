@@ -101,23 +101,25 @@ Todas las rutas están bajo el prefijo `/api`. Las respuestas de error de negoci
 | `GET` | `/products/:id` | Autenticado | Params: `id` | `{"success": true, "data": {"id": "...", "nombre": "Cuaderno", ...}}` | `401`, `404` (producto inexistente) |
 | `POST` | `/products` | `ADMINISTRADOR` | Body: `{ nombre, precioVenta, costo, stock, stockMinimo, categoriaId, codigoBarras?, sku?, unidadMedida? }` | `{"success": true, "data": {...}}` | `400` (validación Zod), `401`, `403` (rol insuficiente), `409` (código de barra duplicado) |
 | `PUT` | `/products/:id` | `ADMINISTRADOR` | Params: `id`, Body: campos a actualizar | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
-| `PATCH` | `/products/:id/toggle` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}, "message": "Producto activado/desactivado correctamente."}` | `401`, `403`, `404` |
+| `PATCH` | `/products/:id/status` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}, "message": "Producto activado/desactivado correctamente."}` | `401`, `403`, `404` |
 | `DELETE` | `/products/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Producto eliminado permanentemente del sistema."}` | `400` (si tiene ventas/compras históricas: se desactiva), `401`, `403`, `404` |
-| `POST` | `/products/adjust-stock` | `ADMINISTRADOR` | Body: `{ productoId, cantidad, motivo }` | `{"success": true, "data": {"product": {...}, "movement": {...}}}` | `400` (cantidad 0 o motivo vacío, stock negativo resultante), `401`, `403`, `404` |
+| `POST` | `/products/adjust` | `ADMINISTRADOR` | Body: `{ productoId, cantidad, motivo }` | `{"success": true, "data": {"product": {...}, "movement": {...}}}` | `400` (cantidad 0 o motivo vacío, stock negativo resultante), `401`, `403`, `404` |
 | `GET` | `/products/movements` | Autenticado | Query: `productoId`, `tipo`, `desde`, `hasta`, `page`, `limit` | `{"success": true, "data": [...], "pagination": {...}}` | `401` |
-| `POST` | `/sales` | Autenticado | Body: `{ detalles: [{ productoId, cantidad, precioUnitario?, subtotal? }], metodoPago, montoPagadoNIO?, montoPagadoUSD?, cambioNIO?, offlineId? }` | `{"success": true, "data": {"id": "...", "numeroComprobante": "FAC-2026-00001", "total": 150.0}}` | `400` (`STOCK_INSUFICIENTE`), `401`, `409` (offlineId duplicado) |
+| `POST` | `/sales` | Autenticado | Body: `{ detalles: [{ productoId, cantidad, precioUnitario?, subtotal? }], metodoPago, montoPagadoNIO?, montoPagadoUSD?, cambioNIO?, offlineId? }` | `{"success": true, "data": {"id": "...", "numeroComprobante": "FAC-2026-00001", "total": 150.0}}` | `200` si `offlineId` ya existe (idempotencia), `400` (`STOCK_INSUFICIENTE`), `401` |
 | `GET` | `/sales` | Autenticado | Query: `desde`, `hasta` (YYYY-MM-DD), `page`, `limit`, `cajeroId` | `{"success": true, "data": [...], "pagination": {...}}` | `400` (fechas inválidas), `401` |
 | `PATCH` | `/sales/:id/anular` | `ADMINISTRADOR` | Params: `id`, Body: `{ motivo }` | `{"success": true, "message": "Venta anulada exitosamente y stock restaurado en Kardex."}` | `400` (venta ya anulada o motivo <3 chars), `401`, `403`, `404` |
 | `GET` | `/sales/stats` | Autenticado | Ninguno | `{"success": true, "data": {"ventasHoy": 1250, "stockBajo": 3, ...}}` | `401` |
-| `GET` | `/categories` | Autenticado | Query: `includeInactive=true/false` | `{"success": true, "data": [{"id": "...", "nombre": "Papelaría"}]}` | `401` |
+| `GET` | `/categories` | Autenticado | Query: `includeInactive=true/false` | `{"success": true, "data": [{"id": "...", "nombre": "Papelería"}]}` | `401` |
 | `POST` | `/categories` | `ADMINISTRADOR` | Body: `{ nombre, descripcion? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403` |
 | `PUT` | `/categories/:id` | `ADMINISTRADOR` | Params: `id`, Body: `{ nombre, descripcion? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
-| `PATCH` | `/categories/:id/toggle` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}}` | `401`, `403`, `404` |
+| `PATCH` | `/categories/:id/status` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}}` | `401`, `403`, `404` |
 | `GET` | `/suppliers` | `ADMINISTRADOR` | Ninguno | `{"success": true, "data": [...]}` | `401`, `403` |
 | `POST` | `/suppliers` | `ADMINISTRADOR` | Body: `{ nombre, ruc?, telefono?, email?, direccion? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` |
 | `PUT` | `/suppliers/:id` | `ADMINISTRADOR` | Params: `id`, Body: campos a actualizar | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
+| `PATCH` | `/suppliers/:id/status` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}}` | `401`, `403`, `404` |
 | `GET` | `/purchases` | `ADMINISTRADOR` | Query: `desde`, `hasta`, `proveedorId` | `{"success": true, "data": [...]}` | `400`, `401`, `403` |
 | `POST` | `/purchases` | `ADMINISTRADOR` | Body: `{ proveedorId, detalles: [{ productoId, cantidad, costoUnitario }] }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` (P2003 proveedor inexistente) |
+| `PATCH` | `/purchases/:id/anular` | `ADMINISTRADOR` | Params: `id`, Body: `{ motivo }` | `{"success": true, "message": "Compra anulada correctamente y stock descontado."}` | `400`, `401`, `403`, `404` |
 | `GET` | `/users` | `ADMINISTRADOR` | Ninguno | `{"success": true, "data": [...]}` | `401`, `403` |
 | `POST` | `/users` | `ADMINISTRADOR` | Body: `{ nombre, email, password, rol }` | `{"success": true, "data": {...}}` | `400` (password <8 chars), `401`, `403`, `409` |
 | `PATCH` | `/users/:id/status` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "data": {...}, "message": "Estado del usuario actualizado correctamente."}` | `400` (auto-desactivación no permitida), `401`, `403`, `404` |

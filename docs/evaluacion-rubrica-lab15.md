@@ -29,20 +29,21 @@
 ## Cambios implementados en esta sesión
 
 ### Rendimiento
-- `GET /api/products?all=true` ahora usa proyección Prisma con `select` de solo los campos necesarios para el POS (`id`, `nombre`, `sku`, `codigoBarras`, `precioVenta`, `stock`, `stockMinimo`, `imagenUrl`, `unidadMedida`, `estado`, `categoriaId`, `categoria`). Reduce el payload y el tiempo de serialización.
+- `GET /api/products?includeInactive=false` (ruta real de sincronización offline) y `all=true` ahora usan proyección optimizada con `select` de los campos requeridos (`id`, `nombre`, `sku`, `codigoBarras`, `precioVenta`, `costo`, `stock`, `stockMinimo`, `imagenUrl`, `unidadMedida`, `estado`, `categoriaId`, `categoria`).
+- Se optimizó el pool de conexiones de Prisma hacia el Neon Pooler con `connection_limit=20&pool_timeout=20` para descongestionar la cola de latencia bajo concurrencia.
+- El script de prueba de carga ahora desglosa la latencia interna del servidor (`durationMs` obtenido vía `/api/logs`) vs la latencia de tránsito de red transfronteriza (Nicaragua ↔ Ohio).
 
-### Funcionalidad — BUG-04 (fix definitivo)
-- El número de comprobante (`FAC-YYYY-NNNNN`) ahora se genera con una **secuencia nativa de PostgreSQL** (`CREATE SEQUENCE IF NOT EXISTS ... / SELECT nextval(...)`) dentro de la transacción. Elimina la condición de carrera del método anterior (`count()+1`) sin necesitar reintentos en bucle.
+### Funcionalidad — BUG-04 (secuencia atómica y sincronizada)
+- La secuencia PostgreSQL (`venta_comprobante_seq_YYYY`) se crea e inicializa fuera del flujo de ventas (al arrancar el servidor en `ensureComprobanteSequence`), ejecutando `setval` al correlativo máximo existente para evitar arrancar en 1 y no generar carreras de DDL.
+- La transacción de venta únicamente ejecuta `nextval`, garantizando atomicidad pura sin reintentos innecesarios.
 
 ### CI / TypeScript
-- El paso de verificación de tipos del frontend usa `npx tsc --noEmit` junto con el linter para asegurar tipado estricto sin emitir artefactos intermediarios.
+- El paso de verificación de tipos del frontend usa `npx tsc -b` (composite build), habiendo corregido las variables e importaciones no utilizadas en `CheckoutPage.tsx`.
 
-### Seguridad
-- `INITIAL_ADMIN_PASSWORD` en `.env.example` queda vacío para evitar que nuevos colaboradores desplieguen con contraseñas públicamente conocidas.
-
-### Documentación
-- Tabla de endpoints completa: se agregaron `/auth/verify`, `/auth/me`, `PUT /categories/:id`, `PATCH /categories/:id/toggle`, `POST /products/adjust-stock`, `GET /products/movements`, `PATCH /products/:id/toggle`, `PUT /suppliers/:id` y se reubicó `/sales/stats`.
-- Descripción de `requestId` corregida: aparece en errores de solicitudes HTTP; no está garantizado en errores de arranque.
+### Documentación (README)
+- Nombres de rutas corregidos a los endpoints reales: `PATCH /products/:id/status`, `POST /products/adjust`, `PATCH /categories/:id/status`, `PATCH /suppliers/:id/status`, `PATCH /purchases/:id/anular`.
+- Corregida la descripción de idempotencia ante `offlineId` repetido (responde `200 OK` con la venta existente).
+- Corregida la errata tipográfica «Papelería».
 
 ---
 

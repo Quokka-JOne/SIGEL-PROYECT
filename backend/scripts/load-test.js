@@ -177,21 +177,62 @@ async function main() {
   const t1Sec = (Date.now() - t1Start) / 1000;
   const rep1 = printReport('Endpoint de Salud (/api/health)', `${baseUrl}/api/health`, healthResults, t1Sec);
 
-  // 3. Medición 2: /api/products?all=true (Endpoint real de datos) o /api
+  // 3. Medición 2: /api/products?includeInactive=false (Ruta real de sincronización offline de la app)
   const token = process.env.AUTH_TOKEN;
   let rep2;
+  const targetDataRoute = '/api/products?includeInactive=false';
   if (token) {
-    console.log('\n⚡ Ejecutando 50 solicitudes a /api/products?all=true con token (concurrencia 10)...');
+    console.log(`\n⚡ Ejecutando 50 solicitudes a ${targetDataRoute} con token (concurrencia 10)...`);
     const t2Start = Date.now();
-    const dataResults = await runConcurrentBatch('' + baseUrl + '/api/products?all=true', 50, 10, { Authorization: 'Bearer ' + token });
+    const dataResults = await runConcurrentBatch(`${baseUrl}${targetDataRoute}`, 50, 10, { Authorization: `Bearer ${token}` });
     const t2Sec = (Date.now() - t2Start) / 1000;
-    rep2 = printReport('Catálogo con BD y Auth (/api/products?all=true)', baseUrl + '/api/products?all=true', dataResults, t2Sec);
+    rep2 = printReport('Sincronización Catálogo Real (/api/products?includeInactive=false)', `${baseUrl}${targetDataRoute}`, dataResults, t2Sec);
+
+    // 4. Separación de Red vs Servidor mediante GET /api/logs
+    try {
+      console.log('\n🔍 Consultando GET /api/logs para desglosar tiempo interno del servidor (durationMs)...');
+      const logsRes = await requestAsync(`${baseUrl}/api/logs?limit=100`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (logsRes.ok && logsRes.status === 200) {
+        const logData = JSON.parse(logsRes.body);
+        if (logData && Array.isArray(logData.data)) {
+          const productDurations = logData.data
+            .filter((l) => l.context && l.context.url && l.context.url.includes('/api/products') && typeof l.context.durationMs === 'number')
+            .map((l) => l.context.durationMs)
+            .sort((a, b) => a - b);
+
+          if (productDurations.length > 0) {
+            const sMin = productDurations[0];
+            const sMax = productDurations[productDurations.length - 1];
+            const sAvg = productDurations.reduce((a, b) => a + b, 0) / productDurations.length;
+            const sP50 = calculatePercentile(productDurations, 50);
+            const sP95 = calculatePercentile(productDurations, 95);
+
+            console.log('\n================================================================');
+            console.log('🖥️  DESGLOSE DEL SERVIDOR EN RENDER (durationMs interno Node.js + DB)');
+            console.log(`📋 Muestras de auditoría analizadas: ${productDurations.length} peticiones recientes`);
+            console.log('----------------------------------------------------------------');
+            console.log(`⚡ Servidor Latencia Min:           ${sMin.toFixed(2)} ms`);
+            console.log(`⚡ Servidor Latencia Mediana (p50): ${sP50.toFixed(2)} ms`);
+            console.log(`⚡ Servidor Latencia Media:         ${sAvg.toFixed(2)} ms`);
+            console.log(`⚡ Servidor Latencia p95:           ${sP95.toFixed(2)} ms  ${sP95 < 200 ? '✅ (Excelente en servidor < 200ms)' : sP95 < 500 ? '✅ (Cumple < 500ms)' : '⚠️'}`);
+            console.log(`⚡ Servidor Latencia Max:           ${sMax.toFixed(2)} ms`);
+            console.log('----------------------------------------------------------------');
+            console.log(`🌐 Latencia de Red Estimada (RTT):  ~${(rep2.avg - sAvg).toFixed(2)} ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)`);
+            console.log('================================================================');
+          }
+        }
+      }
+    } catch (logErr) {
+      console.warn('Nota: No se pudo consultar /api/logs:', logErr.message);
+    }
   } else {
     console.log('\n⚡ Ejecutando 50 solicitudes a /api (concurrencia 10)...');
     const t2Start = Date.now();
-    const apiResults = await runConcurrentBatch(baseUrl + '/api', 50, 10);
+    const apiResults = await runConcurrentBatch(`${baseUrl}/api`, 50, 10);
     const t2Sec = (Date.now() - t2Start) / 1000;
-    rep2 = printReport('Endpoint Catálogo Informativo (/api)', baseUrl + '/api', apiResults, t2Sec);
+    rep2 = printReport('Endpoint Catálogo Informativo (/api)', `${baseUrl}/api`, apiResults, t2Sec);
   }
 
   const totalNon2xx = rep1.errorsNon2xx + rep2.errorsNon2xx;
@@ -200,7 +241,7 @@ async function main() {
     console.error(`\n❌ La prueba falló: se registraron ${totalNon2xx} respuestas fuera del rango 2xx (incluyendo ${rep1.errors5xx + rep2.errors5xx} errores 5xx).`);
     process.exit(1);
   } else if (anyP95OverThreshold) {
-    console.log('\n⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 superó el umbral estricto de 500 ms (Rendimiento Regular).');
+    console.log('\n⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 global superó el umbral estricto de 500 ms (Rendimiento Regular por latencia de red transfronteriza).');
     process.exit(0);
   } else {
     console.log('\n✅ Prueba de carga óptima: 100% respuestas 2xx, 0 caídas y latencia p95 < 500ms en todos los endpoints.');

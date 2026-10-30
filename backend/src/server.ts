@@ -256,12 +256,47 @@ const ensureInitialData = async () => {
           create: { ...prod },
         });
       }
-      console.log('✅ Catálogo inicial listo.');
     }
+
+    // 4. BUG-04: Inicializar y sincronizar la secuencia PostgreSQL de comprobantes fuera de la ruta de venta
+    await ensureComprobanteSequence();
   } catch (err: any) {
     console.warn('⚠️ [Init] Auto-seed omitido o error:', err.message);
   }
 };
+
+export async function ensureComprobanteSequence(): Promise<void> {
+  try {
+    const currentYear = new Date().getFullYear();
+    const seqName = `venta_comprobante_seq_${currentYear}`;
+    
+    // Crear la secuencia fuera del flujo de ventas si aún no existe
+    await prisma.$executeRawUnsafe(
+      `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
+    );
+
+    // Obtener el máximo número correlativo existente para no reiniciar en 1 si ya hay ventas
+    const maxSales = await prisma.$queryRawUnsafe<Array<{ max_num: number | null }>>(
+      `SELECT MAX(
+        CAST(
+          SUBSTRING("numeroComprobante" FROM 'FAC-[0-9]{4}-([0-9]+)') AS INTEGER
+        )
+      ) AS max_num 
+      FROM "Venta" 
+      WHERE "numeroComprobante" LIKE 'FAC-${currentYear}-%'`
+    );
+
+    const maxNum = maxSales?.[0]?.max_num ? Number(maxSales[0].max_num) : 0;
+    if (maxNum > 0) {
+      await prisma.$executeRawUnsafe(
+        `SELECT setval('"${seqName}"', ${maxNum}, true)`
+      );
+    }
+    logger.info(`Secuencia ${seqName} lista (iniciada en ${maxNum > 0 ? maxNum : 1})`);
+  } catch (err: any) {
+    logger.warn('Aviso: no se pudo sincronizar la secuencia PostgreSQL de comprobantes:', { error: err.message });
+  }
+}
 
 // Arrancar servidor solo si no estamos en entorno de testing
 if (process.env.NODE_ENV !== 'test') {
