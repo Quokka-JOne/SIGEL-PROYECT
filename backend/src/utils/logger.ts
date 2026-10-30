@@ -94,15 +94,33 @@ class Logger {
   }
 
   /**
-   * Obtiene los últimos logs guardados en archivo para demostración de auditoría
+   * FASE 3: Obtiene los últimos logs de forma asíncrona leyendo solo el final del archivo
    */
-  getRecentLogs(limit: number = 50, type: 'all' | 'error' = 'all'): LogEntry[] {
+  async getRecentLogs(limit: number = 50, type: 'all' | 'error' = 'all'): Promise<LogEntry[]> {
     const targetFile = type === 'error' ? ERROR_LOG : COMBINED_LOG;
-    if (!fs.existsSync(targetFile)) {
+    try {
+      await fs.promises.access(targetFile);
+    } catch {
       return [];
     }
+
     try {
-      const content = fs.readFileSync(targetFile, 'utf8');
+      const stat = await fs.promises.stat(targetFile);
+      if (stat.size === 0) return [];
+
+      // Leer máximo los últimos 64 KB para evitar cargar archivos gigantes
+      const chunkSize = Math.min(stat.size, 64 * 1024);
+      const position = stat.size - chunkSize;
+      const buffer = Buffer.alloc(chunkSize);
+
+      const fileHandle = await fs.promises.open(targetFile, 'r');
+      try {
+        await fileHandle.read(buffer, 0, chunkSize, position);
+      } finally {
+        await fileHandle.close();
+      }
+
+      const content = buffer.toString('utf8');
       const lines = content.trim().split('\n').filter(Boolean);
       return lines
         .slice(-limit)

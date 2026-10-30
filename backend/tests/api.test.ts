@@ -16,6 +16,10 @@ vi.mock('../src/config/prisma', () => {
         findMany: vi.fn(),
         updateMany: vi.fn(),
         findUnique: vi.fn(),
+        count: vi.fn(),
+        fields: {
+          stockMinimo: 'stockMinimo',
+        },
       },
       usuario: {
         findUnique: vi.fn(),
@@ -36,6 +40,7 @@ vi.mock('../src/config/prisma', () => {
         findMany: vi.fn(),
       },
       $transaction: vi.fn(),
+      $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
     },
   };
 });
@@ -509,6 +514,55 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(res.status).toBe(409);
       expect(res.body.code).toBe('CONFLICTO');
       expect(res.body.message).toBe('No se puede completar la operación debido a dependencias con otros registros relacionados.');
+    });
+  });
+
+  describe('FASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente', () => {
+    it('GET /api/products con page y limit devuelve metadata de paginación', async () => {
+      (prisma.producto.findMany as any).mockResolvedValue([
+        { id: 'p1', nombre: 'Cuaderno', sku: 'C-01', precioVenta: 50, stock: 10, stockMinimo: 5, estado: true },
+      ]);
+      (prisma.producto.count as any).mockResolvedValue(15);
+
+      const res = await request(app)
+        .get('/api/products?page=1&limit=5')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.pagination).toBeDefined();
+      expect(res.body.pagination.page).toBe(1);
+      expect(res.body.pagination.limit).toBe(5);
+      expect(res.body.pagination.total).toBe(15);
+      expect(res.body.pagination.totalPages).toBe(3);
+    });
+
+    it('GET /api/products con all=true no pagina y devuelve catálogo completo (modo offline)', async () => {
+      (prisma.producto.findMany as any).mockResolvedValue([
+        { id: 'p1', nombre: 'Cuaderno', sku: 'C-01', precioVenta: 50, stock: 10, stockMinimo: 5, estado: true },
+        { id: 'p2', nombre: 'Lapicero', sku: 'L-01', precioVenta: 15, stock: 20, stockMinimo: 5, estado: true },
+      ]);
+
+      const res = await request(app)
+        .get('/api/products?all=true&limit=1')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.length).toBe(2);
+      expect(res.body.pagination).toBeUndefined();
+    });
+
+    it('GET /api/health devuelve 503 si la base de datos no responde (simulando timeout o caída)', async () => {
+      (prisma.$queryRaw as any).mockRejectedValue(new Error('Connection terminated'));
+
+      const res = await request(app).get('/api/health');
+
+      expect(res.status).toBe(503);
+      expect(res.body.success).toBe(false);
+      expect(res.body.status).toBe('unhealthy');
+      expect(res.body.message).toContain('base de datos');
     });
   });
 });

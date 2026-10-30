@@ -55,9 +55,25 @@ app.use(express.json());
 // Fase 6: Middleware de logging estructurado JSON con latencias y estado HTTP
 app.use(requestLogger);
 
-// CP-01: Health check seguro y multiruta (/api/health, /health, /status)
-const healthHandler = (req: Request, res: Response) => {
-  res.json({
+// CP-01 & FASE 3: Health check con chequeo ligero de base de datos (SELECT 1 con timeout de 2s)
+const healthHandler = async (req: Request, res: Response) => {
+  try {
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000)),
+    ]);
+  } catch (err: any) {
+    logger.warn('Health check: Base de datos no disponible o demoró más de 2 segundos', { error: err.message });
+    res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      message: 'El servicio de base de datos no se encuentra disponible temporalmente.',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  res.status(200).json({
     success: true,
     message: 'Servidor JINStock Backend operativo',
     status: 'healthy',
@@ -93,11 +109,11 @@ app.get('/api', (req: Request, res: Response) => {
   });
 });
 
-// Fase 6 (Monitoreo y logs): Endpoint de auditoría técnica para coevaluación
-app.get('/api/logs', authenticateToken, requireRole(['ADMINISTRADOR']), (req: Request, res: Response) => {
+// Fase 6 (Monitoreo y logs): Endpoint de auditoría técnica para coevaluación (asíncrono)
+app.get('/api/logs', authenticateToken, requireRole(['ADMINISTRADOR']), async (req: Request, res: Response) => {
   const limit = Math.min(Number(req.query.limit) || 30, 100);
   const type = req.query.type === 'error' ? 'error' : 'all';
-  const logs = logger.getRecentLogs(limit, type);
+  const logs = await logger.getRecentLogs(limit, type);
 
   res.json({
     success: true,

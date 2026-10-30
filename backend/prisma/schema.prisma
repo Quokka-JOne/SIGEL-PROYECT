@@ -81,6 +81,10 @@ model Producto {
   detallesCompra DetalleCompra[]
   detallesVenta  DetalleVenta[]
   movimientos    MovimientoInventario[]
+
+  @@index([categoriaId])
+  @@index([estado])
+  @@index([nombre])
 }
 
 model Proveedor {
@@ -111,6 +115,10 @@ model Compra {
   updatedAt     DateTime     @updatedAt
 
   detalles DetalleCompra[]
+
+  @@index([fecha])
+  @@index([usuarioId])
+  @@index([proveedorId])
 }
 
 model DetalleCompra {
@@ -142,6 +150,10 @@ model Venta {
   updatedAt         DateTime    @updatedAt
 
   detalles DetalleVenta[]
+
+  @@index([fecha])
+  @@index([usuarioId])
+  @@index([estado])
 }
 
 model DetalleVenta {
@@ -168,4 +180,8 @@ model MovimientoInventario {
   motivo        String
   referenciaId  String?
   fecha         DateTime       @default(now())
+
+  @@index([productoId])
+  @@index([usuarioId])
+  @@index([fecha])
 }

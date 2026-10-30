@@ -4,7 +4,7 @@ import { ValidationError, NotFoundError, ForbiddenError } from '../utils/errors'
 
 export const getProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { search, categoriaId, lowStock, includeInactive } = req.query;
+    const { search, categoriaId, lowStock, includeInactive, page, limit, all } = req.query;
 
     const where: any = {};
 
@@ -25,15 +25,35 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       ];
     }
 
-    let products = await prisma.producto.findMany({
-      where,
-      include: { categoria: { select: { id: true, nombre: true } } },
-      orderBy: { nombre: 'asc' },
-    });
-
+    // FASE 3: Filtro lowStock ejecutado en la base de datos (evita cargar todo a memoria)
     if (lowStock === 'true') {
-      products = products.filter((p) => p.stock <= p.stockMinimo);
+      where.stock = { lte: prisma.producto.fields.stockMinimo };
     }
+
+    // FASE 3: Paginación opcional con tope de 100 preservando compatibilidad offline (all=true o sin paginar)
+    const isPaginated = (page !== undefined || limit !== undefined) && all !== 'true';
+    let skip: number | undefined;
+    let take: number | undefined;
+    let pageNum = 1;
+    let limitNum = 50;
+
+    if (isPaginated) {
+      pageNum = Math.max(1, parseInt(String(page || '1'), 10) || 1);
+      limitNum = Math.min(100, Math.max(1, parseInt(String(limit || '50'), 10) || 50));
+      skip = (pageNum - 1) * limitNum;
+      take = limitNum;
+    }
+
+    const [products, totalCount] = await Promise.all([
+      prisma.producto.findMany({
+        where,
+        include: { categoria: { select: { id: true, nombre: true } } },
+        orderBy: { nombre: 'asc' },
+        ...(skip !== undefined ? { skip } : {}),
+        ...(take !== undefined ? { take } : {}),
+      }),
+      isPaginated ? prisma.producto.count({ where }) : Promise.resolve(0),
+    ]);
 
     const formatted = products.map((p) => ({
       ...p,
@@ -43,6 +63,16 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
     res.json({
       success: true,
       data: formatted,
+      ...(isPaginated
+        ? {
+            pagination: {
+              page: pageNum,
+              limit: limitNum,
+              total: totalCount,
+              totalPages: Math.ceil(totalCount / limitNum),
+            },
+          }
+        : {}),
       message: 'Catálogo de productos obtenido correctamente.',
     });
   } catch (error) {
