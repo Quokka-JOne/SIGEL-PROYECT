@@ -44,6 +44,8 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       take = limitNum;
     }
 
+    const isAdmin = req.user?.rol === 'ADMINISTRADOR';
+
     // Proyección optimizada tanto para all=true como para includeInactive=false (ruta real de sincronización PWA)
     const isLeanCatalog = all === 'true' || includeInactive === 'false';
     const posSelect = isLeanCatalog
@@ -53,7 +55,7 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
           sku: true,
           codigoBarras: true,
           precioVenta: true,
-          costo: true,
+          ...(isAdmin ? { costo: true } : {}),
           stock: true,
           stockMinimo: true,
           imagenUrl: true,
@@ -81,10 +83,16 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       isPaginated ? prisma.producto.count({ where }) : Promise.resolve(0),
     ]);
 
-    const formatted = products.map((p) => ({
-      ...p,
-      categoriaNombre: (p as any).categoria?.nombre || 'General',
-    }));
+    const formatted = products.map((p) => {
+      const prodObj = { ...p } as any;
+      if (!isAdmin) {
+        delete prodObj.costo;
+      }
+      return {
+        ...prodObj,
+        categoriaNombre: (p as any).categoria?.nombre || 'General',
+      };
+    });
 
     res.json({
       success: true,

@@ -1,0 +1,33 @@
+================================================================
+AUDITORIA DE LOGS CON IP PUBLICA (BUG-05) Y TYPE=ERROR
+Servidor: https://jinstock-proyect.onrender.com/api/logs?limit=10&type=error
+================================================================
+
+HTTP/2 200 
+date: Fri, 30 Oct 2026 22:57:57 GMT
+content-type: application/json; charset=utf-8
+access-control-allow-credentials: true
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+etag: W/"ded-43IV1G1nBhMcpoqTtrOFwSTG/7k"
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+rndr-id: c60e7cf5-114f-485e
+server: cloudflare
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-render-origin-server: Render
+x-request-id: d4c05ebf-bacf-438c-8252-21015bbf4129
+x-xss-protection: 0
+cf-cache-status: DYNAMIC
+cf-ray: a52e059c2db4139c-GUA
+alt-svc: h3=":443"; ma=86400
+
+{"success":true,"count":10,"filter":"error","data":[{"timestamp":"2026-10-30T22:57:37.828Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: nombre: Required, email: Required, password: Required","requestId":"4af8caaf-e806-48fb-82a6-1bcab92b6f63","context":{"requestId":"4af8caaf-e806-48fb-82a6-1bcab92b6f63","method":"POST","url":"/api/auth/register","ip":"162.158.82.146"}},{"timestamp":"2026-10-30T22:57:37.829Z","level":"WARN","message":"HTTP POST /api/auth/register 400 (1ms)","requestId":"4af8caaf-e806-48fb-82a6-1bcab92b6f63","context":{"requestId":"4af8caaf-e806-48fb-82a6-1bcab92b6f63","method":"POST","url":"/api/auth/register","status":400,"durationMs":1,"ip":"138.97.161.66","userAgent":"curl/8.23.0"}},{"timestamp":"2026-10-30T22:57:38.391Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: page: page debe ser un entero positivo, page: page debe ser un entero positivo seguro","requestId":"3329a022-1105-4061-9841-c0bf88e73d27","context":{"requestId":"3329a022-1105-4061-9841-c0bf88e73d27","method":"GET","url":"/api/products?page=invalido","ip":"162.158.82.146"}},{"timestamp":"2026-10-30T22:57:38.392Z","level":"WARN","message":"HTTP GET /api/products?page=invalido 400 (2ms)","requestId":"3329a022-1105-4061-9841-c0bf88e73d27","context":{"requestId":"3329a022-1105-4061-9841-c0bf88e73d27","method":"GET","url":"/api/products?page=invalido","status":400,"durationMs":2,"ip":"138.97.161.66","userAgent":"curl/8.23.0"}},{"timestamp":"2026-10-30T22:57:38.864Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: email: Correo electrónico no válido, password: La contraseña debe tener al menos 8 caracteres","requestId":"d9528aa1-02ae-4172-9597-59ff9a6f5de4","context":{"requestId":"d9528aa1-02ae-4172-9597-59ff9a6f5de4","method":"POST","url":"/api/auth/register","ip":"172.71.151.235"}},{"timestamp":"2026-10-30T22:57:38.864Z","level":"WARN","message":"HTTP POST /api/auth/register 400 (1ms)","requestId":"d9528aa1-02ae-4172-9597-59ff9a6f5de4","context":{"requestId":"d9528aa1-02ae-4172-9597-59ff9a6f5de4","method":"POST","url":"/api/auth/register","status":400,"durationMs":1,"ip":"138.97.161.66","userAgent":"curl/8.23.0"}},{"timestamp":"2026-10-30T22:57:39.266Z","level":"WARN","message":"AppWarning [NO_ENCONTRADO]: Producto no encontrado.","requestId":"176494b3-5bee-4f9c-8618-94e9bb7b1520","context":{"requestId":"176494b3-5bee-4f9c-8618-94e9bb7b1520","method":"GET","url":"/api/products/00000000-0000-0000-0000-000000000000","ip":"172.71.151.24"}},{"timestamp":"2026-10-30T22:57:39.267Z","level":"WARN","message":"HTTP GET /api/products/00000000-0000-0000-0000-000000000000 404 (112ms)","requestId":"176494b3-5bee-4f9c-8618-94e9bb7b1520","context":{"requestId":"176494b3-5bee-4f9c-8618-94e9bb7b1520","method":"GET","url":"/api/products/00000000-0000-0000-0000-000000000000","status":404,"durationMs":112,"ip":"138.97.161.66","userAgent":"curl/8.23.0"}},{"timestamp":"2026-10-30T22:57:47.885Z","level":"WARN","message":"AppWarning [NO_AUTORIZADO]: Credenciales inválidas. Verifique su correo o contraseña.","requestId":"8bbb1ce1-82f1-4d1f-bd09-0e8b2d77d383","context":{"requestId":"8bbb1ce1-82f1-4d1f-bd09-0e8b2d77d383","method":"POST","url":"/api/auth/login","ip":"162.158.82.146"}},{"timestamp":"2026-10-30T22:57:47.886Z","level":"WARN","message":"HTTP POST /api/auth/login 401 (530ms)","requestId":"8bbb1ce1-82f1-4d1f-bd09-0e8b2d77d383","context":{"requestId":"8bbb1ce1-82f1-4d1f-bd09-0e8b2d77d383","method":"POST","url":"/api/auth/login","status":401,"durationMs":530,"ip":"138.97.161.67","userAgent":"curl/8.23.0"}}]}

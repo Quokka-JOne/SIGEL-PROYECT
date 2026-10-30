@@ -1,0 +1,29 @@
+HTTP/2 200 
+date: Fri, 30 Oct 2026 22:56:31 GMT
+content-type: application/json; charset=utf-8
+access-control-allow-credentials: true
+cache-control: no-store
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+etag: W/"a9-V8/t00XpNO6rS0Fj8CZ4ToAci0E"
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+rndr-id: 72475b16-9807-496b
+server: cloudflare
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-render-origin-server: Render
+x-request-id: 390fd454-f1f3-4f9e-b8f7-d75d08cd89bf
+x-xss-protection: 0
+cf-cache-status: DYNAMIC
+cf-ray: a52e037c3c8031c7-GUA
+alt-svc: h3=":443"; ma=86400
+
+{"success":true,"message":"Servidor JINStock Backend operativo","status":"healthy","timestamp":"2026-10-30T22:56:31.390Z","environment":"production","uptimeSeconds":522}
