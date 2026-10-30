@@ -87,3 +87,12 @@ jobs:
           test -f frontend/dist/_headers
           grep -q "Content-Security-Policy" frontend/dist/_headers
           grep -q "X-Frame-Options: DENY" frontend/dist/_headers
+          if grep -Eq "script-src[^;]*'unsafe-inline'" frontend/dist/_headers; then
+            echo "::error::La CSP de producción no debe permitir scripts inline"
+            exit 1
+          fi
+          if grep -Eq "connect-src[^;]*http://localhost(:[0-9]+)?" frontend/dist/_headers; then
+            echo "::error::La CSP de producción no debe autorizar localhost"
+            exit 1
+          fi
+          grep -Eq "connect-src[^;]*https://jinstock-proyect.onrender.com" frontend/dist/_headers
