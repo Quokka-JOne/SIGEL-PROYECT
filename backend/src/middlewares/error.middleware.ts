@@ -36,6 +36,19 @@ export const errorHandler = (
     return;
   }
 
+  // JSON malformado o cuerpo demasiado grande (errores de express.json)
+  if (err.type === 'entity.parse.failed' || err.type === 'entity.too.large') {
+    logger.warn(`Cuerpo de solicitud inválido: ${err.type}`, context);
+    res.status(err.type === 'entity.too.large' ? 413 : 400).json({
+      success: false,
+      code: err.type === 'entity.too.large' ? 'PAYLOAD_DEMASIADO_GRANDE' : 'JSON_INVALIDO',
+      message: err.type === 'entity.too.large'
+        ? 'El cuerpo de la solicitud excede el tamaño permitido.'
+        : 'El cuerpo de la solicitud no es un JSON válido.',
+    });
+    return;
+  }
+
   // Prisma unique constraint violation (e.g. P2002)
   if (err.code === 'P2002') {
     const target = Array.isArray(err.meta?.target) ? err.meta.target.join(', ') : 'campo único';

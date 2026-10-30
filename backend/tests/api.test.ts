@@ -299,4 +299,121 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
     // El controlador fuerza el rol a CAJERO y no otorga ADMINISTRADOR a registros públicos
     expect(res.body.data.usuario.rol).toBe('CAJERO');
   });
+
+  describe('FASE 0: Verificaciones del Parche de Seguridad y Resiliencia', () => {
+    it('/api/logs exige token de ADMINISTRADOR (401 sin token, 403 con CAJERO, 200 con ADMINISTRADOR)', async () => {
+      // Sin token -> 401
+      const resNoToken = await request(app).get('/api/logs');
+      expect(resNoToken.status).toBe(401);
+      expect(resNoToken.body.code).toBe('UNAUTHORIZED');
+
+      // Con cajero -> 403
+      const resCajero = await request(app)
+        .get('/api/logs')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+      expect(resCajero.status).toBe(403);
+      expect(resCajero.body.code).toBe('FORBIDDEN');
+
+      // Con admin -> 200
+      const resAdmin = await request(app)
+        .get('/api/logs')
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(resAdmin.status).toBe(200);
+      expect(resAdmin.body.success).toBe(true);
+      expect(Array.isArray(resAdmin.body.data)).toBe(true);
+    });
+
+    it('JSON malformado en body devuelve 400 con code JSON_INVALIDO', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .set('Content-Type', 'application/json')
+        .send('{"email": "invalido",'); // JSON truncado/malformado
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('JSON_INVALIDO');
+      expect(res.body.success).toBe(false);
+    });
+
+    it('Rutas inexistentes devuelven 404 en formato JSON con RUTA_NO_ENCONTRADA', async () => {
+      const res = await request(app).get('/api/ruta-inexistente-aleatoria-xyz');
+      expect(res.status).toBe(404);
+      expect(res.body.code).toBe('RUTA_NO_ENCONTRADA');
+      expect(res.body.success).toBe(false);
+    });
+
+    it('createSale reintenta ante P2002 de numeroComprobante y completa la venta', async () => {
+      (prisma.venta.findUnique as any).mockResolvedValue(null);
+
+      let attempts = 0;
+      (prisma.$transaction as any).mockImplementation(async (callback: any) => {
+        attempts++;
+        if (attempts === 1) {
+          const p2002Err: any = new Error('Unique constraint failed on numeroComprobante');
+          p2002Err.code = 'P2002';
+          p2002Err.meta = { target: ['numeroComprobante'] };
+          throw p2002Err;
+        }
+
+        return {
+          id: 'sale-retry-success',
+          numeroComprobante: 'FAC-2026-00012',
+          total: 50.0,
+          estado: 'COMPLETADA',
+          detalles: [],
+        };
+      });
+
+      const res = await request(app)
+        .post('/api/sales')
+        .set('Authorization', `Bearer ${cajeroToken}`)
+        .send({
+          detalles: [{ productoId: 'prod-001', cantidad: 1 }],
+          metodoPago: 'EFECTIVO',
+          montoPagadoNIO: 50.0,
+        });
+
+      expect(attempts).toBe(2);
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.id).toBe('sale-retry-success');
+    });
+
+    it('createSale responde 200 con la venta existente ante P2002 de offlineId', async () => {
+      const existingSale = {
+        id: 'sale-offline-existing',
+        numeroComprobante: 'FAC-2026-00007',
+        total: 100.0,
+        offlineId: 'offline-uuid-999',
+        estado: 'COMPLETADA',
+        detalles: [],
+      };
+
+      // Primer findUnique antes de la transacción devuelve null (condición de carrera)
+      // Segundo findUnique dentro del catch devuelve la venta que ganó la carrera
+      (prisma.venta.findUnique as any)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(existingSale);
+
+      (prisma.$transaction as any).mockImplementation(async () => {
+        const p2002Err: any = new Error('Unique constraint failed on offlineId');
+        p2002Err.code = 'P2002';
+        p2002Err.meta = { target: ['offlineId'] };
+        throw p2002Err;
+      });
+
+      const res = await request(app)
+        .post('/api/sales')
+        .set('Authorization', `Bearer ${cajeroToken}`)
+        .send({
+          detalles: [{ productoId: 'prod-001', cantidad: 1 }],
+          metodoPago: 'EFECTIVO',
+          offlineId: 'offline-uuid-999',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.id).toBe('sale-offline-existing');
+      expect(res.body.message).toContain('operación idempotente');
+    });
+  });
 });

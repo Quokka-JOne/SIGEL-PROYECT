@@ -153,9 +153,17 @@ export const INITIAL_PRODUCTS = [
 async function seed() {
   console.log('--- Sembrando Datos Reales de Librería y Papelería ---');
 
-  // 1. Usuarios iniciales de prueba (con hashes seguros)
-  const adminHash = await bcrypt.hash('admin123', 10);
-  const cajeroHash = await bcrypt.hash('cajero123', 10);
+  // 1. Usuarios iniciales (con hashes seguros desde variables de entorno)
+  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD;
+  const cajeroPassword = process.env.INITIAL_CAJERO_PASSWORD;
+
+  if (!adminPassword || !cajeroPassword) {
+    console.error('❌ Error: INITIAL_ADMIN_PASSWORD y INITIAL_CAJERO_PASSWORD deben estar definidos en las variables de entorno.');
+    process.exit(1);
+  }
+
+  const adminHash = await bcrypt.hash(adminPassword, 10);
+  const cajeroHash = await bcrypt.hash(cajeroPassword, 10);
 
   const admin = await prisma.usuario.upsert({
     where: { email: 'admin@jinstock.ni' },

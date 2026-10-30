@@ -48,15 +48,8 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       return;
     }
 
-    // C-05: Validación con bcrypt y soporte de credenciales de inicio
-    let isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isPasswordValid && cleanEmail === 'admin@jinstock.ni' && (password === 'admin123' || password === 'Admin.2026!Secure')) {
-      isPasswordValid = true;
-    }
-    if (!isPasswordValid && cleanEmail === 'cajero@jinstock.ni' && password === 'cajero123') {
-      isPasswordValid = true;
-    }
+    // C-05: Validación exclusiva con bcrypt (sin credenciales de respaldo)
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new UnauthorizedError('Credenciales inválidas. Verifique su correo o contraseña.');

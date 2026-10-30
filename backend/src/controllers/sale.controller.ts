@@ -54,7 +54,7 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
     }));
 
     // Ejecución transaccional atómica sin fallback en memoria (C-03 & C-04)
-    const saleResult = await prisma.$transaction(async (tx) => {
+    const runSaleTransaction = () => prisma.$transaction(async (tx) => {
       // C-04 Punto 4: Obtener todos los productos en una sola consulta (evitar N+1)
       const productIds = consolidatedItems.map((i) => i.productoId);
       const dbProducts = await tx.producto.findMany({
@@ -163,6 +163,43 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
 
       return sale;
     });
+
+    // BUG-04: numeroComprobante (count+1) y offlineId son únicos; ante una carrera
+    // la base lanza P2002. Se reintenta con un número nuevo o se devuelve la venta existente.
+    let saleResult: Awaited<ReturnType<typeof runSaleTransaction>>;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        saleResult = await runSaleTransaction();
+        break;
+      } catch (err: any) {
+        const target = Array.isArray(err?.meta?.target)
+          ? err.meta.target.join(',')
+          : String(err?.meta?.target ?? '');
+
+        if (err?.code === 'P2002' && offlineId && target.includes('offlineId')) {
+          const existing = await prisma.venta.findUnique({
+            where: { offlineId },
+            include: {
+              detalles: { include: { producto: { select: { nombre: true, sku: true } } } },
+              usuario: { select: { nombre: true } },
+            },
+          });
+          if (existing) {
+            res.status(200).json({
+              success: true,
+              data: existing,
+              message: 'Venta previamente registrada con este ID offline (operación idempotente).',
+            });
+            return;
+          }
+        }
+
+        if (err?.code === 'P2002' && target.includes('numeroComprobante') && attempt < 5) {
+          continue;
+        }
+        throw err;
+      }
+    }
 
     res.status(201).json({
       success: true,

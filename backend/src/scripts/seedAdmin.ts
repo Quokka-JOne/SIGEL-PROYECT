@@ -5,9 +5,14 @@ import { prisma } from '../config/prisma';
 dotenv.config();
 
 async function seedAdmin() {
-  const adminEmail = process.env.INITIAL_ADMIN_EMAIL || 'admin@jinstock.ni';
-  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Admin.2026!Secure';
+  const adminEmail = process.env.INITIAL_ADMIN_EMAIL;
+  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD;
   const adminName = process.env.INITIAL_ADMIN_NAME || 'Administrador JINStock';
+
+  if (!adminEmail || !adminPassword) {
+    console.error('❌ Error: INITIAL_ADMIN_EMAIL y INITIAL_ADMIN_PASSWORD deben estar definidos en las variables de entorno.');
+    process.exit(1);
+  }
 
   console.log('--- Sembrando Administrador Inicial Seguro ---');
   console.log(`Email: ${adminEmail}`);
@@ -44,9 +49,7 @@ async function seedAdmin() {
   }
 
   console.log('✅ Administrador inicial configurado exitosamente.');
-  console.log(`Credenciales generadas:`);
-  console.log(`Usuario: ${adminEmail}`);
-  console.log(`Contraseña: ${adminPassword}`);
+  console.log(`Usuario administrador: ${adminEmail}`);
   console.log('----------------------------------------------');
 }
 

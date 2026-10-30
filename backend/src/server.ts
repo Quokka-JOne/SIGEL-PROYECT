@@ -13,6 +13,7 @@ import userRoutes from './routes/user.routes';
 import reportRoutes from './routes/report.routes';
 import { prisma } from './config/prisma';
 import { errorHandler } from './middlewares/error.middleware';
+import { authenticateToken, requireRole } from './middlewares/auth.middleware';
 import { INITIAL_CATEGORIES, INITIAL_SUPPLIERS, INITIAL_PRODUCTS } from './data/seedCatalog';
 
 dotenv.config();
@@ -26,6 +27,8 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
+// Render/Cloudflare actúan como proxy: necesario para que rate-limit vea la IP real
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 4000;
 
 // Seguridad con Helmet y CORS restringido (C-05)
@@ -81,7 +84,7 @@ app.get('/api', (req: Request, res: Response) => {
 });
 
 // Fase 6 (Monitoreo y logs): Endpoint de auditoría técnica para coevaluación
-app.get('/api/logs', (req: Request, res: Response) => {
+app.get('/api/logs', authenticateToken, requireRole(['ADMINISTRADOR']), (req: Request, res: Response) => {
   const limit = Math.min(Number(req.query.limit) || 30, 100);
   const type = req.query.type === 'error' ? 'error' : 'all';
   const logs = logger.getRecentLogs(limit, type);
@@ -103,6 +106,15 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
+
+// Rutas inexistentes -> 404 JSON consistente
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    code: 'RUTA_NO_ENCONTRADA',
+    message: `La ruta ${req.method} ${req.originalUrl} no existe.`,
+  });
+});
 
 // Manejador centralizado de errores (T-04)
 app.use(errorHandler);
@@ -126,74 +138,30 @@ const startNeonKeepAlive = () => {
 // Asegurar que usuarios iniciales (Admin y Cajero) y catálogo básico existan
 const ensureInitialData = async () => {
   try {
-    const adminEmail = process.env.INITIAL_ADMIN_EMAIL || 'admin@jinstock.ni';
-    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Admin.2026!Secure';
+    // C-05: El admin inicial solo se crea si el entorno define email y contraseña.
+    // Nunca se usan valores por defecto ni se sobrescribe la contraseña de un usuario existente.
+    const adminEmail = process.env.INITIAL_ADMIN_EMAIL;
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD;
     const adminName = process.env.INITIAL_ADMIN_NAME || 'Administrador JINStock';
 
-    const cajeroEmail = 'cajero@jinstock.ni';
-    const cajeroPassword = 'cajero123';
-    const cajeroName = 'Cajero Estación Central';
-
-    // 1. Administrador inicial
-    const adminHash = await bcrypt.hash(adminPassword, 10);
-    const existingAdmin = await prisma.usuario.findUnique({
-      where: { email: adminEmail },
-    });
-
-    if (!existingAdmin) {
-      await prisma.usuario.create({
-        data: {
-          nombre: adminName,
-          email: adminEmail,
-          passwordHash: adminHash,
-          rol: 'ADMINISTRADOR',
-          estado: true,
-          verificado: true,
-        },
-      });
-      console.log(`✅ [Init] Administrador inicial creado: ${adminEmail}`);
-    } else {
-      await prisma.usuario.update({
+    if (adminEmail && adminPassword) {
+      const existingAdmin = await prisma.usuario.findUnique({
         where: { email: adminEmail },
-        data: {
-          passwordHash: adminHash,
-          rol: 'ADMINISTRADOR',
-          estado: true,
-          verificado: true,
-        },
       });
-      console.log(`✅ [Init] Administrador verificado y listo: ${adminEmail}`);
-    }
 
-    // 2. Cajero inicial
-    const cajeroHash = await bcrypt.hash(cajeroPassword, 10);
-    const existingCajero = await prisma.usuario.findUnique({
-      where: { email: cajeroEmail },
-    });
-
-    if (!existingCajero) {
-      await prisma.usuario.create({
-        data: {
-          nombre: cajeroName,
-          email: cajeroEmail,
-          passwordHash: cajeroHash,
-          rol: 'CAJERO',
-          estado: true,
-          verificado: true,
-        },
-      });
-      console.log(`✅ [Init] Cajero inicial creado: ${cajeroEmail}`);
-    } else {
-      await prisma.usuario.update({
-        where: { email: cajeroEmail },
-        data: {
-          passwordHash: cajeroHash,
-          rol: 'CAJERO',
-          estado: true,
-          verificado: true,
-        },
-      });
-      console.log(`✅ [Init] Cajero verificado y listo: ${cajeroEmail}`);
+      if (!existingAdmin) {
+        await prisma.usuario.create({
+          data: {
+            nombre: adminName,
+            email: adminEmail,
+            passwordHash: await bcrypt.hash(adminPassword, 10),
+            rol: 'ADMINISTRADOR',
+            estado: true,
+            verificado: true,
+          },
+        });
+        logger.info('Administrador inicial creado', { email: adminEmail });
+      }
     }
 
     // 3. Sembrar catálogo si la base de datos no tiene categorías
