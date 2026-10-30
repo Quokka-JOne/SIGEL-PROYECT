@@ -35,6 +35,8 @@ JINStock resuelve la problemática de interrupciones operativas (cortes de energ
 | `DIRECT_URL` | String | **SÍ** | Conexión directa a PostgreSQL para migraciones Prisma sin pgbouncer. |
 | `JWT_SECRET` | String | **SÍ** | Clave secreta para firmar tokens JWT (mínimo 32 caracteres). El servidor falla al arrancar si falta. |
 | `CORS_ORIGIN` | String | **SÍ en prod** | Lista de orígenes permitidos separados por coma. **En producción no se permite `*`** (el servidor falla si no está definida). En local puede ser `http://localhost:5173`. |
+| `TRUST_PROXY_HOPS` | Número | No | Saltos de proxy confiables para Express. En Render detrás de Cloudflare se recomienda `2`; evita evadir los rate limits manipulando `X-Forwarded-For`. |
+| `HEALTH_CACHE_TTL_MS` | Número | No | Tiempo de reutilización del último health check saludable. Por defecto `5000` ms en producción y `0` en pruebas. |
 | `PORT` | Número | No | Puerto de escucha (Render lo asigna dinámicamente; por defecto `4000`). |
 | `NODE_ENV` | String | No | Entorno de ejecución (`development`, `production`, `test`). |
 | `INITIAL_ADMIN_EMAIL` | String | No | Correo para auto-creación del primer administrador si la BD está vacía. |
@@ -53,13 +55,40 @@ JINStock resuelve la problemática de interrupciones operativas (cortes de energ
 
 ---
 
-## 📡 3. Tabla Completa de Endpoints de la API
+## 🧪 3.1 Guía de validación para evaluadores
+
+Para una comprobación rápida y segura del despliegue, utilice primero los endpoints públicos:
+
+```bash
+curl -i https://jinstock-proyect.onrender.com/api/live
+curl -i https://jinstock-proyect.onrender.com/api/health
+curl -i https://jinstock-proyect.onrender.com/api
+```
+
+`/api/live` confirma que el proceso está activo sin consultar PostgreSQL. `/api/health` confirma que el proceso y la base de datos están disponibles. El health check reutiliza durante cinco segundos el último resultado saludable para evitar que una prueba concurrente genere una consulta a la base de datos por cada sonda.
+
+La prueba de carga de referencia se ejecuta sin modificar datos:
+
+```bash
+node backend/scripts/load-test.js https://jinstock-proyect.onrender.com
+```
+
+El script realiza 50 solicitudes con concurrencia 10 y reporta p50, media, p95, códigos HTTP y errores 5xx. Para probar el catálogo autenticado, defina temporalmente `AUTH_TOKEN` en el entorno del evaluador; no lo escriba en el repositorio ni en una captura pública.
+
+Durante la revisión de logs, use un `X-Request-Id` controlado y búsquelo en los logs de Render. El endpoint `/api/logs` requiere un token de administrador y debe probarse únicamente con una cuenta QA. Las cuentas y contraseñas de evaluación deben compartirse por un canal privado y rotarse al finalizar la coevaluación.
+
+En producción, configure `TRUST_PROXY_HOPS=2` para la cadena Cloudflare → Render Ingress → contenedor. No use `trust proxy=true`: la cantidad explícita de saltos evita que un cliente evada el rate limiting manipulando `X-Forwarded-For`.
+
+---
+
+## 📡 4. Tabla Completa de Endpoints de la API
 
 Todas las rutas están bajo el prefijo `/api`. Todas las respuestas de error devuelven formato JSON con `{ success: false, code: string, message: string, requestId: string }`.
 
 | Método | Ruta | Rol Requerido | Parámetros (Query / Body) | Ejemplo de Respuesta Exitosa | Errores Posibles |
 | :--- | :--- | :---: | :--- | :--- | :--- |
 | `GET` | `/health` | Público | Ninguno | `{"success": true, "status": "healthy", "timestamp": "...", "uptimeSeconds": 120}` | `503` (DB caída o timeout >2s) |
+| `GET` | `/live` | Público | Ninguno | `{"success": true, "status": "alive"}` | No consulta la base de datos |
 | `POST` | `/auth/login` | Público | Body: `{ email, password }` | `{"success": true, "data": {"token": "ey...", "usuario": {...}}}` | `400` (datos vacíos), `401` (credenciales inválidas o cuenta inactiva), `429` (rate limit 20 req/15min) |
 | `POST` | `/auth/register` | Público | Body: `{ nombre, email, password }` | `{"success": true, "message": "Usuario registrado exitosamente"}` | `400` (política contraseña <8 chars), `409` (email duplicado), `429` (rate limit 10 req/hora) |
 | `GET` | `/products` | Autenticado | Query: `page`, `limit` (max 100), `search`, `categoriaId`, `lowStock=true`, `all=true` | `{"success": true, "data": [...], "pagination": {"page": 1, "limit": 20, "total": 45}}` | `400` (parámetros no numéricos), `401` (sin token) |
