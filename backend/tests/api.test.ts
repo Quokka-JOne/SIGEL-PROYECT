@@ -563,6 +563,35 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(res.body.pagination.totalPages).toBe(3);
     });
 
+    it('GET /api/products rechaza page inválida con 400 sin consultar la base de datos', async () => {
+      const res = await request(app)
+        .get('/api/products?page=pagina-uno')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('DATOS_INVALIDOS');
+      expect(res.body.message).toContain('page');
+      expect(prisma.producto.findMany).not.toHaveBeenCalled();
+    });
+
+    it('GET /api/products rechaza filtros booleanos inválidos y búsquedas excesivas', async () => {
+      const invalidFilter = await request(app)
+        .get('/api/products?lowStock=maybe')
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(invalidFilter.status).toBe(400);
+      expect(invalidFilter.body.code).toBe('DATOS_INVALIDOS');
+
+      const longSearch = await request(app)
+        .get('/api/products')
+        .query({ search: 'x'.repeat(101) })
+        .set('Authorization', `Bearer ${cajeroToken}`);
+
+      expect(longSearch.status).toBe(400);
+      expect(longSearch.body.code).toBe('DATOS_INVALIDOS');
+      expect(prisma.producto.findMany).not.toHaveBeenCalled();
+    });
+
     it('GET /api/products con all=true no pagina y devuelve catálogo completo (modo offline)', async () => {
       (prisma.producto.findMany as any).mockResolvedValue([
         { id: 'p1', nombre: 'Cuaderno', sku: 'C-01', precioVenta: 50, stock: 10, stockMinimo: 5, estado: true },

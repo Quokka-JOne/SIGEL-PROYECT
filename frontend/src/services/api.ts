@@ -18,16 +18,40 @@ export interface ApiResponse<T = any> {
 }
 
 export const getAuthToken = (): string | null => {
-  return localStorage.getItem('jinstock_token');
+  return localStorage.getItem('jinstock_token') || sessionStorage.getItem('jinstock_token');
 };
 
-export const setAuthToken = (token: string): void => {
-  localStorage.setItem('jinstock_token', token);
+export const setAuthToken = (token: string, remember = true): void => {
+  const target = remember ? localStorage : sessionStorage;
+  const other = remember ? sessionStorage : localStorage;
+  target.setItem('jinstock_token', token);
+  other.removeItem('jinstock_token');
+};
+
+export const getStoredUser = <T = unknown>(): T | null => {
+  const stored = localStorage.getItem('jinstock_user') || sessionStorage.getItem('jinstock_user');
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as T;
+  } catch {
+    localStorage.removeItem('jinstock_user');
+    sessionStorage.removeItem('jinstock_user');
+    return null;
+  }
+};
+
+export const setStoredUser = (user: unknown, remember = true): void => {
+  const target = remember ? localStorage : sessionStorage;
+  const other = remember ? sessionStorage : localStorage;
+  target.setItem('jinstock_user', JSON.stringify(user));
+  other.removeItem('jinstock_user');
 };
 
 export const removeAuthToken = (): void => {
   localStorage.removeItem('jinstock_token');
+  sessionStorage.removeItem('jinstock_token');
   localStorage.removeItem('jinstock_user');
+  sessionStorage.removeItem('jinstock_user');
 };
 
 export interface ApiFetchOptions extends RequestInit {
