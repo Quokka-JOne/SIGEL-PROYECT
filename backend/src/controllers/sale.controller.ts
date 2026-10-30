@@ -2,8 +2,26 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma';
 import { StockInsuficienteError, ValidationError, NotFoundError, ForbiddenError } from '../utils/errors';
 
+let sequenceEnsured = false;
+async function ensureSequenceReady() {
+  if (sequenceEnsured) return;
+  try {
+    const currentYear = new Date().getFullYear();
+    const seqName = `venta_comprobante_seq_${currentYear}`;
+    if (typeof (prisma as any).$executeRawUnsafe === 'function') {
+      await (prisma as any).$executeRawUnsafe(
+        `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
+      );
+      sequenceEnsured = true;
+    }
+  } catch {
+    // Si la base no es PostgreSQL o estamos con mocks, fallback a count()+1
+  }
+}
+
 export const createSale = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    await ensureSequenceReady();
     const { detalles, metodoPago, montoPagadoNIO, montoPagadoUSD, cambioNIO, offlineId } = req.body;
     const usuarioId = req.user?.id;
 
@@ -95,33 +113,17 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
         }
       }
 
-      // BUG-04: usar secuencia nativa atómica de PostgreSQL (creada al inicio del servidor).
-      // Solo ejecuta nextval en la transacción, evitando carreras DDL entre ventas simultáneas.
+      // BUG-04: usar secuencia nativa atómica de PostgreSQL si está disponible;
+      // fallback a count()+1 para entornos de test con mocks de Prisma.
       const currentYear = new Date().getFullYear();
       let numeroComprobante: string;
-      if (typeof (tx as any).$queryRawUnsafe === 'function') {
+      if (sequenceEnsured && typeof (tx as any).$queryRawUnsafe === 'function') {
         const seqName = `venta_comprobante_seq_${currentYear}`;
-        try {
-          const seqResult = (await (tx as any).$queryRawUnsafe(
-            `SELECT nextval('"${seqName}"')`
-          )) as [{ nextval: bigint | number | string }];
-          const seqNum = Number(seqResult[0].nextval);
-          numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
-        } catch {
-          if (typeof (tx as any).$executeRawUnsafe === 'function') {
-            await (tx as any).$executeRawUnsafe(
-              `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
-            );
-            const seqResult = (await (tx as any).$queryRawUnsafe(
-              `SELECT nextval('"${seqName}"')`
-            )) as [{ nextval: bigint | number | string }];
-            const seqNum = Number(seqResult[0].nextval);
-            numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
-          } else {
-            const count = await tx.venta.count();
-            numeroComprobante = `FAC-${currentYear}-${String(count + 1).padStart(5, '0')}`;
-          }
-        }
+        const seqResult = (await (tx as any).$queryRawUnsafe(
+          `SELECT nextval('"${seqName}"')`
+        )) as [{ nextval: bigint | number | string }];
+        const seqNum = Number(seqResult[0].nextval);
+        numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
       } else {
         const count = await tx.venta.count();
         numeroComprobante = `FAC-${currentYear}-${String(count + 1).padStart(5, '0')}`;

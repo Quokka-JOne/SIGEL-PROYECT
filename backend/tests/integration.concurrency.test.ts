@@ -72,6 +72,12 @@ describe('FASE 6: Pruebas de Integración y Concurrencia Real', () => {
         },
       });
       testProductId = product.id;
+
+      // Garantizar que la secuencia de comprobantes exista en la BD de pruebas
+      const currentYear = new Date().getFullYear();
+      await realPrisma.$executeRawUnsafe(
+        `CREATE SEQUENCE IF NOT EXISTS "venta_comprobante_seq_${currentYear}" START 1 INCREMENT 1`
+      );
     }
   });
 
