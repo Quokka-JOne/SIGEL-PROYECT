@@ -520,6 +520,16 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
   });
 
   describe('FASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente', () => {
+    it('expone liveness sin depender de la base de datos', async () => {
+      (prisma.$queryRaw as any).mockRejectedValue(new Error('Database unavailable'));
+
+      const res = await request(app).get('/api/live');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ success: true, status: 'alive' });
+      expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    });
+
     it('GET /api/products con page y limit devuelve metadata de paginación', async () => {
       (prisma.producto.findMany as any).mockResolvedValue([
         { id: 'p1', nombre: 'Cuaderno', sku: 'C-01', precioVenta: 50, stock: 10, stockMinimo: 5, estado: true },
@@ -569,6 +579,10 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
   });
 
   describe('FASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización', () => {
+    it('usa una cantidad limitada de saltos de proxy en vez de trust proxy permisivo', () => {
+      expect(app.get('trust proxy')).toBe(0);
+    });
+
     it('Todas las respuestas HTTP incluyen el header X-Request-Id', async () => {
       const res = await request(app).get('/api/health');
       expect(res.headers['x-request-id']).toBeDefined();
