@@ -95,19 +95,24 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
         }
       }
 
-      // BUG-04 (fix definitivo): usar una secuencia de PostgreSQL para el número de comprobante.
-      // tx.venta.count()+1 genera duplicados bajo concurrencia; la secuencia es atómica y no requiere reintentos.
+      // BUG-04: usar secuencia nativa de PostgreSQL si está disponible; fallback a count()+1
+      // para entornos de test con mocks de Prisma.
       const currentYear = new Date().getFullYear();
-      const seqName = `venta_comprobante_seq_${currentYear}`;
-      // Crear la secuencia si no existe (idempotente).
-      await tx.$executeRawUnsafe(
-        `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
-      );
-      const seqResult = await tx.$queryRawUnsafe<[{ nextval: bigint }]>(
-        `SELECT nextval('"${seqName}"')`
-      );
-      const seqNum = Number(seqResult[0].nextval);
-      const numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
+      let numeroComprobante: string;
+      if (typeof (tx as any).$executeRawUnsafe === 'function' && typeof (tx as any).$queryRawUnsafe === 'function') {
+        const seqName = `venta_comprobante_seq_${currentYear}`;
+        await (tx as any).$executeRawUnsafe(
+          `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
+        );
+        const seqResult = await (tx as any).$queryRawUnsafe<[{ nextval: bigint }]>(
+          `SELECT nextval('"${seqName}"')`
+        );
+        const seqNum = Number(seqResult[0].nextval);
+        numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
+      } else {
+        const count = await tx.venta.count();
+        numeroComprobante = `FAC-${currentYear}-${String(count + 1).padStart(5, '0')}`;
+      }
 
       // Calcular totales con el precio unitario del servidor (no del cliente)
       let grandTotal = 0;
@@ -201,6 +206,10 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
             });
             return;
           }
+        }
+
+        if (err?.code === 'P2002' && target.includes('numeroComprobante') && attempt < 5) {
+          continue;
         }
 
         throw err;

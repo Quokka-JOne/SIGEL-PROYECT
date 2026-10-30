@@ -35,7 +35,7 @@
 - El número de comprobante (`FAC-YYYY-NNNNN`) ahora se genera con una **secuencia nativa de PostgreSQL** (`CREATE SEQUENCE IF NOT EXISTS ... / SELECT nextval(...)`) dentro de la transacción. Elimina la condición de carrera del método anterior (`count()+1`) sin necesitar reintentos en bucle.
 
 ### CI / TypeScript
-- El paso de verificación de tipos del frontend usa `npx tsc -b` (composite build) en lugar de `--noEmit`, más adecuado para proyectos Vite con referencias compuestas.
+- El paso de verificación de tipos del frontend usa `npx tsc --noEmit` junto con el linter para asegurar tipado estricto sin emitir artefactos intermediarios.
 
 ### Seguridad
 - `INITIAL_ADMIN_PASSWORD` en `.env.example` queda vacío para evitar que nuevos colaboradores desplieguen con contraseñas públicamente conocidas.

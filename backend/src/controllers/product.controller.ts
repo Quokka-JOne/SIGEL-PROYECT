@@ -63,14 +63,20 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
         }
       : undefined;
 
+    const queryArgs: any = {
+      where,
+      orderBy: { nombre: 'asc' },
+      ...(skip !== undefined ? { skip } : {}),
+      ...(take !== undefined ? { take } : {}),
+    };
+    if (posSelect) {
+      queryArgs.select = posSelect;
+    } else {
+      queryArgs.include = { categoria: { select: { id: true, nombre: true } } };
+    }
+
     const [products, totalCount] = await Promise.all([
-      prisma.producto.findMany({
-        where,
-        ...(posSelect ? { select: posSelect } : { include: { categoria: { select: { id: true, nombre: true } } } }),
-        orderBy: { nombre: 'asc' },
-        ...(skip !== undefined ? { skip } : {}),
-        ...(take !== undefined ? { take } : {}),
-      }),
+      prisma.producto.findMany(queryArgs),
       isPaginated ? prisma.producto.count({ where }) : Promise.resolve(0),
     ]);
 
