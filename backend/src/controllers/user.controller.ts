@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/prisma';
 import { Rol } from '@prisma/client';
-import { ValidationError, NotFoundError, ConflictError } from '../utils/errors';
+import { ValidationError, NotFoundError, ConflictError, ForbiddenError } from '../utils/errors';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -111,3 +111,55 @@ export const toggleUserStatus = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 };
+
+export const deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (req.user?.id === id) {
+      throw new ValidationError('No puede eliminar su propia cuenta de administrador en sesión.');
+    }
+
+    const user = await prisma.usuario.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            ventas: true,
+            compras: true,
+            movimientos: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado.');
+    }
+
+    // Proteger cuenta principal de administrador del sistema
+    if (user.email === 'admin@jinstock.ni' || (process.env.INITIAL_ADMIN_EMAIL && user.email === process.env.INITIAL_ADMIN_EMAIL)) {
+      throw new ForbiddenError('No está permitido eliminar la cuenta raíz de administración del sistema.');
+    }
+
+    // Integridad contable: Si el usuario tiene ventas o compras históricas, no se debe borrar físicamente
+    const totalRegistros = user._count.ventas + user._count.compras + user._count.movimientos;
+    if (totalRegistros > 0) {
+      throw new ConflictError(
+        `No se puede eliminar permanentemente al usuario porque tiene historial operativo (${user._count.ventas} ventas, ${user._count.compras} compras, ${user._count.movimientos} movimientos de inventario). Puede desactivarlo para revocar su acceso sin comprometer la integridad contable.`
+      );
+    }
+
+    await prisma.usuario.delete({
+      where: { id },
+    });
+
+    res.json({
+      success: true,
+      message: `Usuario '${user.nombre}' (${user.email}) eliminado permanentemente del sistema.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

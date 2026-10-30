@@ -87,6 +87,25 @@ export const UsersPage: React.FC = () => {
     }
   };
 
+  const handleDeleteUser = async (usr: UserAccount) => {
+    setActionError(null);
+    if (usr.id === user?.id) {
+      setActionError('No puede eliminar su propia cuenta de administrador.');
+      return;
+    }
+    const confirmed = window.confirm(
+      `¿Está seguro de que desea eliminar permanentemente al usuario "${usr.nombre}" (${usr.email})?\n\nEsta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+
+    const res = await apiFetch(`/users/${usr.id}`, { method: 'DELETE' });
+    if (res.success) {
+      fetchUsers();
+    } else {
+      setActionError(res.message || 'Error al eliminar usuario.');
+    }
+  };
+
   const handleCreateUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -292,18 +311,29 @@ export const UsersPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => handleToggleUserStatus(usr)}
-                        disabled={usr.id === user?.id}
-                        title={usr.id === user?.id ? 'No puede desactivar su propia cuenta' : 'Cambiar estado'}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
-                          usr.estado
-                            ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300'
-                            : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300'
-                        }`}
-                      >
-                        {usr.estado ? 'Desactivar' : 'Activar'}
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleToggleUserStatus(usr)}
+                          disabled={usr.id === user?.id}
+                          title={usr.id === user?.id ? 'No puede desactivar su propia cuenta' : 'Cambiar estado'}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                            usr.estado
+                              ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300'
+                          }`}
+                        >
+                          {usr.estado ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(usr)}
+                          disabled={usr.id === user?.id}
+                          title={usr.id === user?.id ? 'No puede eliminar su propia cuenta' : 'Eliminar usuario permanentemente'}
+                          className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
