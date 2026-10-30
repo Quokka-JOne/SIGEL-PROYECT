@@ -1,41 +1,56 @@
 🚀 Iniciando prueba de carga contra: https://jinstock-proyect.onrender.com
 🔥 Calentando servicio (warm-up ping a /api/health)...
-✅ Warm-up completado en 0.99s (HTTP 200).
+✅ Warm-up completado en 0.42s (HTTP 200).
 
 ⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...
 
 ================================================================
 📊 REPORTE DE CARGA: Endpoint de Salud (/api/health)
 🎯 URL: https://jinstock-proyect.onrender.com/api/health
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.34s
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.12s
 ----------------------------------------------------------------
-⚡ Latencia Min:           150.63 ms
-⚡ Latencia Mediana (p50): 189.78 ms
-⚡ Latencia Media:         245.28 ms
-⚡ Latencia p95:           499.17 ms  ✅ (Cumple < 500ms)
-⚡ Latencia Max:           501.31 ms
-----------------------------------------------------------------
-🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
-🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
-📋 Códigos HTTP recibidos: {"200":50}
-================================================================
-
-⚡ Ejecutando 50 solicitudes a /api/products?all=true con token (concurrencia 10)...
-
-================================================================
-📊 REPORTE DE CARGA: Catálogo con BD y Auth (/api/products?all=true)
-🎯 URL: https://jinstock-proyect.onrender.com/api/products?all=true
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 2.13s
-----------------------------------------------------------------
-⚡ Latencia Min:           243.39 ms
-⚡ Latencia Mediana (p50): 274.60 ms
-⚡ Latencia Media:         386.09 ms
-⚡ Latencia p95:           836.07 ms  ⚠️ (Supera 500ms)
-⚡ Latencia Max:           904.44 ms
+⚡ Latencia Min:           137.51 ms
+⚡ Latencia Mediana (p50): 162.86 ms
+⚡ Latencia Media:         217.79 ms
+⚡ Latencia p95:           405.74 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           500.43 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
 📋 Códigos HTTP recibidos: {"200":50}
 ================================================================
 
-⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 superó el umbral estricto de 500 ms (Rendimiento Regular).
+⚡ Ejecutando 50 solicitudes a /api/products?includeInactive=false con token (concurrencia 10)...
+
+================================================================
+📊 REPORTE DE CARGA: Sincronización Catálogo Real (/api/products?includeInactive=false)
+🎯 URL: https://jinstock-proyect.onrender.com/api/products?includeInactive=false
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 2.50s
+----------------------------------------------------------------
+⚡ Latencia Min:           249.43 ms
+⚡ Latencia Mediana (p50): 308.85 ms
+⚡ Latencia Media:         453.14 ms
+⚡ Latencia p95:           1021.39 ms  ⚠️ (Supera 500ms)
+⚡ Latencia Max:           1224.51 ms
+----------------------------------------------------------------
+🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
+🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
+📋 Códigos HTTP recibidos: {"200":50}
+================================================================
+
+🔍 Consultando GET /api/logs para desglosar tiempo interno del servidor (durationMs)...
+
+================================================================
+🖥️  DESGLOSE DEL SERVIDOR EN RENDER (durationMs interno Node.js + DB)
+📋 Muestras de auditoría analizadas: 50 peticiones recientes
+----------------------------------------------------------------
+⚡ Servidor Latencia Min:           95.00 ms
+⚡ Servidor Latencia Mediana (p50): 99.00 ms
+⚡ Servidor Latencia Media:         203.02 ms
+⚡ Servidor Latencia p95:           660.00 ms  ⚠️
+⚡ Servidor Latencia Max:           717.00 ms
+----------------------------------------------------------------
+🌐 Latencia de Red Estimada (RTT):  ~250.12 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
+================================================================
+
+⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 global superó el umbral estricto de 500 ms (Rendimiento Regular por latencia de red transfronteriza).
