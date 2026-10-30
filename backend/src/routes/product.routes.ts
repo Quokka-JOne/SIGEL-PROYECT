@@ -10,18 +10,19 @@ import {
   deleteProduct,
 } from '../controllers/product.controller';
 import { authenticateToken, requireRole } from '../middlewares/auth.middleware';
-import { validate } from '../middlewares/validate.middleware';
+import { validate, validateQuery } from '../middlewares/validate.middleware';
 import {
   createProductSchema,
   updateProductSchema,
   inventoryAdjustmentSchema,
+  productListQuerySchema,
 } from '../validators/schemas';
 
 const router = Router();
 
 router.use(authenticateToken);
 
-router.get('/', getProducts);
+router.get('/', validateQuery(productListQuerySchema), getProducts);
 router.get('/movements', getInventoryMovements);
 router.get('/:id', getProductById);
 router.post('/', requireRole(['ADMINISTRADOR']), validate(createProductSchema), createProduct);

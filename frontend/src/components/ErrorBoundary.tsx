@@ -29,6 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleGoOffline = () => {
     localStorage.removeItem('jinstock_token');
+    sessionStorage.removeItem('jinstock_token');
     window.location.href = '/pos';
   };
 
@@ -43,15 +44,9 @@ export class ErrorBoundary extends Component<Props, State> {
           <h1 className="text-2xl font-bold text-white mb-2">
             Ha ocurrido un problema al cargar la aplicación
           </h1>
-          <p className="text-sm text-gray-400 max-w-md mb-6">
-            Si estás sin conexión a internet, puedes reiniciar la interfaz o acceder directamente al Punto de Venta offline.
+          <p role="alert" aria-live="assertive" className="text-sm text-gray-400 max-w-md mb-6">
+            No pudimos cargar esta pantalla. Puedes intentarlo de nuevo o continuar en el Punto de Venta offline. Si el problema persiste, contacta al administrador.
           </p>
-
-          {this.state.error?.message && (
-            <div className="mb-6 max-w-lg p-3 rounded-lg bg-white/5 border border-white/10 text-xs text-rose-300 font-mono text-left overflow-x-auto">
-              {this.state.error.message}
-            </div>
-          )}
 
           <div className="flex flex-wrap gap-3 justify-center">
             <button

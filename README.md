@@ -3,9 +3,9 @@
 > **Sistema Web PWA Offline-First para la Gestión de Ventas e Inventario**  
 > Diseñado para librerías y papelerías nicaragüenses con soporte multimoneda (C$ NIO / $ USD), sincronización resiliente y transacciones ACID.
 
-[![Backend Tests](https://img.shields.io/badge/backend%20tests-vitest%20passing%20(24%2F24)-brightgreen)](backend/tests/api.test.ts)
+[![Backend Tests](https://img.shields.io/badge/backend%20tests-vitest%20passing-brightgreen)](backend/tests/api.test.ts)
 [![Frontend Build](https://img.shields.io/badge/frontend%20build-vite%20passing-brightgreen)](frontend/)
-[![Architecture](https://img.shields.io/badge/stack-React%2018%20%7C%20Express%20%7C%20Prisma%20%7C%20Neon%20Postgres-purple)](README.md)
+[![Architecture](https://img.shields.io/badge/stack-React%2019%20%7C%20Express%20%7C%20Prisma%20%7C%20Neon%20Postgres-purple)](README.md)
 [![PWA](https://img.shields.io/badge/PWA-Dexie%20v2%20%7C%20Workbox-blue)](frontend/src/pwa/db.ts)
 
 ---
@@ -57,6 +57,8 @@ JINStock resuelve la problemática de interrupciones operativas (cortes de energ
 
 ## 🧪 3.1 Guía de validación para evaluadores
 
+La autoevaluación provisional frente a la rúbrica del Laboratorio 15, sus evidencias y los criterios aún no verificables están en [docs/evaluacion-rubrica-lab15.md](docs/evaluacion-rubrica-lab15.md).
+
 Para una comprobación rápida y segura del despliegue, utilice primero los endpoints públicos:
 
 ```bash
@@ -93,7 +95,7 @@ Todas las rutas están bajo el prefijo `/api`. Todas las respuestas de error dev
 | `GET` | `/live` | Público | Ninguno | `{"success": true, "status": "alive"}` | No consulta la base de datos |
 | `POST` | `/auth/login` | Público | Body: `{ email, password }` | `{"success": true, "data": {"token": "ey...", "usuario": {...}}}` | `400` (datos vacíos), `401` (credenciales inválidas o cuenta inactiva), `429` (rate limit 20 req/15min) |
 | `POST` | `/auth/register` | Público | Body: `{ nombre, email, password }` | `{"success": true, "message": "Usuario registrado exitosamente"}` | `400` (política contraseña <8 chars), `409` (email duplicado), `429` (rate limit 10 req/hora) |
-| `GET` | `/products` | Autenticado | Query: `page`, `limit` (max 100), `search`, `categoriaId`, `lowStock=true`, `all=true` | `{"success": true, "data": [...], "pagination": {"page": 1, "limit": 20, "total": 45}}` | `400` (parámetros no numéricos), `401` (sin token) |
+| `GET` | `/products` | Autenticado | Query: `page`, `limit` (max 100), `search` (máx. 100 caracteres), `categoriaId`, `lowStock=true/false`, `includeInactive=true/false`, `all=true/false` | `{"success": true, "data": [...], "pagination": {"page": 1, "limit": 20, "total": 45}}` | `400` (parámetros inválidos), `401` (sin token) |
 | `GET` | `/products/:id` | Autenticado | Params: `id` | `{"success": true, "data": {"id": "...", "nombre": "Cuaderno", ...}}` | `401`, `404` (producto inexistente) |
 | `POST` | `/products` | `ADMINISTRADOR` | Body: `{ nombre, precioVenta, costo, stock, stockMinimo, categoriaId, codigoBarras?, sku?, unidadMedida? }` | `{"success": true, "data": {...}}` | `400` (validación Zod), `401`, `403` (rol insuficiente), `409` (código de barra duplicado) |
 | `PUT` | `/products/:id` | `ADMINISTRADOR` | Params: `id`, Body: campos a actualizar | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |

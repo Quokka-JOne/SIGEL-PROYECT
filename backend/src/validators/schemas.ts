@@ -90,6 +90,22 @@ export const createProductSchema = z.object({
 
 export const updateProductSchema = createProductSchema.partial();
 
+export const productListQuerySchema = z.object({
+  search: z.string().trim().max(100, 'La búsqueda no puede superar 100 caracteres').optional(),
+  categoriaId: z.string().trim().min(1, 'La categoría no puede estar vacía').optional(),
+  lowStock: z.enum(['true', 'false'], { errorMap: () => ({ message: 'lowStock debe ser true o false' }) }).optional(),
+  includeInactive: z.enum(['true', 'false'], { errorMap: () => ({ message: 'includeInactive debe ser true o false' }) }).optional(),
+  all: z.enum(['true', 'false'], { errorMap: () => ({ message: 'all debe ser true o false' }) }).optional(),
+  page: z.string()
+    .regex(/^\d+$/, 'page debe ser un entero positivo')
+    .refine((value) => Number.isSafeInteger(Number(value)) && Number(value) > 0, 'page debe ser un entero positivo seguro')
+    .optional(),
+  limit: z.string()
+    .regex(/^\d+$/, 'limit debe ser un entero positivo')
+    .refine((value) => Number.isSafeInteger(Number(value)) && Number(value) > 0, 'limit debe ser un entero positivo seguro')
+    .optional(),
+});
+
 // Categorías
 export const createCategorySchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre de la categoría es requerido'),
@@ -147,4 +163,3 @@ export const dateRangeFilterSchema = z.object({
 export const idParamSchema = z.object({
   id: z.string().min(1, 'El identificador no puede estar vacío'),
 });
-

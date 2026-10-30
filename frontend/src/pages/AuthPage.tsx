@@ -37,7 +37,7 @@ export const AuthPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await login(loginEmail, loginPassword) as any;
+      const res = await login(loginEmail, loginPassword, rememberDevice) as any;
       if (res.success) {
         setSuccessMessage('¡Acceso exitoso! Redirigiendo...');
         setTimeout(() => {
@@ -172,7 +172,7 @@ export const AuthPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    loginOffline('CAJERO');
+                    loginOffline('CAJERO', rememberDevice);
                     navigate('/pos');
                   }}
                   style={{
@@ -197,27 +197,30 @@ export const AuthPage: React.FC = () => {
               </div>
             )}
 
-            {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
-            {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
+            {errorMessage && <div role="alert" aria-live="assertive" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
+            {successMessage && <div role="status" aria-live="polite" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
 
             <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</label>
+                <label htmlFor="login-email" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</label>
                 <div style={{ position: 'relative' }}>
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: 16, top: 14, color: '#6b7280', fontSize: 20 }}>mail</span>
-                  <input type="text" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="nombre@libreria.com" style={{ width: '100%', padding: '14px 16px 14px 48px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />
+                  <input id="login-email" type="email" autoComplete="username" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="nombre@libreria.com" style={{ width: '100%', padding: '14px 16px 14px 48px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Contraseña</label>
-                  <a href="#" onClick={(e) => { e.preventDefault(); alert("Se ha enviado un correo con las instrucciones para recuperar su contraseña."); }} style={{ fontSize: 12, color: '#8b5cf6', textDecoration: 'none' }}>¿Olvidaste la clave?</a>
+                  <label htmlFor="login-password" style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Contraseña</label>
+                  <button type="button" onClick={() => { setSuccessMessage(null); setErrorMessage('La recuperación de contraseña no está disponible todavía. Contacta al administrador de tu cuenta.'); }} style={{ background: 'none', border: 0, padding: 0, fontSize: 12, color: '#8b5cf6', cursor: 'pointer' }}>¿Olvidaste la clave?</button>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <span className="material-symbols-outlined" style={{ position: 'absolute', left: 16, top: 14, color: '#6b7280', fontSize: 20 }}>lock</span>
                   <input
                     type={showLoginPassword ? 'text' : 'password'}
+                    id="login-password"
+                    autoComplete="current-password"
+                    required
                     value={loginPassword}
                     onChange={e => setLoginPassword(e.target.value)}
                     placeholder={showLoginPassword ? 'Ingresa tu contraseña' : '••••••••'}
@@ -279,7 +282,7 @@ export const AuthPage: React.FC = () => {
                     onChange={e => setRememberDevice(e.target.checked)}
                     style={{ accentColor: '#8b5cf6', width: 16, height: 16, cursor: 'pointer' }}
                   />
-                  <span style={{ fontSize: 13, color: '#9ca3af' }}>Recordarme por 30 días</span>
+                  <span style={{ fontSize: 13, color: '#9ca3af' }}>Recordarme en este dispositivo</span>
                 </label>
               </div>
 
