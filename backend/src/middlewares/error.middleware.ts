@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors';
+import { logger } from '../utils/logger';
 
 export const errorHandler = (
   err: any,
@@ -12,8 +13,20 @@ export const errorHandler = (
     return next(err);
   }
 
+  const context = {
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+  };
+
   // Known custom application error
   if (err instanceof AppError) {
+    if (err.statusCode >= 500) {
+      logger.error(`AppError [${err.code}]: ${err.message}`, err, context);
+    } else {
+      logger.warn(`AppWarning [${err.code}]: ${err.message}`, context);
+    }
+
     res.status(err.statusCode).json({
       success: false,
       code: err.code,
@@ -26,6 +39,7 @@ export const errorHandler = (
   // Prisma unique constraint violation (e.g. P2002)
   if (err.code === 'P2002') {
     const target = Array.isArray(err.meta?.target) ? err.meta.target.join(', ') : 'campo único';
+    logger.warn(`Prisma P2002 Duplicado en: ${target}`, context);
     res.status(409).json({
       success: false,
       code: 'DUPLICATE_KEY',
@@ -36,6 +50,7 @@ export const errorHandler = (
 
   // Prisma record not found (e.g. P2025)
   if (err.code === 'P2025') {
+    logger.warn(`Prisma P2025 Registro no encontrado`, context);
     res.status(404).json({
       success: false,
       code: 'NO_ENCONTRADO',
@@ -45,7 +60,7 @@ export const errorHandler = (
   }
 
   // Default internal server error (never leak raw stack or sensitive database connection strings)
-  console.error('[ErrorHandler] Error no controlado:', err.message || err);
+  logger.error('Error interno no controlado en servidor', err, context);
   res.status(500).json({
     success: false,
     code: 'INTERNAL_SERVER_ERROR',

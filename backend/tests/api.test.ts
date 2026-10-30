@@ -40,6 +40,10 @@ vi.mock('../src/config/prisma', () => {
   };
 });
 
+vi.mock('../src/utils/mailer', () => ({
+  sendConfirmationEmail: vi.fn().mockResolvedValue(true),
+}));
+
 import app from '../src/server';
 import { prisma } from '../src/config/prisma';
 

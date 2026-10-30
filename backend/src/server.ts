@@ -17,9 +17,11 @@ import { INITIAL_CATEGORIES, INITIAL_SUPPLIERS, INITIAL_PRODUCTS } from './data/
 
 dotenv.config();
 
+import { logger, requestLogger } from './utils/logger';
+
 // C-05: El servidor DEBE fallar al arrancar si falta JWT_SECRET (sin fallback inseguro)
 if (!process.env.JWT_SECRET) {
-  console.error('❌ FATAL: La variable de entorno JWT_SECRET no está definida. Configure una clave segura de al menos 32 caracteres.');
+  logger.error('❌ FATAL: La variable de entorno JWT_SECRET no está definida. Configure una clave segura de al menos 32 caracteres.');
   process.exit(1);
 }
 
@@ -36,6 +38,24 @@ app.use(
   })
 );
 app.use(express.json());
+
+// Fase 6: Middleware de logging estructurado JSON con latencias y estado HTTP
+app.use(requestLogger);
+
+// CP-01: Health check seguro y multiruta (/api/health, /health, /status)
+const healthHandler = (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Servidor JINStock Backend operativo',
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    uptimeSeconds: Math.floor(process.uptime()),
+  });
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
+app.get('/status', healthHandler);
 
 // API root endpoint informativo
 app.get('/api', (req: Request, res: Response) => {
@@ -55,7 +75,22 @@ app.get('/api', (req: Request, res: Response) => {
       '/api/users',
       '/api/reports',
       '/api/health',
+      '/api/logs',
     ],
+  });
+});
+
+// Fase 6 (Monitoreo y logs): Endpoint de auditoría técnica para coevaluación
+app.get('/api/logs', (req: Request, res: Response) => {
+  const limit = Math.min(Number(req.query.limit) || 30, 100);
+  const type = req.query.type === 'error' ? 'error' : 'all';
+  const logs = logger.getRecentLogs(limit, type);
+
+  res.json({
+    success: true,
+    count: logs.length,
+    filter: type,
+    data: logs,
   });
 });
 
@@ -68,17 +103,6 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
-
-// C-05 & T-04: Health check seguro (sin datos sensibles ni pistas de credenciales)
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    message: 'Servidor JINStock Backend operativo',
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-  });
-});
 
 // Manejador centralizado de errores (T-04)
 app.use(errorHandler);
@@ -213,7 +237,7 @@ const ensureInitialData = async () => {
 // Arrancar servidor solo si no estamos en entorno de testing
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, async () => {
-    console.log(`🚀 JINStock Backend corriendo en http://localhost:${PORT}`);
+    logger.info(`🚀 JINStock Backend activo en http://localhost:${PORT}`, { port: PORT, env: process.env.NODE_ENV || 'development' });
     startNeonKeepAlive();
     await ensureInitialData();
   });

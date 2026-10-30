@@ -113,8 +113,9 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     // C-05: El registro público crea exclusivamente rol CAJERO. Los administradores se crean vía CLI seed o /users
     const assignedRol = 'CAJERO';
 
-    const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
-    // Si no hay SMTP configurado en el entorno de desarrollo, auto-verificar para permitir uso fluido
+    const isTest = process.env.NODE_ENV === 'test';
+    const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS) && !isTest;
+    // Si estamos en testing o no hay SMTP configurado en el entorno de desarrollo, auto-verificar para permitir uso fluido
     const shouldAutoVerify = !hasSmtpConfigured;
 
     const newUser = await prisma.usuario.create({
