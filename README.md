@@ -1,163 +1,324 @@
-# 📚 SIGEL / JINStock
+# 📚 JINStock (SIGEL) - Manual Técnico y de Operaciones
 
-> **Sistema Web Offline-First para la Gestión de Ventas e Inventario - JINStock (Nicaragua)**
+> **Sistema Web PWA Offline-First para la Gestión de Ventas e Inventario**  
+> Diseñado para librerías y papelerías nicaragüenses con soporte multimoneda (C$ NIO / $ USD), sincronización resiliente y transacciones ACID.
 
-[![Backend Tests](https://img.shields.io/badge/tests-vitest%20passing-brightgreen)](backend/tests/api.test.ts)
-[![PWA Ready](https://img.shields.io/badge/PWA-offline--first-blue)](frontend/src/pwa/db.ts)
-[![Architecture](https://img.shields.io/badge/stack-React%20%7C%20Express%20%7C%20Prisma%20%7C%20Dexie-purple)](README.md)
-
----
-
-## 📌 1. Nomenclatura del Proyecto (M-10)
-- **SIGEL** (*Sistema Integrado para la Gestión Escolar y Librerías*): Denominación oficial del proyecto académico de Ingeniería de Software.
-- **JINStock**: Nombre comercial del producto de software y de la Progressive Web App (PWA) de cara a los usuarios finales y administradores de la librería.
+[![Backend Tests](https://img.shields.io/badge/backend%20tests-vitest%20passing%20(24%2F24)-brightgreen)](backend/tests/api.test.ts)
+[![Frontend Build](https://img.shields.io/badge/frontend%20build-vite%20passing-brightgreen)](frontend/)
+[![Architecture](https://img.shields.io/badge/stack-React%2018%20%7C%20Express%20%7C%20Prisma%20%7C%20Neon%20Postgres-purple)](README.md)
+[![PWA](https://img.shields.io/badge/PWA-Dexie%20v2%20%7C%20Workbox-blue)](frontend/src/pwa/db.ts)
 
 ---
 
-## 🏪 2. Contexto del Negocio y Reglas Operativas (M-09)
-El sistema está diseñado específicamente para una librería y papelería nicaragüense (comercialización de cuadernos, lápices, uniformes, mochilas, materiales de arte y papelería en general):
-- **Moneda principal:** Córdobas (C$ NIO).
-- **Soporte multimoneda:** Admite pagos en efectivo tanto en Córdobas como en Dólares estadounidenses (USD), calculando el vuelto en Córdobas según la tasa de cambio vigente configurada.
-- **Impuesto:** IVA del 15% aplicado de forma configurable y desglosado en el comprobante de venta.
-- **Continuidad de operaciones:** En caso de corte de energía o interrupción del enlace a Internet, el punto de venta (POS) continúa facturando de forma offline con catálogo local y sincroniza automáticamente las ventas al recuperar la conexión.
+## 🌐 1. URLs de Producción y Propósito del Sistema
+
+| Componente | URL de Producción | Propósito |
+| :--- | :--- | :--- |
+| **Frontend (PWA)** | [https://jinstock-proyect.pages.dev](https://jinstock-proyect.pages.dev) | Aplicación Web Progresiva para punto de venta (POS), catálogo local en IndexedDB, gestión de inventario y sincronización automática bidireccional. |
+| **Backend (API REST)** | [https://jinstock-proyect.onrender.com](https://jinstock-proyect.onrender.com) | Servicio REST con Express, validación estricta con Zod, autenticación JWT, Kardex transaccional y persistencia en PostgreSQL (Neon). Base API: `/api`. |
+
+### Propósito del Negocio
+JINStock resuelve la problemática de interrupciones operativas (cortes de energía o conectividad) en librerías y papelerías de Nicaragua:
+- **Facturación ininterrumpida:** El cajero puede seguir cobrando sin Internet. Las ventas se guardan en IndexedDB ([Dexie.js](frontend/src/pwa/db.ts)) y se transmiten al servidor con reconciliación de inventario e idempotencia (`offlineId`).
+- **Multimoneda:** Manejo nativo de pagos en Córdobas (NIO) y Dólares (USD), con cálculo de vuelto exacto en Córdobas a la tasa oficial configurada.
+- **Trazabilidad de inventario:** Movimientos Kardex (`ENTRADA`, `SALIDA`, `AJUSTE`) protegidos contra stocks negativos mediante operaciones atómicas con Prisma.
 
 ---
 
-## 🏗️ 3. Arquitectura Técnica Implementada
+## 🔐 2. Variables de Entorno
 
-### Frontend (PWA Offline-First)
-- **Framework:** React 18 con TypeScript y Vite.
-- **Base de Datos Local (IndexedDB):** [Dexie.js v2](frontend/src/pwa/db.ts) almacenando:
-  - `products`: Catálogo sincronizado para búsqueda y validación fuera de línea.
-  - `categories`: Categorías de inventario disponibles localmente.
-  - `offlineSales`: Cola de ventas con control estricto de estados: `PENDIENTE`, `SINCRONIZANDO`, `SINCRONIZADO`, `REVISION` y `ERROR`.
-- **Motor de Sincronización:** [syncService.ts](frontend/src/services/syncService.ts) que escucha el evento `online`, ejecuta reintentos periódicos y resuelve idempotencia en servidor.
-- **Service Worker & Caché:** Gestión unificada con `vite-plugin-pwa` y Workbox. Precachea assets estáticos (HTML, JS, CSS, iconos) y excluye explícitamente `/api/*` (estrategia *NetworkOnly*) para delegar la persistencia de datos a Dexie.
-- **Estilos:** Interfaz oscura consistente basada en tokens CSS modernos (`#100f14`, `#1c1b22`, `#A788F4`), accesible y responsiva.
+### Backend (`backend/.env` o variables en Render)
 
-### Backend (API REST)
-- **Servidor:** Node.js, Express, TypeScript.
-- **ORM & Base de Datos:** Prisma ORM conectado a PostgreSQL (Neon / Direct DB) con transacciones ACID.
-- **Seguridad (C-05):**
-  - **Autenticación:** JWT propio firmado con algoritmo HS256 (`jsonwebtoken`) y contraseñas cifradas mediante `bcryptjs` (cost factor 10).
-  - **Firma segura obligatoria:** El servidor valida la presencia de `JWT_SECRET` al arrancar; se detiene inmediatamente si no está configurada o si es insegura.
-  - **Protección HTTP:** Cabeceras de seguridad reforzadas con `helmet`, CORS configurable por origen (`CORS_ORIGIN`) y control de fuerza bruta mediante `express-rate-limit` en `/api/auth/login`.
-  - **Cero puertas traseras:** Sin contraseñas demo hardcodeadas ni endpoints públicos de seed.
-- **Concurrencia e Idempotencia (C-04):**
-  - Búsqueda previa por `offlineId` en `prisma.venta.findUnique` para garantizar idempotencia estricta (RNF-07).
-  - Descuentos de stock atómicos con condición WHERE (`stock: { gte: cantidad }`) evitando sobreventas o inventarios negativos.
-  - Numeración secuencial de comprobantes en base de datos (`FAC-YYYY-XXXXX`).
-  - Registro auditable de movimientos Kardex (`SALIDA`, `ENTRADA`, `AJUSTE`) con motivo, usuario y fecha.
-- **Validación de Entradas (T-03):** Schemas con `zod` y middleware `validate(schema)` en todas las rutas operativas.
+| Variable | Tipo | Obligatoria | Descripción / Valor por Defecto |
+| :--- | :---: | :---: | :--- |
+| `DATABASE_URL` | String | **SÍ** | Cadena de conexión PostgreSQL (con pooler Neon, e.g. `?sslmode=require`). |
+| `DIRECT_URL` | String | **SÍ** | Conexión directa a PostgreSQL para migraciones Prisma sin pgbouncer. |
+| `JWT_SECRET` | String | **SÍ** | Clave secreta para firmar tokens JWT (mínimo 32 caracteres). El servidor falla al arrancar si falta. |
+| `CORS_ORIGIN` | String | **SÍ en prod** | Lista de orígenes permitidos separados por coma. **En producción no se permite `*`** (el servidor falla si no está definida). En local puede ser `http://localhost:5173`. |
+| `PORT` | Número | No | Puerto de escucha (Render lo asigna dinámicamente; por defecto `4000`). |
+| `NODE_ENV` | String | No | Entorno de ejecución (`development`, `production`, `test`). |
+| `INITIAL_ADMIN_EMAIL` | String | No | Correo para auto-creación del primer administrador si la BD está vacía. |
+| `INITIAL_ADMIN_PASSWORD` | String | No | Contraseña para el administrador inicial. Si no se define, se usa `npm run seed:admin`. |
+| `INITIAL_ADMIN_NAME` | String | No | Nombre del administrador inicial (`Administrador JINStock`). |
+| `ENABLE_KEEP_ALIVE` | Boolean | No | `true` activa un ping `SELECT 1` cada 3 min para evitar sleep en Neon Free Tier. |
+| `KEEP_ALIVE_INTERVAL_MS`| Número | No | Intervalo de ping en milisegundos (por defecto `180000`). |
+| `SMTP_HOST`, `SMTP_PORT`| String | No | Configuración SMTP para envío de correos (opcional). |
+| `SMTP_USER`, `SMTP_PASS`| String | No | Credenciales SMTP (opcional). |
 
----
+### Frontend (`frontend/.env` o variables en Cloudflare Pages)
 
-## 👥 4. Control de Acceso y Roles (M-02, M-03)
-
-| Rol | Alcance y Vistas Permitidas |
-| :--- | :--- |
-| **CAJERO** | Acceso al Punto de Venta (`/pos`) y a sus propias ventas registradas (`/ventas`). No tiene acceso a compras, reportes de gerencia, ajustes de inventario ni administración de usuarios. |
-| **ADMINISTRADOR** | Control total del sistema: Dashboard analítico (`/dashboard`), Punto de Venta (`/pos`), Inventario y Kardex (`/inventario`), Compras (`/compras`), Reportes y Cierre de Caja (`/reportes`), JIN Copilot (`/copilot`), y Usuarios (`/usuarios`). |
+| Variable | Tipo | Obligatoria | Descripción |
+| :--- | :---: | :---: | :--- |
+| `VITE_API_URL` | String | **SÍ** | URL base de la API backend. En producción: `https://jinstock-proyect.onrender.com/api`. En local: `http://localhost:4000/api`. |
 
 ---
 
-## 🚀 5. Puesta en Marcha y Configuración
+## 📡 3. Tabla Completa de Endpoints de la API
 
-### Prerrequisitos
-- Node.js >= 18.x
-- npm >= 9.x
-- PostgreSQL >= 14 (o cuenta en Neon PostgreSQL)
+Todas las rutas están bajo el prefijo `/api`. Todas las respuestas de error devuelven formato JSON con `{ success: false, code: string, message: string, requestId: string }`.
 
-### 1. Variables de Entorno
+| Método | Ruta | Rol Requerido | Parámetros (Query / Body) | Ejemplo de Respuesta Exitosa | Errores Posibles |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| `GET` | `/health` | Público | Ninguno | `{"success": true, "status": "healthy", "timestamp": "..."}` | `503` (DB caída o timeout >2s) |
+| `POST` | `/auth/login` | Público | Body: `{ email, password }` | `{"success": true, "data": {"token": "ey...", "usuario": {...}}}` | `400` (datos vacíos), `401` (credenciales inválidas o cuenta desactivada), `429` (rate limit 5 req/15min) |
+| `POST` | `/auth/register` | Público | Body: `{ nombre, email, password }` | `{"success": true, "message": "Usuario registrado exitosamente"}` | `400` (política contraseña <8 chars), `409` (email duplicado), `429` (rate limit 10 req/hora) |
+| `GET` | `/products` | Autenticado | Query: `page`, `limit` (max 100), `search`, `categoriaId`, `lowStock=true`, `all=true` | `{"success": true, "data": [...], "pagination": {"page": 1, "limit": 20, "total": 45}}` | `400` (parámetros no numéricos), `401` (sin token) |
+| `GET` | `/products/:id` | Autenticado | Params: `id` | `{"success": true, "data": {"id": "...", "nombre": "Cuaderno", ...}}` | `401`, `404` (producto inexistente) |
+| `POST` | `/products` | `ADMINISTRADOR` | Body: `{ nombre, precioVenta, costo, stock, stockMinimo, categoriaId, codigoBarra? }` | `{"success": true, "data": {...}}` | `400` (validación Zod), `401`, `403` (cajero bloqueado), `409` (código de barra duplicado) |
+| `PUT` | `/products/:id` | `ADMINISTRADOR` | Params: `id`, Body: campos a actualizar | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
+| `DELETE` | `/products/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Producto eliminado"}` | `401`, `403`, `404`, `409` (si tiene ventas asociadas) |
+| `POST` | `/sales` | Autenticado | Body: `{ detalles: [{ productoId, cantidad, precioUnitario? }], metodoPago, montoRecibido?, offlineId? }` | `{"success": true, "data": {"id": "...", "numeroComprobante": "FAC-2026-00001", "total": 150.0}}` | `400` (`STOCK_INSUFICIENTE`), `401`, `409` (reintento automático de número) |
+| `GET` | `/sales` | Autenticado | Query: `desde`, `hasta` (YYYY-MM-DD), `page`, `limit`, `cajeroId` | `{"success": true, "data": [...], "pagination": {...}}` | `400` (fechas inválidas), `401` |
+| `GET` | `/categories` | Autenticado | Query: `includeInactive=true/false` | `{"success": true, "data": [{"id": "...", "nombre": "Papelería"}]}` | `401` |
+| `POST` | `/categories` | `ADMINISTRADOR` | Body: `{ nombre, descripcion? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403` |
+| `GET` | `/suppliers` | `ADMINISTRADOR` | Ninguno | `{"success": true, "data": [...]}` | `401`, `403` |
+| `POST` | `/suppliers` | `ADMINISTRADOR` | Body: `{ nombre, ruc?, telefono?, email? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` |
+| `GET` | `/purchases` | `ADMINISTRADOR` | Query: `desde`, `hasta`, `proveedorId` | `{"success": true, "data": [...]}` | `400`, `401`, `403` |
+| `POST` | `/purchases` | `ADMINISTRADOR` | Body: `{ proveedorId, detalles: [{ productoId, cantidad, costoUnitario }] }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `409` (P2003 proveedor inexistente) |
+| `GET` | `/users` | `ADMINISTRADOR` | Ninguno | `{"success": true, "data": [...]}` | `401`, `403` |
+| `POST` | `/users` | `ADMINISTRADOR` | Body: `{ nombre, email, password, rol }` | `{"success": true, "data": {...}}` | `400` (password <8 chars), `401`, `403`, `409` |
+| `PUT` | `/users/:id` | `ADMINISTRADOR` | Params: `id`, Body: `{ nombre?, rol?, estado? }` | `{"success": true, "data": {...}}` | `400`, `401`, `403`, `404` |
+| `DELETE` | `/users/:id` | `ADMINISTRADOR` | Params: `id` | `{"success": true, "message": "Usuario eliminado"}` | `400` (auto-eliminación no permitida), `401`, `403`, `404` |
+| `GET` | `/reports/dashboard`| `ADMINISTRADOR`| Ninguno | `{"success": true, "data": {"ventasHoy": 1250, "stockBajo": 3, ...}}` | `401`, `403` |
+| `GET` | `/logs` | `ADMINISTRADOR` | Query: `limit` (max 200), `type=all/error` | `{"success": true, "count": 25, "data": [...]}` | `401`, `403` (requiere ADMINISTRADOR) |
 
-#### Backend (`backend/.env`):
-```env
-PORT=4000
-NODE_ENV=development
-DATABASE_URL="postgresql://usuario:password@host/neondb?sslmode=require"
-DIRECT_URL="postgresql://usuario:password@host/neondb?sslmode=require"
-JWT_SECRET="clave-super-secreta-produccion-minimo-32-caracteres"
-CORS_ORIGIN="http://localhost:5173,http://localhost:4173"
-ENABLE_KEEP_ALIVE="false"
-KEEP_ALIVE_INTERVAL_MS="180000"
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT="587"
-SMTP_USER="tu-correo@gmail.com"
-SMTP_PASS="tu-token-aplicacion"
-```
+---
 
-#### Frontend (`frontend/.env`):
-```env
-VITE_API_URL="http://localhost:4000/api"
-```
+## 💻 4. Ejemplos de Peticiones con `curl`
 
-### 2. Instalación de Dependencias
+### 1. Chequeo de Salud del Servicio (`/health`)
+Verifica el estado del backend y la conectividad a la base de datos con timeout de 2 segundos:
 ```bash
-# Backend
-cd backend
-npm install
+curl -i -X GET https://jinstock-proyect.onrender.com/api/health
+```
+**Respuesta:**
+```json
+HTTP/1.1 200 OK
+X-Request-Id: 4f981e4b-7489-4bc2-b362-7d2d380f2d91
+Content-Type: application/json; charset=utf-8
 
-# Frontend
-cd ../frontend
-npm install
+{
+  "success": true,
+  "message": "Servidor JINStock Backend operativo",
+  "status": "healthy",
+  "timestamp": "2026-10-30T04:40:00.000Z"
+}
 ```
 
-### 3. Base de Datos y Creación del Primer Administrador (C-05)
+### 2. Inicio de Sesión (`/auth/login`)
 ```bash
-cd backend
+curl -i -X POST https://jinstock-proyect.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@jinstock.ni",
+    "password": "TuPasswordSegura2026!"
+  }'
+```
+**Respuesta:**
+```json
+HTTP/1.1 200 OK
+X-Request-Id: e1a35790-2e4a-4a25-94cf-6cb314c1aa57
+Content-Type: application/json; charset=utf-8
 
-# Generar cliente de Prisma
-npx prisma generate
-
-# Aplicar esquema
-npx prisma db push
-
-# Crear usuario Administrador inicial de forma segura desde terminal
-npm run seed:admin
-
-# Opcional: Cargar catálogo demo inicial de librería nicaragüense
-npm run seed
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "usuario": {
+      "id": "usr-uuid-001",
+      "nombre": "Administrador General",
+      "email": "admin@jinstock.ni",
+      "rol": "ADMINISTRADOR"
+    }
+  },
+  "message": "Inicio de sesión exitoso"
+}
 ```
 
-### 4. Ejecución en Modo Desarrollo
+### 3. Listado de Productos con Paginación (`/products`)
 ```bash
-# Terminal 1 - Backend
-cd backend
-npm run dev
+TOKEN="tu_jwt_token_aqui"
 
-# Terminal 2 - Frontend
-cd frontend
-npm run dev
+# Paginado (página 1, 10 elementos)
+curl -i -X GET "https://jinstock-proyect.onrender.com/api/products?page=1&limit=10" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Modo catálogo completo para sincronización offline del frontend
+curl -i -X GET "https://jinstock-proyect.onrender.com/api/products?all=true" \
+  -H "Authorization: Bearer $TOKEN"
 ```
-Acceder a: `http://localhost:5173`
+
+### 4. Creación de Venta con Idempotencia Offline (`/sales`)
+```bash
+curl -i -X POST https://jinstock-proyect.onrender.com/api/sales \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "offlineId": "offline-pos-uuid-88234-a1",
+    "metodoPago": "EFECTIVO_CORDOBAS",
+    "montoRecibido": 500,
+    "detalles": [
+      {
+        "productoId": "prod-cuaderno-100h",
+        "cantidad": 2,
+        "precioUnitario": 45.0
+      }
+    ]
+  }'
+```
+*Si se reenvía la misma petición con el mismo `offlineId`, el backend responde `200 OK` con la venta previamente creada, garantizando idempotencia estricta sin duplicar cargos ni descuentos de inventario.*
 
 ---
 
-## 🧪 6. Pruebas Automáticas del Backend (T-11 / Sección 6)
-El proyecto cuenta con una suite de pruebas automatizadas con **Vitest** y **Supertest** cubriendo los 6 requisitos críticos de integridad y seguridad:
-1. Descuento de inventario y movimiento `SALIDA` en venta exitosa.
-2. Rechazo con código `STOCK_INSUFICIENTE` ante existencias faltantes.
-3. Idempotencia: el reenvío del mismo `offlineId` devuelve la venta existente (200) sin duplicar.
-4. Concurrencia atómica evitando stock negativo.
-5. Protección 403 `FORBIDDEN` para cajeros en rutas administrativas.
-6. Bloqueo de elevación de privilegios en el registro público.
+## 📊 5. Monitoreo, Logs y Trazabilidad
 
-Para ejecutar las pruebas:
+### Estructura de los Logs
+El backend emite registros JSON estructurados a `stdout`/`stderr` y almacena localmente en `logs/combined.log` y `logs/error.log`:
+```json
+{
+  "timestamp": "2026-10-30T04:39:02.505Z",
+  "level": "INFO",
+  "message": "HTTP GET /api/health 200 (1ms)",
+  "requestId": "5e9c237b-4b0a-4d1e-811a-fcbeec7eaad4",
+  "context": {
+    "requestId": "5e9c237b-4b0a-4d1e-811a-fcbeec7eaad4",
+    "method": "GET",
+    "url": "/api/health",
+    "status": 200,
+    "durationMs": 1,
+    "ip": "127.0.0.1",
+    "userAgent": "curl/7.88.1"
+  }
+}
+```
+
+### Trazabilidad con `X-Request-Id`
+- Cada solicitud recibe un identificador único `X-Request-Id` (o preserva el enviado por el cliente/proxy).
+- El `requestId` se propaga en el encabezado de respuesta HTTP, en los logs del servidor y dentro del cuerpo JSON de cualquier respuesta de error (`4xx`/`5xx`).
+- Ante cualquier reporte de fallo en producción, el usuario o tester puede proporcionar el `requestId` mostrado en la interfaz para ubicar el registro exacto en los logs.
+
+### Sanitización de Datos Sensibles
+El motor de logs filtra y reemplaza recursivamente por `[REDACTED]` cualquier clave que contenga: `password`, `token`, `secret`, `authorization` o `cookie`. Los cuerpos completos de autenticación nunca se escriben en disco ni en la consola.
+
+### Cómo ver los Logs en Render
+1. Inicie sesión en el [Dashboard de Render](https://dashboard.render.com).
+2. Seleccione el servicio web `jinstock-proyect`.
+3. Abra la pestaña **Logs**. Allí se transmiten en tiempo real todos los eventos formateados en JSON.
+> ⚠️ **IMPORTANTE:** El sistema de archivos en los Web Services estándar de Render es **efímero**. Los archivos locales `logs/combined.log` y `logs/error.log` se reinician con cada deploy o reinicio del contenedor. La fuente confiable y persistente de auditoría en producción es la pestaña **Logs** de Render o un recolector syslog/Datadog conectado.
+
+---
+
+## 🚀 6. Guía de Despliegue
+
+### Despliegue en Render (Backend)
+1. **Crear Servicio Web:**
+   - Tipo: **Web Service**.
+   - Conectar el repositorio de GitHub: `SIGEL-PROYECT-main` (o el fork correspondiente).
+   - Root Directory: `backend`.
+   - Runtime: **Node**.
+   - Build Command: `npm install && npm run build`
+   - Start Command: `npm start`
+2. **Configurar Variables de Entorno en Render:**
+   - `NODE_ENV`: `production`
+   - `DATABASE_URL`: URL del pooler de Neon (`?sslmode=require`)
+   - `DIRECT_URL`: URL directa de Neon
+   - `JWT_SECRET`: Cadena aleatoria segura (>= 32 chars)
+   - `CORS_ORIGIN`: `https://jinstock-proyect.pages.dev` (OBLIGATORIO en producción; no colocar `*`)
+   - `INITIAL_ADMIN_EMAIL`: Correo del administrador inicial
+   - `INITIAL_ADMIN_PASSWORD`: Contraseña segura del administrador inicial
+   - `INITIAL_ADMIN_NAME`: Nombre del administrador
+   - `ENABLE_KEEP_ALIVE`: `true`
+3. **Migración de Base de Datos:**
+   - El script `npm run build` compila TypeScript (`tsc`).
+   - Para aplicar el schema: `npx prisma db push` o ejecutar `npx prisma generate` (ya incluido en el ciclo de build).
+
+### Despliegue en Cloudflare Pages (Frontend)
+1. **Crear Proyecto en Cloudflare Pages:**
+   - Conectar el repositorio de GitHub.
+   - Build setting: **Vite**.
+   - Root directory: `frontend`.
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+2. **Variables de Entorno en Cloudflare Pages:**
+   - `VITE_API_URL`: `https://jinstock-proyect.onrender.com/api`
+3. **Cabeceras de Seguridad:**
+   - El archivo `frontend/public/_headers` se copia automáticamente a `dist/_headers` durante el build. Cloudflare Pages inyecta automáticamente:
+     - `X-Content-Type-Options: nosniff`
+     - `X-Frame-Options: DENY`
+     - `Referrer-Policy: strict-origin-when-cross-origin`
+     - `Content-Security-Policy`: Restringe orígenes a `self`, Google Fonts, Render (`jinstock-proyect.onrender.com`) y generador de QR.
+
+---
+
+## 🧪 7. Cómo Verificar el Funcionamiento
+
+### 1. Chequeo de Salud Automatizado
+```bash
+curl -s -f https://jinstock-proyect.onrender.com/api/health | jq .
+```
+Debe devolver `"status": "healthy"`.
+
+### 2. Ejecutar Pruebas Automatizadas Unitarias y de Integración
 ```bash
 cd backend
 npm test
 ```
+Ejecuta la suite con 24 tests de Vitest cubriendo seguridad, concurrencia, idempotencia, rate limit y paginación.
+
+### 3. Verificación de Tipos TypeScript y Build
+```bash
+# Backend
+cd backend && npx tsc --noEmit
+
+# Frontend
+cd frontend && npm run build
+```
+
+### 4. Prueba de Carga y Concurrencia
+Se incluye un script que realiza warm-up y lanza 50 peticiones con concurrencia 10, midiendo percentiles de latencia (min, p50, avg, p95, max) y tasa de errores 5xx:
+```bash
+cd backend
+# Ejecutar contra endpoint de producción
+./scripts/load-test.sh https://jinstock-proyect.onrender.com/api/health
+```
 
 ---
 
-## 📦 7. Compilación y Validación PWA
-Para validar el Service Worker unificado y la instalabilidad Lighthouse:
+## 👥 8. Matriz de Roles y Permisos
+
+| Módulo / Funcionalidad | Ruta Frontend | CAJERO | ADMINISTRADOR |
+| :--- | :--- | :---: | :---: |
+| **Punto de Venta (POS)** | `/pos` | ✅ | ✅ |
+| **Historial de Ventas Propias** | `/ventas` | ✅ | ✅ |
+| **Dashboard y KPIs Gerenciales**| `/dashboard` | ❌ (403) | ✅ |
+| **Gestión de Inventario y Kardex**| `/inventario` | ❌ (403) | ✅ |
+| **Compras a Proveedores** | `/compras` | ❌ (403) | ✅ |
+| **Gestión de Proveedores** | `/proveedores`| ❌ (403) | ✅ |
+| **Reportes y Cierres de Caja** | `/reportes` | ❌ (403) | ✅ |
+| **Administración de Usuarios** | `/usuarios` | ❌ (403) | ✅ |
+| **Consulta de Logs del Sistema**| `/api/logs` | ❌ (403) | ✅ |
+
+---
+
+## 🛠️ 9. Operación Local para Nuevos Desarrolladores
+
 ```bash
-cd frontend
-npm run build
-npm run preview
+# 1. Clonar repositorio
+git clone <url-del-repo>
+cd SIGEL-PROYECT-main
+
+# 2. Configurar variables locales
+cp .env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# 3. Instalar dependencias
+cd backend && npm install
+cd ../frontend && npm install
+
+# 4. Iniciar backend en terminal 1
+cd backend && npm run dev
+
+# 5. Iniciar frontend en terminal 2
+cd frontend && npm run dev
 ```
-Luego abrir las herramientas de desarrollo del navegador:
-1. Pestaña **Application** -> **Service Workers** -> marcar casilla **Offline**.
-2. Realizar búsquedas de productos y completar una venta: la venta quedará guardada como `PENDIENTE` en Dexie.
-3. Desmarcar **Offline**: la venta se sincronizará automáticamente en menos de 20 segundos pasando a estado `SINCRONIZADO`.
+La aplicación estará disponible en `http://localhost:5173`.
