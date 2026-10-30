@@ -104,9 +104,9 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
         await (tx as any).$executeRawUnsafe(
           `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
         );
-        const seqResult = await (tx as any).$queryRawUnsafe<[{ nextval: bigint }]>(
+        const seqResult = (await (tx as any).$queryRawUnsafe(
           `SELECT nextval('"${seqName}"')`
-        );
+        )) as [{ nextval: bigint | number | string }];
         const seqNum = Number(seqResult[0].nextval);
         numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
       } else {
