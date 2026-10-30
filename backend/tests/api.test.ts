@@ -530,6 +530,19 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(prisma.$queryRaw).not.toHaveBeenCalled();
     });
 
+    it('coalescea sondas concurrentes del health check en una sola consulta', async () => {
+      (prisma.$queryRaw as any).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve([{ 1: 1 }]), 20))
+      );
+
+      const responses = await Promise.all(
+        Array.from({ length: 10 }, () => request(app).get('/api/health'))
+      );
+
+      expect(responses.every((response) => response.status === 200)).toBe(true);
+      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+    });
+
     it('GET /api/products con page y limit devuelve metadata de paginación', async () => {
       (prisma.producto.findMany as any).mockResolvedValue([
         { id: 'p1', nombre: 'Cuaderno', sku: 'C-01', precioVenta: 50, stock: 10, stockMinimo: 5, estado: true },

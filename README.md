@@ -79,6 +79,8 @@ Durante la revisión de logs, use un `X-Request-Id` controlado y búsquelo en lo
 
 En producción, configure `TRUST_PROXY_HOPS=2` para la cadena Cloudflare → Render Ingress → contenedor. No use `trust proxy=true`: la cantidad explícita de saltos evita que un cliente evada el rate limiting manipulando `X-Forwarded-For`.
 
+El gate de calidad se ejecuta desde `.github/workflows/ci.yml`. El job de backend levanta PostgreSQL 15, aplica el schema Prisma, define `TEST_DATABASE_URL` y ejecuta las pruebas de integración real de concurrencia. El job de frontend ejecuta Oxlint, compilación Vite y verificación de `_headers`.
+
 ---
 
 ## 📡 4. Tabla Completa de Endpoints de la API

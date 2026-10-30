@@ -66,15 +66,27 @@ const healthCacheTtlMs = process.env.NODE_ENV === 'test'
   ? 0
   : Math.max(0, Number(process.env.HEALTH_CACHE_TTL_MS) || 5000);
 let lastHealthyCheckAt = 0;
+let healthCheckInFlight: Promise<void> | null = null;
+const checkDatabaseHealth = async (): Promise<void> => {
+  if (!healthCheckInFlight) {
+    healthCheckInFlight = Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000)),
+    ])
+      .then(() => {
+        lastHealthyCheckAt = Date.now();
+      })
+      .finally(() => {
+        healthCheckInFlight = null;
+      });
+  }
+  await healthCheckInFlight;
+};
 const healthHandler = async (req: Request, res: Response) => {
   const now = Date.now();
   if (healthCacheTtlMs === 0 || now - lastHealthyCheckAt >= healthCacheTtlMs) {
     try {
-      await Promise.race([
-        prisma.$queryRaw`SELECT 1`,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000)),
-      ]);
-      lastHealthyCheckAt = Date.now();
+      await checkDatabaseHealth();
     } catch (err: any) {
       logger.warn('Health check: Base de datos no disponible o demoró más de 2 segundos', { error: err.message });
       res.status(503).json({
