@@ -1,0 +1,41 @@
+🚀 Iniciando prueba de carga contra: https://jinstock-proyect.onrender.com
+🔥 Calentando servicio (warm-up ping a /api/health)...
+✅ Warm-up completado en 0.35s (HTTP 200).
+
+⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...
+
+================================================================
+📊 REPORTE DE CARGA: Endpoint de Salud (/api/health)
+🎯 URL: https://jinstock-proyect.onrender.com/api/health
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.12s
+----------------------------------------------------------------
+⚡ Latencia Min:           145.46 ms
+⚡ Latencia Mediana (p50): 223.48 ms
+⚡ Latencia Media:         217.93 ms
+⚡ Latencia p95:           331.03 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           338.97 ms
+----------------------------------------------------------------
+🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
+🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
+📋 Códigos HTTP recibidos: {"200":50}
+================================================================
+
+⚡ Ejecutando 50 solicitudes a /api/products?all=true con token (concurrencia 10)...
+
+================================================================
+📊 REPORTE DE CARGA: Catálogo con BD y Auth (/api/products?all=true)
+🎯 URL: https://jinstock-proyect.onrender.com/api/products?all=true
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.71s
+----------------------------------------------------------------
+⚡ Latencia Min:           237.29 ms
+⚡ Latencia Mediana (p50): 262.24 ms
+⚡ Latencia Media:         322.08 ms
+⚡ Latencia p95:           631.06 ms  ⚠️ (Supera 500ms)
+⚡ Latencia Max:           632.70 ms
+----------------------------------------------------------------
+🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
+🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
+📋 Códigos HTTP recibidos: {"200":50}
+================================================================
+
+⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 superó el umbral estricto de 500 ms (Rendimiento Regular).
