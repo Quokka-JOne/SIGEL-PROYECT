@@ -44,10 +44,29 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       take = limitNum;
     }
 
+    // Cuando se solicita todo el catálogo (all=true) solo se proyectan los campos
+    // que usa el POS/offline para reducir la carga de red y mejorar p95.
+    const posSelect = all === 'true'
+      ? {
+          id: true,
+          nombre: true,
+          sku: true,
+          codigoBarras: true,
+          precioVenta: true,
+          stock: true,
+          stockMinimo: true,
+          imagenUrl: true,
+          unidadMedida: true,
+          estado: true,
+          categoriaId: true,
+          categoria: { select: { id: true, nombre: true } },
+        }
+      : undefined;
+
     const [products, totalCount] = await Promise.all([
       prisma.producto.findMany({
         where,
-        include: { categoria: { select: { id: true, nombre: true } } },
+        ...(posSelect ? { select: posSelect } : { include: { categoria: { select: { id: true, nombre: true } } } }),
         orderBy: { nombre: 'asc' },
         ...(skip !== undefined ? { skip } : {}),
         ...(take !== undefined ? { take } : {}),
@@ -57,7 +76,7 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
     const formatted = products.map((p) => ({
       ...p,
-      categoriaNombre: p.categoria?.nombre || 'General',
+      categoriaNombre: (p as any).categoria?.nombre || 'General',
     }));
 
     res.json({

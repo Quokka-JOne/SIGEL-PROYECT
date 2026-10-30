@@ -95,10 +95,19 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
         }
       }
 
-      // C-04 Punto 2: Generar número de comprobante secuencial atómico dentro de la transacción
+      // BUG-04 (fix definitivo): usar una secuencia de PostgreSQL para el número de comprobante.
+      // tx.venta.count()+1 genera duplicados bajo concurrencia; la secuencia es atómica y no requiere reintentos.
       const currentYear = new Date().getFullYear();
-      const count = await tx.venta.count();
-      const numeroComprobante = `FAC-${currentYear}-${String(count + 1).padStart(5, '0')}`;
+      const seqName = `venta_comprobante_seq_${currentYear}`;
+      // Crear la secuencia si no existe (idempotente).
+      await tx.$executeRawUnsafe(
+        `CREATE SEQUENCE IF NOT EXISTS "${seqName}" START 1 INCREMENT 1`
+      );
+      const seqResult = await tx.$queryRawUnsafe<[{ nextval: bigint }]>(
+        `SELECT nextval('"${seqName}"')`
+      );
+      const seqNum = Number(seqResult[0].nextval);
+      const numeroComprobante = `FAC-${currentYear}-${String(seqNum).padStart(5, '0')}`;
 
       // Calcular totales con el precio unitario del servidor (no del cliente)
       let grandTotal = 0;
@@ -164,8 +173,8 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
       return sale;
     });
 
-    // BUG-04: numeroComprobante (count+1) y offlineId son únicos; ante una carrera
-    // la base lanza P2002. Se reintenta con un número nuevo o se devuelve la venta existente.
+    // BUG-04 resuelto con secuencia PostgreSQL: ya no hay carrera en numeroComprobante.
+    // Se mantiene el guard de offlineId por si la red duplica la petición.
     let saleResult: Awaited<ReturnType<typeof runSaleTransaction>>;
     for (let attempt = 1; ; attempt++) {
       try {
@@ -194,9 +203,6 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
           }
         }
 
-        if (err?.code === 'P2002' && target.includes('numeroComprobante') && attempt < 5) {
-          continue;
-        }
         throw err;
       }
     }
