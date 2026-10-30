@@ -14,7 +14,14 @@ const https = require('https');
 const { URL } = require('url');
 
 const rawBaseUrl = process.argv[2] || process.env.TEST_URL || 'http://localhost:4000';
-const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+let baseUrl = rawBaseUrl.replace(/\/+$/, '');
+if (baseUrl.endsWith('/api/health')) {
+  baseUrl = baseUrl.slice(0, -'/api/health'.length);
+} else if (baseUrl.endsWith('/health')) {
+  baseUrl = baseUrl.slice(0, -'/health'.length);
+} else if (baseUrl.endsWith('/api')) {
+  baseUrl = baseUrl.slice(0, -'/api'.length);
+}
 
 function requestAsync(targetUrl, options = {}) {
   return new Promise((resolve) => {
