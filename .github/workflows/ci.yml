@@ -52,9 +52,9 @@ jobs:
       - name: Verificar tipos TypeScript
         working-directory: backend
         run: npx tsc --noEmit
-      - name: Ejecutar pruebas unitarias y de concurrencia real con PostgreSQL (Vitest)
+      - name: Ejecutar pruebas unitarias y de concurrencia real con PostgreSQL (Vitest --verbose)
         working-directory: backend
-        run: npm test
+        run: npx vitest run --reporter=verbose
       - name: Compilar backend para producción
         working-directory: backend
         run: npm run build

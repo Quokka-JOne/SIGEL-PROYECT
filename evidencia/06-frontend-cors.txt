@@ -1,20 +1,32 @@
 ================================================================
 VERIFICACIÓN DEL FRONTEND Y PREFLIGHT CORS
+Fecha de la corrida: Sat, 31 Oct 2026 22:16 GMT
 ================================================================
 
-1. COMPROBACIÓN DEL BUNDLE EN CLOUDFLARE PAGES
-Objetivo: Demostrar que el frontend compilado en producción apunta a sigel-proyect.onrender.com
+================================================================
+1. BUNDLE EN CLOUDFLARE PAGES → apunta a sigel-proyect.onrender.com
+================================================================
+Fecha/hora: Sat, 31 Oct 2026 22:16 GMT
+
+Paso 1: obtener el nombre del archivo JS principal del frontend en producción.
 
 $ curl -s https://jinstock-proyect.pages.dev | grep -o 'assets/[^"]*\.js' | head -n 1
 assets/index-BtSh0bfo.js
 
-$ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js | grep -o 'https://sigel-proyect.onrender.com/api[^"]*' | head -n 2
+Paso 2: buscar dentro del bundle la URL del backend incrustada por Vite.
+
+$ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js \
+    | grep -o 'https://sigel-proyect.onrender.com/api[^"]*' | head -n 2
 https://sigel-proyect.onrender.com/api
 https://sigel-proyect.onrender.com/api/auth/verify
 
+Conclusión: el bundle de producción llama exclusivamente a sigel-proyect.onrender.com/api.
+No aparece ninguna referencia a jinstock-proyect.onrender.com (servicio anterior).
+
 ================================================================
-2. COMPROBACIÓN DEL PREFLIGHT CORS (HTTP 204 NO CONTENT)
-Objetivo: Demostrar que el backend en Ohio autoriza el origen de Cloudflare Pages y devuelve 204
+2. PREFLIGHT CORS → HTTP 204 No Content
+================================================================
+Fecha/hora: Sat, 31 Oct 2026 22:16:45 GMT
 
 $ curl -i -X OPTIONS https://sigel-proyect.onrender.com/api/products \
     -H "Origin: https://jinstock-proyect.pages.dev" \
@@ -22,7 +34,7 @@ $ curl -i -X OPTIONS https://sigel-proyect.onrender.com/api/products \
     -H "Access-Control-Request-Headers: authorization,content-type"
 
 HTTP/2 204 
-date: Sat, 31 Oct 2026 22:10:55 GMT
+date: Sat, 31 Oct 2026 22:16:45 GMT
 access-control-allow-credentials: true
 access-control-allow-headers: authorization,content-type
 access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
@@ -32,7 +44,7 @@ cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
-rndr-id: 7f55c692-7e6b-44cf
+rndr-id: 44c9dd61-8729-4b76
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin, Access-Control-Request-Headers
@@ -44,5 +56,10 @@ x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
 x-xss-protection: 0
 cf-cache-status: DYNAMIC
-cf-ray: a535fe154ca319be-GUA
+cf-ray: a53606a31ee245b5-GUA
 alt-svc: h3=":443"; ma=86400
+
+Conclusión: el servidor devuelve HTTP 204 con:
+  access-control-allow-origin: https://jinstock-proyect.pages.dev
+  access-control-allow-credentials: true
+El navegador puede ejecutar peticiones autenticadas cross-origin sin bloqueo de CORS.

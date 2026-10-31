@@ -4,7 +4,7 @@
 **Repositorio:** [Quokka-JOne/SIGEL-PROYECT](https://github.com/Quokka-JOne/SIGEL-PROYECT)  
 **Base evaluada:** `main`, commit comprobado con servicio `sigel-proyect` en Ohio (`us-east-2`)  
 **Corte de evidencia:** 31 de octubre de 2026  
-**Nota comprobada oficial en expediente:** **92.5 / 100**  
+**Autoevaluación provisional:** **92.5 / 100** *(la calificación oficial la asigna el docente)*  
 
 ---
 
@@ -21,7 +21,7 @@
 
 ---
 
-### Calificación Comprobada
+### Autoevaluación provisional (la nota oficial la asigna el docente)
 
 $$\mathbf{25.00 + 11.25 + 20.00 + 11.25 + 15.00 + 10.00 = 92.50 / 100}$$
 

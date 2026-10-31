@@ -1,25 +1,32 @@
 ================================================================
 PRUEBA DE MANEJO DE ERRORES Y VALIDACIONES (CP05 - CP07 y Err-4)
 Servidor: https://sigel-proyect.onrender.com
+Corrida completa: Sat, 31 Oct 2026 22:15:29–22:15:30 GMT
+Todas las peticiones autenticadas con token Bearer de admin@jinstock.ni
 ================================================================
 
 --- [CP05: Campo Faltante] POST /api/auth/register con body vacio {} ---
+Fecha/hora: Sat, 31 Oct 2026 22:15:29 GMT
+Comando:
+  curl -i -X POST https://sigel-proyect.onrender.com/api/auth/register \
+       -H "Content-Type: application/json" -d '{}'
+---
 HTTP/2 400 
-date: Sat, 31 Oct 2026 04:58:48 GMT
+date: Sat, 31 Oct 2026 22:15:29 GMT
 content-type: application/json; charset=utf-8
 access-control-allow-credentials: true
 cf-cache-status: DYNAMIC
 content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-etag: W/"1ea-lBJvf2JVZIZ4uKgyva1oD8xSWsw"
+etag: W/"1ea-98GqrG+Q9Gpnk7UBn2swaeH+adk"
 origin-agent-cluster: ?1
 ratelimit-limit: 10
 ratelimit-policy: 10;w=3600
 ratelimit-remaining: 9
 ratelimit-reset: 3600
 referrer-policy: no-referrer
-rndr-id: 67c29c7a-3361-4b08
+rndr-id: a1daca2e-d111-492a
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin
@@ -30,26 +37,31 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
-x-request-id: 9615d7d8-04d5-4cec-a3e1-f3f041911f45
+x-request-id: 939be047-189b-4afd-84fd-1aa2e9f938a6
 x-xss-protection: 0
-cf-ray: a530163489b731c7-GUA
+cf-ray: a53604c8de9031c2-GUA
 alt-svc: h3=":443"; ma=86400
 
-{"success":false,"code":"DATOS_INVALIDOS","message":"nombre: Required, email: Required, password: Required","requestId":"9615d7d8-04d5-4cec-a3e1-f3f041911f45","details":[{"code":"invalid_type","expected":"string","received":"undefined","path":["nombre"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["email"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["password"],"message":"Required"}]}
+{"success":false,"code":"DATOS_INVALIDOS","message":"nombre: Required, email: Required, password: Required","requestId":"939be047-189b-4afd-84fd-1aa2e9f938a6","details":[{"code":"invalid_type","expected":"string","received":"undefined","path":["nombre"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["email"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["password"],"message":"Required"}]}
 
 --- [CP06: Tipo Invalido] GET /api/products?page=invalido (con token Bearer) ---
+Fecha/hora: Sat, 31 Oct 2026 22:15:29 GMT
+Comando:
+  curl -i "https://sigel-proyect.onrender.com/api/products?page=invalido" \
+       -H "Authorization: Bearer <token>"
+---
 HTTP/2 400 
-date: Sat, 31 Oct 2026 21:54:04 GMT
+date: Sat, 31 Oct 2026 22:15:29 GMT
 content-type: application/json; charset=utf-8
 access-control-allow-credentials: true
 cf-cache-status: DYNAMIC
 content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-etag: W/"18d-UO1UjAWfgLKhISG+3JeGvB9Im7Y"
+etag: W/"18d-7iS+LEa3JO/Rj4p0zWEUQzHPVaQ"
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
-rndr-id: 3947dc7d-24fb-40ab
+rndr-id: 92cfe18e-3279-4e3f
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin
@@ -60,30 +72,36 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
-x-request-id: 36ff2c0d-b1b2-49ff-8614-215b83a021a5
+x-request-id: 30b083da-434e-461b-beb7-5074fec71c64
 x-xss-protection: 0
-cf-ray: a535e566a8b431bf-GUA
+cf-ray: a53604ca9fc84143-GUA
 alt-svc: h3=":443"; ma=86400
 
-{"success":false,"code":"DATOS_INVALIDOS","message":"page: page debe ser un entero positivo, page: page debe ser un entero positivo seguro","requestId":"36ff2c0d-b1b2-49ff-8614-215b83a021a5","details":[{"validation":"regex","code":"invalid_string","message":"page debe ser un entero positivo","path":["page"]},{"code":"custom","message":"page debe ser un entero positivo seguro","path":["page"]}]}
+{"success":false,"code":"DATOS_INVALIDOS","message":"page: page debe ser un entero positivo, page: page debe ser un entero positivo seguro","requestId":"30b083da-434e-461b-beb7-5074fec71c64","details":[{"validation":"regex","code":"invalid_string","message":"page debe ser un entero positivo","path":["page"]},{"code":"custom","message":"page debe ser un entero positivo seguro","path":["page"]}]}
 
 --- [CP07: Formato Invalido de Correo y Password Corta] POST /api/auth/register ---
+Fecha/hora: Sat, 31 Oct 2026 22:15:30 GMT
+Comando:
+  curl -i -X POST https://sigel-proyect.onrender.com/api/auth/register \
+       -H "Content-Type: application/json" \
+       -d '{"nombre":"Test","email":"no-es-email","password":"corta"}'
+---
 HTTP/2 400 
-date: Sat, 31 Oct 2026 04:58:49 GMT
+date: Sat, 31 Oct 2026 22:15:30 GMT
 content-type: application/json; charset=utf-8
 access-control-allow-credentials: true
 cf-cache-status: DYNAMIC
 content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-etag: W/"1e1-9PYA+8meu/8GfGlFANytPduKsVQ"
+etag: W/"1e1-pDgzEtt71KRRzoYdSfufzFJ9smU"
 origin-agent-cluster: ?1
 ratelimit-limit: 10
 ratelimit-policy: 10;w=3600
-ratelimit-remaining: 8
+ratelimit-remaining: 9
 ratelimit-reset: 3600
 referrer-policy: no-referrer
-rndr-id: f288c4f7-6e00-4f5b
+rndr-id: c90f0a29-19ef-4d92
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin
@@ -94,26 +112,31 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
-x-request-id: b4a5bc87-4f1a-4e30-8bc2-24a60d47d190
+x-request-id: 0c4cc22a-d1bd-4c15-88eb-12bb6632e579
 x-xss-protection: 0
-cf-ray: a5301638b978b4fc-GUA
+cf-ray: a53604cccf3831c5-GUA
 alt-svc: h3=":443"; ma=86400
 
-{"success":false,"code":"DATOS_INVALIDOS","message":"email: Correo electrónico no válido, password: La contraseña debe tener al menos 8 caracteres","requestId":"b4a5bc87-4f1a-4e30-8bc2-24a60d47d190","details":[{"validation":"email","code":"invalid_string","message":"Correo electrónico no válido","path":["email"]},{"code":"too_small","minimum":8,"type":"string","inclusive":true,"exact":false,"message":"La contraseña debe tener al menos 8 caracteres","path":["password"]}]}
+{"success":false,"code":"DATOS_INVALIDOS","message":"email: Correo electrónico no válido, password: La contraseña debe tener al menos 8 caracteres","requestId":"0c4cc22a-d1bd-4c15-88eb-12bb6632e579","details":[{"validation":"email","code":"invalid_string","message":"Correo electrónico no válido","path":["email"]},{"code":"too_small","minimum":8,"type":"string","inclusive":true,"exact":false,"message":"La contraseña debe tener al menos 8 caracteres","path":["password"]}]}
 
 --- [Err-4: Recurso Inexistente] GET /api/products/00000000-0000-0000-0000-000000000000 (con token Bearer) ---
+Fecha/hora: Sat, 31 Oct 2026 22:15:30 GMT
+Comando:
+  curl -i "https://sigel-proyect.onrender.com/api/products/00000000-0000-0000-0000-000000000000" \
+       -H "Authorization: Bearer <token>"
+---
 HTTP/2 404 
-date: Sat, 31 Oct 2026 21:54:04 GMT
+date: Sat, 31 Oct 2026 22:15:30 GMT
 content-type: application/json; charset=utf-8
 access-control-allow-credentials: true
 cf-cache-status: DYNAMIC
 content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-etag: W/"7f-AKF8WrUZ17btOo56v9kXdzT+VvI"
+etag: W/"7f-HEO0vukKbt047UYJrpaFxXvaihw"
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
-rndr-id: a997b319-3057-4e87
+rndr-id: 5a3d8a72-3d6b-416b
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin
@@ -124,9 +147,9 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
-x-request-id: 3aae464d-2be9-45f8-9aae-06f89d2602c3
+x-request-id: bc18c73f-87a0-48cd-9b54-f86e223abec8
 x-xss-protection: 0
-cf-ray: a535e5682b3e139c-GUA
+cf-ray: a53604ce9bf0353a-GUA
 alt-svc: h3=":443"; ma=86400
 
-{"success":false,"code":"NO_ENCONTRADO","message":"Producto no encontrado.","requestId":"3aae464d-2be9-45f8-9aae-06f89d2602c3"}
+{"success":false,"code":"NO_ENCONTRADO","message":"Producto no encontrado.","requestId":"bc18c73f-87a0-48cd-9b54-f86e223abec8"}
