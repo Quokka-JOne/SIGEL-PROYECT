@@ -6,7 +6,7 @@
  *
  * Uso:
  *   node backend/scripts/load-test.js [BASE_URL]
- *   Ejemplo: node backend/scripts/load-test.js https://jinstock-proyect.onrender.com
+ *   Ejemplo: node backend/scripts/load-test.js https://sigel-proyect.onrender.com
  */
 
 const http = require('http');

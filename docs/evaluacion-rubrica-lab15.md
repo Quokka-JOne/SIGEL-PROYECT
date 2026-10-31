@@ -53,7 +53,7 @@
 1. Calentar Render y Neon (hacer una solicitud manual al health check).
 2. Ejecutar 3 veces:
    ```bash
-   AUTH_TOKEN="$TOKEN" node backend/scripts/load-test.js https://jinstock-proyect.onrender.com
+   AUTH_TOKEN="$TOKEN" node backend/scripts/load-test.js https://sigel-proyect.onrender.com
    ```
 3. Guardar salida literal con `| tee evidencia/02-carga-N.txt`.
 4. Declarar: ciudad desde donde se midió, herramienta, red.

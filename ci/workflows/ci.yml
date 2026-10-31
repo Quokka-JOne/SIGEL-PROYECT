@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      VITE_API_URL: https://jinstock-proyect.onrender.com/api
+      VITE_API_URL: https://sigel-proyect.onrender.com/api
 
     steps:
       - name: Checkout del repositorio

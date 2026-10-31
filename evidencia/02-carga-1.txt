@@ -1,19 +1,19 @@
-🚀 Iniciando prueba de carga contra: https://jinstock-proyect.onrender.com
+🚀 Iniciando prueba de carga contra: https://sigel-proyect.onrender.com
 🔥 Calentando servicio (warm-up ping a /api/health)...
-✅ Warm-up completado en 0.42s (HTTP 200).
+✅ Warm-up completado en 0.37s (HTTP 200).
 
 ⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...
 
 ================================================================
 📊 REPORTE DE CARGA: Endpoint de Salud (/api/health)
-🎯 URL: https://jinstock-proyect.onrender.com/api/health
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.12s
+🎯 URL: https://sigel-proyect.onrender.com/api/health
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 0.71s
 ----------------------------------------------------------------
-⚡ Latencia Min:           137.51 ms
-⚡ Latencia Mediana (p50): 162.86 ms
-⚡ Latencia Media:         217.79 ms
-⚡ Latencia p95:           405.74 ms  ✅ (Cumple < 500ms)
-⚡ Latencia Max:           500.43 ms
+⚡ Latencia Min:           97.80 ms
+⚡ Latencia Mediana (p50): 102.93 ms
+⚡ Latencia Media:         126.41 ms
+⚡ Latencia p95:           199.70 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           206.35 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
@@ -24,14 +24,14 @@
 
 ================================================================
 📊 REPORTE DE CARGA: Sincronización Catálogo Real (/api/products?includeInactive=false)
-🎯 URL: https://jinstock-proyect.onrender.com/api/products?includeInactive=false
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 2.50s
+🎯 URL: https://sigel-proyect.onrender.com/api/products?includeInactive=false
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.02s
 ----------------------------------------------------------------
-⚡ Latencia Min:           249.43 ms
-⚡ Latencia Mediana (p50): 308.85 ms
-⚡ Latencia Media:         453.14 ms
-⚡ Latencia p95:           1021.39 ms  ⚠️ (Supera 500ms)
-⚡ Latencia Max:           1224.51 ms
+⚡ Latencia Min:           95.48 ms
+⚡ Latencia Mediana (p50): 196.94 ms
+⚡ Latencia Media:         191.23 ms
+⚡ Latencia p95:           313.33 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           498.88 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
@@ -44,13 +44,13 @@
 🖥️  DESGLOSE DEL SERVIDOR EN RENDER (durationMs interno Node.js + DB)
 📋 Muestras de auditoría analizadas: 50 peticiones recientes
 ----------------------------------------------------------------
-⚡ Servidor Latencia Min:           95.00 ms
-⚡ Servidor Latencia Mediana (p50): 99.00 ms
-⚡ Servidor Latencia Media:         203.02 ms
-⚡ Servidor Latencia p95:           660.00 ms  ⚠️
-⚡ Servidor Latencia Max:           717.00 ms
+⚡ Servidor Latencia Min:           3.00 ms
+⚡ Servidor Latencia Mediana (p50): 72.00 ms
+⚡ Servidor Latencia Media:         54.82 ms
+⚡ Servidor Latencia p95:           96.00 ms  ✅ (Excelente en servidor < 200ms)
+⚡ Servidor Latencia Max:           97.00 ms
 ----------------------------------------------------------------
-🌐 Latencia de Red Estimada (RTT):  ~250.12 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
+🌐 Latencia de Red Estimada (RTT):  ~136.41 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
 ================================================================
 
-⚠️ Resumen: 100% respuestas 2xx y 0 caídas (5xx=0), pero el percentil p95 global superó el umbral estricto de 500 ms (Rendimiento Regular por latencia de red transfronteriza).
+✅ Prueba de carga óptima: 100% respuestas 2xx, 0 caídas y latencia p95 < 500ms en todos los endpoints.

@@ -15,7 +15,7 @@
 | Componente | URL de Producción | Propósito |
 | :--- | :--- | :--- |
 | **Frontend (PWA)** | [https://jinstock-proyect.pages.dev](https://jinstock-proyect.pages.dev) | Aplicación Web Progresiva para punto de venta (POS), catálogo local en IndexedDB, gestión de inventario y sincronización automática bidireccional. |
-| **Backend (API REST)** | [https://jinstock-proyect.onrender.com](https://jinstock-proyect.onrender.com) | Servicio REST con Express, validación estricta con Zod, autenticación JWT, Kardex transaccional y persistencia en PostgreSQL (Neon). Base API: `/api`. |
+| **Backend (API REST)** | [https://sigel-proyect.onrender.com](https://sigel-proyect.onrender.com) | Servicio REST con Express, validación estricta con Zod, autenticación JWT, Kardex transaccional y persistencia en PostgreSQL (Neon). Base API: `/api`. |
 
 ### Propósito del Negocio
 JINStock resuelve la problemática de interrupciones operativas (cortes de energía o conectividad) en librerías y papelerías de Nicaragua:
@@ -51,7 +51,7 @@ JINStock resuelve la problemática de interrupciones operativas (cortes de energ
 
 | Variable | Tipo | Obligatoria | Descripción |
 | :--- | :---: | :---: | :--- |
-| `VITE_API_URL` | String | **SÍ** | URL base de la API backend. En producción: `https://jinstock-proyect.onrender.com/api`. En local: `http://localhost:4000/api`. |
+| `VITE_API_URL` | String | **SÍ** | URL base de la API backend. En producción: `https://sigel-proyect.onrender.com/api`. En local: `http://localhost:4000/api`. |
 
 ---
 
@@ -62,9 +62,9 @@ La autoevaluación provisional frente a la rúbrica del Laboratorio 15, sus evid
 Para una comprobación rápida y segura del despliegue, utilice primero los endpoints públicos:
 
 ```bash
-curl -i https://jinstock-proyect.onrender.com/api/live
-curl -i https://jinstock-proyect.onrender.com/api/health
-curl -i https://jinstock-proyect.onrender.com/api
+curl -i https://sigel-proyect.onrender.com/api/live
+curl -i https://sigel-proyect.onrender.com/api/health
+curl -i https://sigel-proyect.onrender.com/api
 ```
 
 `/api/live` confirma que el proceso está activo sin consultar PostgreSQL. `/api/health` confirma que el proceso y la base de datos están disponibles. El health check reutiliza durante cinco segundos el último resultado saludable para evitar que una prueba concurrente genere una consulta a la base de datos por cada sonda.
@@ -72,7 +72,7 @@ curl -i https://jinstock-proyect.onrender.com/api
 La prueba de carga de referencia se ejecuta sin modificar datos:
 
 ```bash
-node backend/scripts/load-test.js https://jinstock-proyect.onrender.com
+node backend/scripts/load-test.js https://sigel-proyect.onrender.com
 ```
 
 El script realiza 50 solicitudes con concurrencia 10 y reporta p50, media, p95, códigos HTTP y errores 5xx. Para probar el catálogo autenticado, defina temporalmente `AUTH_TOKEN` en el entorno del evaluador; no lo escriba en el repositorio ni en una captura pública.
@@ -137,7 +137,7 @@ Todas las rutas están bajo el prefijo `/api`. Las respuestas de error de negoci
 ### 1. Chequeo de Salud del Servicio (`/health`)
 Verifica el estado del backend y la conectividad a la base de datos con timeout de 2 segundos:
 ```bash
-curl -i -X GET https://jinstock-proyect.onrender.com/api/health
+curl -i -X GET https://sigel-proyect.onrender.com/api/health
 ```
 **Respuesta:**
 ```json
@@ -155,7 +155,7 @@ Content-Type: application/json; charset=utf-8
 
 ### 2. Inicio de Sesión (`/auth/login`)
 ```bash
-curl -i -X POST https://jinstock-proyect.onrender.com/api/auth/login \
+curl -i -X POST https://sigel-proyect.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@jinstock.ni",
@@ -188,17 +188,17 @@ Content-Type: application/json; charset=utf-8
 TOKEN="tu_jwt_token_aqui"
 
 # Paginado (página 1, 10 elementos)
-curl -i -X GET "https://jinstock-proyect.onrender.com/api/products?page=1&limit=10" \
+curl -i -X GET "https://sigel-proyect.onrender.com/api/products?page=1&limit=10" \
   -H "Authorization: Bearer $TOKEN"
 
 # Modo catálogo completo para sincronización offline del frontend
-curl -i -X GET "https://jinstock-proyect.onrender.com/api/products?all=true" \
+curl -i -X GET "https://sigel-proyect.onrender.com/api/products?all=true" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ### 4. Creación de Venta con Idempotencia Offline (`/sales`)
 ```bash
-curl -i -X POST https://jinstock-proyect.onrender.com/api/sales \
+curl -i -X POST https://sigel-proyect.onrender.com/api/sales \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -288,13 +288,13 @@ El motor de logs filtra y reemplaza recursivamente por `[REDACTED]` cualquier cl
    - Build command: `npm run build`
    - Build output directory: `dist`
 2. **Variables de Entorno en Cloudflare Pages:**
-   - `VITE_API_URL`: `https://jinstock-proyect.onrender.com/api`
+   - `VITE_API_URL`: `https://sigel-proyect.onrender.com/api`
 3. **Cabeceras de Seguridad:**
    - El archivo `frontend/public/_headers` se copia automáticamente a `dist/_headers` durante el build. Cloudflare Pages inyecta automáticamente:
      - `X-Content-Type-Options: nosniff`
      - `X-Frame-Options: DENY`
      - `Referrer-Policy: strict-origin-when-cross-origin`
-     - `Content-Security-Policy`: Restringe orígenes a `self`, Google Fonts, Render (`jinstock-proyect.onrender.com`) y generador de QR.
+     - `Content-Security-Policy`: Restringe orígenes a `self`, Google Fonts, Render (`sigel-proyect.onrender.com`) y generador de QR.
 
 ---
 
@@ -302,7 +302,7 @@ El motor de logs filtra y reemplaza recursivamente por `[REDACTED]` cualquier cl
 
 ### 1. Chequeo de Salud Automatizado
 ```bash
-curl -s -f https://jinstock-proyect.onrender.com/api/health | jq .
+curl -s -f https://sigel-proyect.onrender.com/api/health | jq .
 ```
 Debe devolver `"status": "healthy"`.
 
@@ -327,7 +327,7 @@ Se incluye un script que realiza warm-up y lanza 50 peticiones con concurrencia 
 ```bash
 cd backend
 # Ejecutar contra endpoint de producción
-./scripts/load-test.sh https://jinstock-proyect.onrender.com/api/health
+./scripts/load-test.sh https://sigel-proyect.onrender.com/api/health
 ```
 
 ---
