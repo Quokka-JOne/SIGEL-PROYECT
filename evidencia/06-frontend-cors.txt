@@ -1,0 +1,48 @@
+================================================================
+VERIFICACIÓN DEL FRONTEND Y PREFLIGHT CORS
+================================================================
+
+1. COMPROBACIÓN DEL BUNDLE EN CLOUDFLARE PAGES
+Objetivo: Demostrar que el frontend compilado en producción apunta a sigel-proyect.onrender.com
+
+$ curl -s https://jinstock-proyect.pages.dev | grep -o 'assets/[^"]*\.js' | head -n 1
+assets/index-BtSh0bfo.js
+
+$ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js | grep -o 'https://sigel-proyect.onrender.com/api[^"]*' | head -n 2
+https://sigel-proyect.onrender.com/api
+https://sigel-proyect.onrender.com/api/auth/verify
+
+================================================================
+2. COMPROBACIÓN DEL PREFLIGHT CORS (HTTP 204 NO CONTENT)
+Objetivo: Demostrar que el backend en Ohio autoriza el origen de Cloudflare Pages y devuelve 204
+
+$ curl -i -X OPTIONS https://sigel-proyect.onrender.com/api/products \
+    -H "Origin: https://jinstock-proyect.pages.dev" \
+    -H "Access-Control-Request-Method: GET" \
+    -H "Access-Control-Request-Headers: authorization,content-type"
+
+HTTP/2 204 
+date: Sat, 31 Oct 2026 22:10:55 GMT
+access-control-allow-credentials: true
+access-control-allow-headers: authorization,content-type
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: https://jinstock-proyect.pages.dev
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+rndr-id: 7f55c692-7e6b-44cf
+server: cloudflare
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin, Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-render-origin-server: Render
+x-xss-protection: 0
+cf-cache-status: DYNAMIC
+cf-ray: a535fe154ca319be-GUA
+alt-svc: h3=":443"; ma=86400
