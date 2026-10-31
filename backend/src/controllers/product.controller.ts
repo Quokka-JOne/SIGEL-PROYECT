@@ -135,9 +135,15 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
       throw new NotFoundError('Producto no encontrado.');
     }
 
+    const isAdmin = req.user?.rol === 'ADMINISTRADOR';
+    const prodObj = { ...product } as any;
+    if (!isAdmin) {
+      delete prodObj.costo;
+    }
+
     res.json({
       success: true,
-      data: product,
+      data: prodObj,
       message: 'Detalle de producto obtenido correctamente.',
     });
   } catch (error) {

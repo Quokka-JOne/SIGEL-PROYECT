@@ -52,7 +52,7 @@ jobs:
       - name: Verificar tipos TypeScript
         working-directory: backend
         run: npx tsc --noEmit
-      - name: Ejecutar pruebas unitarias e integración real
+      - name: Ejecutar pruebas unitarias y de concurrencia real con PostgreSQL (Vitest)
         working-directory: backend
         run: npm test
       - name: Compilar backend para producción
@@ -63,7 +63,7 @@ jobs:
     name: Frontend Lint, Typecheck & Build
     runs-on: ubuntu-latest
     env:
-      VITE_API_URL: https://jinstock-proyect.onrender.com/api
+      VITE_API_URL: https://sigel-proyect.onrender.com/api
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
@@ -98,4 +98,4 @@ jobs:
             echo "::error::La CSP de producción no debe autorizar localhost"
             exit 1
           fi
-          grep -Eq "connect-src[^;]*https://jinstock-proyect.onrender.com" frontend/dist/_headers
+          grep -Eq "connect-src[^;]*https://sigel-proyect.onrender.com" frontend/dist/_headers

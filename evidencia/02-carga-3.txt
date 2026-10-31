@@ -1,6 +1,9 @@
 🚀 Iniciando prueba de carga contra: https://sigel-proyect.onrender.com
 🔥 Calentando servicio (warm-up ping a /api/health)...
-✅ Warm-up completado en 0.44s (HTTP 200).
+✅ Warm-up de salud completado en 0.23s (HTTP 200).
+🔥 Precalentando pool de base de datos con pasada previa al catálogo...
+✅ Pasada previa al catálogo completada en 0.10s. Pool PostgreSQL listo.
+💡 Método declarado: Reutilización de sockets HTTP Keep-Alive + apertura inicial de pool de conexiones PostgreSQL.
 
 ⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...
 
@@ -9,11 +12,11 @@
 🎯 URL: https://sigel-proyect.onrender.com/api/health
 ⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 0.73s
 ----------------------------------------------------------------
-⚡ Latencia Min:           90.69 ms
-⚡ Latencia Mediana (p50): 106.20 ms
-⚡ Latencia Media:         138.36 ms
-⚡ Latencia p95:           274.99 ms  ✅ (Cumple < 500ms)
-⚡ Latencia Max:           277.69 ms
+⚡ Latencia Min:           91.66 ms
+⚡ Latencia Mediana (p50): 102.28 ms
+⚡ Latencia Media:         123.71 ms
+⚡ Latencia p95:           198.15 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           225.68 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
@@ -25,13 +28,13 @@
 ================================================================
 📊 REPORTE DE CARGA: Sincronización Catálogo Real (/api/products?includeInactive=false)
 🎯 URL: https://sigel-proyect.onrender.com/api/products?includeInactive=false
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 0.91s
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.19s
 ----------------------------------------------------------------
-⚡ Latencia Min:           99.08 ms
-⚡ Latencia Mediana (p50): 200.28 ms
-⚡ Latencia Media:         174.63 ms
-⚡ Latencia p95:           205.56 ms  ✅ (Cumple < 500ms)
-⚡ Latencia Max:           206.82 ms
+⚡ Latencia Min:           98.12 ms
+⚡ Latencia Mediana (p50): 199.48 ms
+⚡ Latencia Media:         226.74 ms
+⚡ Latencia p95:           409.97 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           500.33 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
@@ -45,12 +48,12 @@
 📋 Muestras de auditoría analizadas: 50 peticiones recientes
 ----------------------------------------------------------------
 ⚡ Servidor Latencia Min:           3.00 ms
-⚡ Servidor Latencia Mediana (p50): 23.00 ms
-⚡ Servidor Latencia Media:         44.32 ms
-⚡ Servidor Latencia p95:           96.00 ms  ✅ (Excelente en servidor < 200ms)
-⚡ Servidor Latencia Max:           97.00 ms
+⚡ Servidor Latencia Mediana (p50): 64.00 ms
+⚡ Servidor Latencia Media:         60.00 ms
+⚡ Servidor Latencia p95:           165.00 ms  ✅ (Excelente en servidor < 200ms)
+⚡ Servidor Latencia Max:           197.00 ms
 ----------------------------------------------------------------
-🌐 Latencia de Red Estimada (RTT):  ~130.31 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
+🌐 Latencia de Red Estimada (RTT):  ~166.74 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
 ================================================================
 
 ✅ Prueba de carga óptima: 100% respuestas 2xx, 0 caídas y latencia p95 < 500ms en todos los endpoints.

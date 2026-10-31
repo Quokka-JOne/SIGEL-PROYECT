@@ -37,19 +37,19 @@ alt-svc: h3=":443"; ma=86400
 
 {"success":false,"code":"DATOS_INVALIDOS","message":"nombre: Required, email: Required, password: Required","requestId":"9615d7d8-04d5-4cec-a3e1-f3f041911f45","details":[{"code":"invalid_type","expected":"string","received":"undefined","path":["nombre"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["email"],"message":"Required"},{"code":"invalid_type","expected":"string","received":"undefined","path":["password"],"message":"Required"}]}
 
---- [CP06: Tipo Invalido] GET /api/products?page=invalido ---
-HTTP/2 401 
-date: Sat, 31 Oct 2026 04:58:48 GMT
+--- [CP06: Tipo Invalido] GET /api/products?page=invalido (con token Bearer) ---
+HTTP/2 400 
+date: Sat, 31 Oct 2026 21:54:04 GMT
 content-type: application/json; charset=utf-8
 access-control-allow-credentials: true
 cf-cache-status: DYNAMIC
 content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-etag: W/"6e-UnxIolrQBYZedt2G57cMrJMnSsM"
+etag: W/"18d-UO1UjAWfgLKhISG+3JeGvB9Im7Y"
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
-rndr-id: e761f8a6-e89c-4231
+rndr-id: 3947dc7d-24fb-40ab
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin
@@ -60,12 +60,12 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
-x-request-id: 14c8e819-82d3-490f-a185-a38b080b77f8
+x-request-id: 36ff2c0d-b1b2-49ff-8614-215b83a021a5
 x-xss-protection: 0
-cf-ray: a53016361fc131c2-GUA
+cf-ray: a535e566a8b431bf-GUA
 alt-svc: h3=":443"; ma=86400
 
-{"success":false,"code":"UNAUTHORIZED","message":"Acceso no autorizado. Token de autenticación no provisto."}
+{"success":false,"code":"DATOS_INVALIDOS","message":"page: page debe ser un entero positivo, page: page debe ser un entero positivo seguro","requestId":"36ff2c0d-b1b2-49ff-8614-215b83a021a5","details":[{"validation":"regex","code":"invalid_string","message":"page debe ser un entero positivo","path":["page"]},{"code":"custom","message":"page debe ser un entero positivo seguro","path":["page"]}]}
 
 --- [CP07: Formato Invalido de Correo y Password Corta] POST /api/auth/register ---
 HTTP/2 400 
@@ -101,19 +101,19 @@ alt-svc: h3=":443"; ma=86400
 
 {"success":false,"code":"DATOS_INVALIDOS","message":"email: Correo electrónico no válido, password: La contraseña debe tener al menos 8 caracteres","requestId":"b4a5bc87-4f1a-4e30-8bc2-24a60d47d190","details":[{"validation":"email","code":"invalid_string","message":"Correo electrónico no válido","path":["email"]},{"code":"too_small","minimum":8,"type":"string","inclusive":true,"exact":false,"message":"La contraseña debe tener al menos 8 caracteres","path":["password"]}]}
 
---- [Err-4: Recurso Inexistente] GET /api/products/00000000-0000-0000-0000-000000000000 ---
-HTTP/2 401 
-date: Sat, 31 Oct 2026 04:58:49 GMT
+--- [Err-4: Recurso Inexistente] GET /api/products/00000000-0000-0000-0000-000000000000 (con token Bearer) ---
+HTTP/2 404 
+date: Sat, 31 Oct 2026 21:54:04 GMT
 content-type: application/json; charset=utf-8
 access-control-allow-credentials: true
 cf-cache-status: DYNAMIC
 content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
 cross-origin-opener-policy: same-origin
 cross-origin-resource-policy: same-origin
-etag: W/"6e-UnxIolrQBYZedt2G57cMrJMnSsM"
+etag: W/"7f-AKF8WrUZ17btOo56v9kXdzT+VvI"
 origin-agent-cluster: ?1
 referrer-policy: no-referrer
-rndr-id: d2981793-7b01-4137
+rndr-id: a997b319-3057-4e87
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains
 vary: Origin
@@ -124,9 +124,9 @@ x-download-options: noopen
 x-frame-options: SAMEORIGIN
 x-permitted-cross-domain-policies: none
 x-render-origin-server: Render
-x-request-id: ddc925ef-18f9-42ac-8d88-518d11f22e5a
+x-request-id: 3aae464d-2be9-45f8-9aae-06f89d2602c3
 x-xss-protection: 0
-cf-ray: a530163c7dd7b4fc-GUA
+cf-ray: a535e5682b3e139c-GUA
 alt-svc: h3=":443"; ma=86400
 
-{"success":false,"code":"UNAUTHORIZED","message":"Acceso no autorizado. Token de autenticación no provisto."}
+{"success":false,"code":"NO_ENCONTRADO","message":"Producto no encontrado.","requestId":"3aae464d-2be9-45f8-9aae-06f89d2602c3"}

@@ -1,19 +1,22 @@
 🚀 Iniciando prueba de carga contra: https://sigel-proyect.onrender.com
 🔥 Calentando servicio (warm-up ping a /api/health)...
-✅ Warm-up completado en 0.22s (HTTP 200).
+✅ Warm-up de salud completado en 0.39s (HTTP 200).
+🔥 Precalentando pool de base de datos con pasada previa al catálogo...
+✅ Pasada previa al catálogo completada en 0.24s. Pool PostgreSQL listo.
+💡 Método declarado: Reutilización de sockets HTTP Keep-Alive + apertura inicial de pool de conexiones PostgreSQL.
 
 ⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...
 
 ================================================================
 📊 REPORTE DE CARGA: Endpoint de Salud (/api/health)
 🎯 URL: https://sigel-proyect.onrender.com/api/health
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 0.61s
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 0.78s
 ----------------------------------------------------------------
-⚡ Latencia Min:           95.61 ms
-⚡ Latencia Mediana (p50): 101.83 ms
-⚡ Latencia Media:         121.07 ms
-⚡ Latencia p95:           202.35 ms  ✅ (Cumple < 500ms)
-⚡ Latencia Max:           205.48 ms
+⚡ Latencia Min:           91.18 ms
+⚡ Latencia Mediana (p50): 105.27 ms
+⚡ Latencia Media:         140.06 ms
+⚡ Latencia p95:           297.56 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           303.22 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
@@ -25,13 +28,13 @@
 ================================================================
 📊 REPORTE DE CARGA: Sincronización Catálogo Real (/api/products?includeInactive=false)
 🎯 URL: https://sigel-proyect.onrender.com/api/products?includeInactive=false
-⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 1.06s
+⏱️  Total solicitudes: 50 | Concurrencia: 10 | Tiempo total: 0.95s
 ----------------------------------------------------------------
-⚡ Latencia Min:           97.27 ms
-⚡ Latencia Mediana (p50): 191.79 ms
-⚡ Latencia Media:         195.59 ms
-⚡ Latencia p95:           310.52 ms  ✅ (Cumple < 500ms)
-⚡ Latencia Max:           316.34 ms
+⚡ Latencia Min:           102.13 ms
+⚡ Latencia Mediana (p50): 170.31 ms
+⚡ Latencia Media:         182.17 ms
+⚡ Latencia p95:           306.25 ms  ✅ (Cumple < 500ms)
+⚡ Latencia Max:           375.33 ms
 ----------------------------------------------------------------
 🚨 Errores HTTP 5xx:       0 ✅ (Cero caídas)
 🚨 Respuestas no 2xx:      0 ✅ (100% exitosas)
@@ -45,12 +48,12 @@
 📋 Muestras de auditoría analizadas: 50 peticiones recientes
 ----------------------------------------------------------------
 ⚡ Servidor Latencia Min:           3.00 ms
-⚡ Servidor Latencia Mediana (p50): 12.00 ms
-⚡ Servidor Latencia Media:         24.84 ms
-⚡ Servidor Latencia p95:           97.00 ms  ✅ (Excelente en servidor < 200ms)
-⚡ Servidor Latencia Max:           99.00 ms
+⚡ Servidor Latencia Mediana (p50): 48.00 ms
+⚡ Servidor Latencia Media:         53.34 ms
+⚡ Servidor Latencia p95:           104.00 ms  ✅ (Excelente en servidor < 200ms)
+⚡ Servidor Latencia Max:           243.00 ms
 ----------------------------------------------------------------
-🌐 Latencia de Red Estimada (RTT):  ~170.75 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
+🌐 Latencia de Red Estimada (RTT):  ~128.83 ms (Tránsito cliente Nicaragua/Guatemala ↔ Render Ohio)
 ================================================================
 
 ✅ Prueba de carga óptima: 100% respuestas 2xx, 0 caídas y latencia p95 < 500ms en todos los endpoints.

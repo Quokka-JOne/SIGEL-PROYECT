@@ -23,15 +23,20 @@ if (baseUrl.endsWith('/api/health')) {
   baseUrl = baseUrl.slice(0, -'/api'.length);
 }
 
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 50, keepAliveMsecs: 60000 });
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 50, keepAliveMsecs: 60000 });
+
 function requestAsync(targetUrl, options = {}) {
   return new Promise((resolve) => {
     const parsed = new URL(targetUrl);
     const client = parsed.protocol === 'https:' ? https : http;
+    const agent = parsed.protocol === 'https:' ? httpsAgent : httpAgent;
     const start = process.hrtime.bigint();
 
     const req = client.request(
       parsed,
       {
+        agent,
         method: options.method || 'GET',
         headers: options.headers || {},
         timeout: options.timeout || 15000,
@@ -168,7 +173,21 @@ async function main() {
     console.error(`❌ ERROR: Warm-up falló. Se esperaba HTTP 200 en ${baseUrl}/api/health pero se recibió HTTP ${warmupRes.status} (${warmupRes.error || 'código no 200'}).`);
     process.exit(1);
   }
-  console.log(`✅ Warm-up completado en ${warmupSec.toFixed(2)}s (HTTP 200).`);
+  console.log(`✅ Warm-up de salud completado en ${warmupSec.toFixed(2)}s (HTTP 200).`);
+
+  const token = process.env.AUTH_TOKEN;
+  const targetDataRoute = '/api/products?includeInactive=false';
+  if (token) {
+    console.log('🔥 Precalentando pool de base de datos con pasada previa al catálogo...');
+    const catWarmupStart = Date.now();
+    await requestAsync(`${baseUrl}${targetDataRoute}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 30000,
+    });
+    console.log(`✅ Pasada previa al catálogo completada en ${((Date.now() - catWarmupStart) / 1000).toFixed(2)}s. Pool PostgreSQL listo.`);
+  }
+
+  console.log('💡 Método declarado: Reutilización de sockets HTTP Keep-Alive + apertura inicial de pool de conexiones PostgreSQL.');
 
   // 2. Medición 1: /api/health (50 solicitudes, concurrencia 10)
   console.log('\n⚡ Ejecutando 50 solicitudes a /api/health (concurrencia 10)...');
@@ -178,9 +197,7 @@ async function main() {
   const rep1 = printReport('Endpoint de Salud (/api/health)', `${baseUrl}/api/health`, healthResults, t1Sec);
 
   // 3. Medición 2: /api/products?includeInactive=false (Ruta real de sincronización offline de la app)
-  const token = process.env.AUTH_TOKEN;
   let rep2;
-  const targetDataRoute = '/api/products?includeInactive=false';
   if (token) {
     console.log(`\n⚡ Ejecutando 50 solicitudes a ${targetDataRoute} con token (concurrencia 10)...`);
     const t2Start = Date.now();
