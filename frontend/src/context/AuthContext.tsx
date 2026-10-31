@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiFetch, setAuthToken, setStoredUser, getStoredUser, removeAuthToken, getAuthToken } from '../services/api';
 
 export type Rol = 'ADMINISTRADOR' | 'CAJERO';
@@ -27,6 +27,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(getAuthToken());
   const [loading, setLoading] = useState<boolean>(true);
 
+  const handleLogout = useCallback(() => {
+    removeAuthToken();
+    setToken(null);
+    setUser(null);
+  }, []);
+
   useEffect(() => {
     const initAuth = async () => {
       const existingToken = getAuthToken();
@@ -48,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initAuth();
-  }, []);
+  }, [handleLogout]);
 
   const loginOffline = (role: Rol = 'CAJERO', remember = true) => {
     const cachedUser = getStoredUser<UserProfile>();
@@ -131,12 +137,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       requireVerification: res.requireVerification,
       email: res.email,
     };
-  };
-
-  const handleLogout = () => {
-    removeAuthToken();
-    setToken(null);
-    setUser(null);
   };
 
   return (

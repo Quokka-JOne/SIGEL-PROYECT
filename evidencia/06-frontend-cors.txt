@@ -13,20 +13,20 @@ Paso 1: obtener el nombre del archivo JS principal del frontend en producción.
 $ curl -s https://jinstock-proyect.pages.dev | grep -o 'assets/[^"]*\.js' | head -n 1
 assets/index-BtSh0bfo.js
 
-Paso 2: comprobar que el backend NUEVO está presente.
+Paso 2: comprobar apariciones del backend NUEVO (contando coincidencias exactas).
 
 $ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js \
-    | grep -c "sigel-proyect.onrender.com"
-1
+    | grep -o "sigel-proyect.onrender.com" | wc -l
+2
 
-Paso 3 (clave): comprobar que el backend VIEJO NO aparece en ningún lugar del bundle.
+Paso 3 (clave): comprobar que el backend VIEJO tiene 0 coincidencias en el bundle.
 
 $ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js \
-    | grep -c "jinstock-proyect.onrender.com"
+    | grep -o "jinstock-proyect.onrender.com" | wc -l
 0
 
-Conclusión: el bundle de producción contiene exactamente 1 referencia a
-sigel-proyect.onrender.com y cero referencias a jinstock-proyect.onrender.com.
+Conclusión: 0 coincidencias de la URL anterior (jinstock-proyect.onrender.com).
+El bundle contiene 2 apariciones de la URL nueva (sigel-proyect.onrender.com).
 El frontend apunta únicamente al servicio nuevo en Ohio.
 
 Paso 4: ver el contexto de las referencias encontradas.

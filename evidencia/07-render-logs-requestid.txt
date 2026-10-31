@@ -18,7 +18,7 @@ $ curl -s https://sigel-proyect.onrender.com/api/logs?limit=100 \
     "requestId": "30b083da-434e-461b-beb7-5074fec71c64",
     "method": "GET",
     "url": "/api/products?page=invalido",
-    "ip": "138.97.161.67"
+    "ip": "138.97.161.xxx"
   }
 }
 {
@@ -32,7 +32,7 @@ $ curl -s https://sigel-proyect.onrender.com/api/logs?limit=100 \
     "url": "/api/products?page=invalido",
     "status": 400,
     "durationMs": 4,
-    "ip": "138.97.161.67",
+    "ip": "138.97.161.xxx",
     "userAgent": "curl/8.23.0"
   }
 }
@@ -47,7 +47,7 @@ $ curl -s https://sigel-proyect.onrender.com/api/logs?limit=100 \
     "requestId": "bc18c73f-87a0-48cd-9b54-f86e223abec8",
     "method": "GET",
     "url": "/api/products/00000000-0000-0000-0000-000000000000",
-    "ip": "138.97.161.67"
+    "ip": "138.97.161.xxx"
   }
 }
 {
@@ -61,7 +61,7 @@ $ curl -s https://sigel-proyect.onrender.com/api/logs?limit=100 \
     "url": "/api/products/00000000-0000-0000-0000-000000000000",
     "status": 404,
     "durationMs": 6,
-    "ip": "138.97.161.67",
+    "ip": "138.97.161.xxx",
     "userAgent": "curl/8.23.0"
   }
 }

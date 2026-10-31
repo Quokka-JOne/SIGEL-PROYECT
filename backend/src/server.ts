@@ -52,6 +52,7 @@ app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : (process.env.NODE_ENV === 'production' ? false : '*'),
     credentials: true,
+    maxAge: 86400,
   })
 );
 
@@ -304,15 +305,20 @@ if (process.env.NODE_ENV !== 'test') {
     logger.info(`🚀 JINStock Backend activo en http://localhost:${PORT}`, { port: PORT, env: process.env.NODE_ENV || 'development' });
     startNeonKeepAlive();
     await ensureInitialData();
-    // Mejora de arranque: precalentamiento explícito del pool y de la caché de catálogo
+    // Mejora de arranque: precalentamiento explícito de 10 conexiones del pool Neon y caché de catálogo
     try {
       await prisma.$connect();
-      await prisma.producto.findMany({
-        where: { estado: true },
-        select: { id: true, nombre: true, sku: true, codigoBarras: true, precioVenta: true, stock: true },
-        take: 10,
-      });
-      logger.info('⚡ Pool de conexiones PostgreSQL y catálogo precalentados al arrancar');
+      await Promise.all(
+        Array.from({ length: 10 }, (_, i) =>
+          prisma.producto.findMany({
+            where: { estado: true },
+            select: { id: true, nombre: true, sku: true, codigoBarras: true, precioVenta: true, stock: true },
+            take: 10,
+            skip: (i % 2) * 5,
+          })
+        )
+      );
+      logger.info('⚡ Pool de 10 conexiones PostgreSQL Neon y catálogo precalentados al arrancar');
     } catch (warmErr: any) {
       logger.warn('Aviso: precalentamiento de DB omitido o diferido:', { error: warmErr.message });
     }

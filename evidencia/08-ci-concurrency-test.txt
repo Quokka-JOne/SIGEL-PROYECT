@@ -1,53 +1,310 @@
 ================================================================
-EVIDENCIA DE EJECUCIÓN DEL TEST DE CONCURRENCIA EN CI (GITHUB ACTIONS)
+LOG CRUDO OFICIAL DEL PASO DE VITEST EN GITHUB ACTIONS
 ================================================================
-Workflow Run: https://github.com/Quokka-JOne/SIGEL-PROYECT/actions/runs/41247688237
-Commit: b2f4758f (main)
-Job: Backend Tests, Integration & Build (Job ID: 124674437486)
+Repositorio: Quokka-JOne/SIGEL-PROYECT
+Workflow: CI / QA Quality Gate
+Ejecución: #26
+Commit: b2f4758f
+URL de ejecución pública: https://github.com/Quokka-JOne/SIGEL-PROYECT/actions/runs/41247688237
+Job: Backend Tests, Integration & Build (ID interno: 124674437486)
 Paso: Ejecutar pruebas unitarias y de concurrencia real con PostgreSQL (Vitest --verbose)
-Fecha/Hora de Ejecución: Sat, 31 Oct 2026 22:20:26Z - 22:20:28Z
+Fecha/hora del runner: 2026-10-31T22:20:26Z - 2026-10-31T22:20:28Z
+Estado del paso: Success (0 errores, 0 tests omitidos)
 ================================================================
-
-1. LÍNEAS EXACTAS DEL LOG OFICIAL DEL RUNNER DE GITHUB ACTIONS:
+LOG CRUDO EXTRAÍDO DIRECTAMENTE DEL RUNNER DE GITHUB ACTIONS:
 ----------------------------------------------------------------
 2026-10-31T22:20:26.5498567Z ##[group]Run npx vitest run --reporter=verbose
-2026-10-31T22:20:26.5498960Z npx vitest run --reporter=verbose
+2026-10-31T22:20:26.5498960Z [36;1mnpx vitest run --reporter=verbose[0m
+2026-10-31T22:20:26.5520554Z shell: /usr/bin/bash -e {0}
+2026-10-31T22:20:26.5520810Z env:
 2026-10-31T22:20:26.5520997Z   NODE_ENV: test
+2026-10-31T22:20:26.5521210Z   PORT: 4000
 2026-10-31T22:20:26.5521557Z   JWT_SECRET: super-secret-jwt-key-for-github-actions-testing-32chars
-2026-10-31T22:20:26.5522204Z   CORS_ORIGIN: http://localhost:5173
-2026-10-31T22:20:26.5523097Z   DATABASE_URL: postgresql://jinstock_ci:***@localhost:5432/jinstock_ci_db?sslmode=disable
-2026-10-31T22:20:26.5524345Z   DIRECT_URL: postgresql://jinstock_ci:***@localhost:5432/jinstock_ci_db?sslmode=disable
-2026-10-31T22:20:26.5525492Z   TEST_DATABASE_URL: postgresql://jinstock_ci:***@localhost:5432/jinstock_ci_db?sslmode=disable
-
-[... ejecución simultánea de 10 peticiones POST /api/sales sobre PostgreSQL ...]
-
-2026-10-31T22:20:28.0268475Z stdout | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
-2026-10-31T22:20:28.0274547Z {"timestamp":"2026-10-31T22:20:28.025Z","level":"INFO","message":"HTTP POST /api/sales 201 (140ms)","requestId":"b87bb712-9c52-4d2b-964e-d0f06ccc47eb"...}
-2026-10-31T22:20:28.0464446Z stdout | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
-2026-10-31T22:20:28.0469475Z {"timestamp":"2026-10-31T22:20:28.045Z","level":"INFO","message":"HTTP POST /api/sales 201 (129ms)","requestId":"edf50f4a-61be-4fe4-a015-abfce322b1ea"...}
-2026-10-31T22:20:28.0600882Z stdout | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
-2026-10-31T22:20:28.0606729Z {"timestamp":"2026-10-31T22:20:28.059Z","level":"INFO","message":"HTTP POST /api/sales 201 (137ms)","requestId":"3d315ff4-33fe-4e55-9f06-d6c282053cac"...}
-2026-10-31T22:20:28.0954496Z stderr | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
-2026-10-31T22:20:28.0957194Z {"timestamp":"2026-10-31T22:20:28.090Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 5, solicitadas: 1.","requestId":"1779b122-b53b-49e2-abcb-6e273ab1b3de"...}
-2026-10-31T22:20:28.0983418Z {"timestamp":"2026-10-31T22:20:28.092Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 4, solicitadas: 1.","requestId":"9001030b-83cb-4b21-a786-08f502c1eb38"...}
-
-2026-10-31T22:20:28.1088283Z  ✓ tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo) 449ms
-
-----------------------------------------------------------------
-2. RESUMEN FINAL DE LA SUITE VITEST EN GITHUB ACTIONS:
-----------------------------------------------------------------
-2026-10-31T22:20:28.2267733Z  Test Files  2 passed (2)
-2026-10-31T22:20:28.2269315Z       Tests  31 passed (31)
-2026-10-31T22:20:28.2270172Z    Start at  22:20:27
-2026-10-31T22:20:28.2275405Z    Duration  1.03s (tests 53%, transform 23%, import 23%, worker 1%, setup 1%)
-
-----------------------------------------------------------------
-3. DEMOSTRACIÓN TÉCNICA DE QUE NO QUEDA OMITIDO (NO SKIP):
-----------------------------------------------------------------
-- tests/integration.concurrency.test.ts contiene:
-    it.skipIf(!hasRealDb)('10 ventas simultáneas...')
-- hasRealDb evalúa la presencia de TEST_DATABASE_URL y la conectividad real con pg.
-- El service container 'postgres:15-alpine' se inicializó exitosamente en el puerto 5432.
-- El log muestra '✓ tests/integration.concurrency.test.ts ... 449ms' (símbolo ✓ en verde).
-- Si el test hubiese sido omitido, Vitest mostraría '↓' o 'skipped', y el conteo de tests indicaría '1 skipped'.
-- El conteo oficial fue: 'Tests 31 passed (31)' y '0 skipped'.
+2026-10-31T22:20:26.5522569Z   CORS_ORIGIN: http://localhost:5173
+2026-10-31T22:20:26.5523216Z   DATABASE_URL: ***localhost:5432/jinstock_ci_db?sslmode=disable
+2026-10-31T22:20:26.5523811Z   DIRECT_URL: ***localhost:5432/jinstock_ci_db?sslmode=disable
+2026-10-31T22:20:26.5524460Z   TEST_DATABASE_URL: ***localhost:5432/jinstock_ci_db?sslmode=disable
+2026-10-31T22:20:26.5524817Z ##[endgroup]
+2026-10-31T22:20:27.1906797Z 
+2026-10-31T22:20:27.1912112Z [1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend[39m
+2026-10-31T22:20:27.1912697Z 
+2026-10-31T22:20:27.7380838Z [90mstderr[2m | tests/api.test.ts
+2026-10-31T22:20:27.7384004Z [22m[39mValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.
+2026-10-31T22:20:27.7386500Z     at Object.keyGeneratorIpFallback (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:631:13)
+2026-10-31T22:20:27.7388646Z     at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:683:22)
+2026-10-31T22:20:27.7390942Z     at parseOptions (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:760:16)
+2026-10-31T22:20:27.7393712Z     at rateLimit (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:842:18)
+2026-10-31T22:20:27.7396452Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/routes/auth.routes.ts:21:22
+2026-10-31T22:20:27.7403017Z [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+2026-10-31T22:20:27.7405452Z     at VitestModuleEvaluator._runInlinedModule (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvitest[24m/dist/module-evaluator.js:261:4)
+2026-10-31T22:20:27.7408151Z     at VitestModuleRunner.directRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1286:59)
+2026-10-31T22:20:27.7410732Z     at VitestModuleRunner.cachedRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1193:73)
+2026-10-31T22:20:27.7412922Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/server.ts:6:1 {
+2026-10-31T22:20:27.7414107Z   code: [32m'ERR_ERL_KEY_GEN_IPV6'[39m,
+2026-10-31T22:20:27.7415249Z   help: [32m'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'[39m
+2026-10-31T22:20:27.7416609Z }
+2026-10-31T22:20:27.7419168Z ValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.
+2026-10-31T22:20:27.7422693Z     at Object.keyGeneratorIpFallback (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:631:13)
+2026-10-31T22:20:27.7425698Z     at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:683:22)
+2026-10-31T22:20:27.7428712Z     at parseOptions (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:760:16)
+2026-10-31T22:20:27.7431135Z     at rateLimit (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:842:18)
+2026-10-31T22:20:27.7433443Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/routes/auth.routes.ts:35:25
+2026-10-31T22:20:27.7435208Z [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+2026-10-31T22:20:27.7445429Z     at VitestModuleEvaluator._runInlinedModule (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvitest[24m/dist/module-evaluator.js:261:4)
+2026-10-31T22:20:27.7448062Z     at VitestModuleRunner.directRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1286:59)
+2026-10-31T22:20:27.7453767Z     at VitestModuleRunner.cachedRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1193:73)
+2026-10-31T22:20:27.7470334Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/server.ts:6:1 {
+2026-10-31T22:20:27.7483026Z   code: [32m'ERR_ERL_KEY_GEN_IPV6'[39m,
+2026-10-31T22:20:27.7484222Z   help: [32m'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'[39m
+2026-10-31T22:20:27.7485776Z }
+2026-10-31T22:20:27.7486275Z 
+2026-10-31T22:20:27.8259731Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:27.8264301Z [22m[39mValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.
+2026-10-31T22:20:27.8267694Z     at Object.keyGeneratorIpFallback (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:631:13)
+2026-10-31T22:20:27.8270456Z     at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:683:22)
+2026-10-31T22:20:27.8273351Z     at parseOptions (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:760:16)
+2026-10-31T22:20:27.8275334Z     at rateLimit (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:842:18)
+2026-10-31T22:20:27.8276344Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/routes/auth.routes.ts:21:22
+2026-10-31T22:20:27.8277164Z [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+2026-10-31T22:20:27.8278249Z     at VitestModuleEvaluator._runInlinedModule (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvitest[24m/dist/module-evaluator.js:261:4)
+2026-10-31T22:20:27.8279553Z     at VitestModuleRunner.directRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1286:59)
+2026-10-31T22:20:27.8281116Z     at VitestModuleRunner.cachedRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1193:73)
+2026-10-31T22:20:27.8282425Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/server.ts:6:1 {
+2026-10-31T22:20:27.8282967Z   code: [32m'ERR_ERL_KEY_GEN_IPV6'[39m,
+2026-10-31T22:20:27.8283732Z   help: [32m'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'[39m
+2026-10-31T22:20:27.8284234Z }
+2026-10-31T22:20:27.8286070Z ValidationError: Custom keyGenerator appears to use request IP without calling the ipKeyGenerator helper function for IPv6 addresses. This could allow IPv6 users to bypass limits. See https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/ for more information.
+2026-10-31T22:20:27.8288023Z     at Object.keyGeneratorIpFallback (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:631:13)
+2026-10-31T22:20:27.8290048Z     at Object.wrappedValidations.<computed> [as keyGeneratorIpFallback] (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:683:22)
+2026-10-31T22:20:27.8292099Z     at parseOptions (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:760:16)
+2026-10-31T22:20:27.8293635Z     at rateLimit (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mexpress-rate-limit[24m/dist/index.mjs:842:18)
+2026-10-31T22:20:27.8294591Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/routes/auth.routes.ts:35:25
+2026-10-31T22:20:27.8295395Z [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+2026-10-31T22:20:27.8296641Z     at VitestModuleEvaluator._runInlinedModule (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvitest[24m/dist/module-evaluator.js:261:4)
+2026-10-31T22:20:27.8297930Z     at VitestModuleRunner.directRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1286:59)
+2026-10-31T22:20:27.8299676Z     at VitestModuleRunner.cachedRequest (file:///home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/node_modules/[4mvite[24m/dist/node/module-runner.js:1193:73)
+2026-10-31T22:20:27.8301326Z     at [90m/home/runner/work/SIGEL-PROYECT/SIGEL-PROYECT/backend/[39msrc/server.ts:6:1 {
+2026-10-31T22:20:27.8302524Z   code: [32m'ERR_ERL_KEY_GEN_IPV6'[39m,
+2026-10-31T22:20:27.8303483Z   help: [32m'https://express-rate-limit.github.io/ERR_ERL_KEY_GEN_IPV6/'[39m
+2026-10-31T22:20:27.8304215Z }
+2026-10-31T22:20:27.8304400Z 
+2026-10-31T22:20:27.9046498Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m1. Una venta con stock suficiente descuenta el inventario y crea el movimiento SALIDA
+2026-10-31T22:20:27.9048990Z [22m[39m{"timestamp":"2026-10-31T22:20:27.903Z","level":"INFO","message":"HTTP POST /api/sales 201 (15ms)","requestId":"20370cac-a934-45b5-a07c-76008ab7ceee","context":{"requestId":"20370cac-a934-45b5-a07c-76008ab7ceee","method":"POST","url":"/api/sales","status":201,"durationMs":15,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9050086Z 
+2026-10-31T22:20:27.9164371Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m2. Una venta con stock insuficiente responde 400 con código STOCK_INSUFICIENTE
+2026-10-31T22:20:27.9232275Z [22m[39m{"timestamp":"2026-10-31T22:20:27.915Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Cuaderno Loro 100 Hojas'. Disponibles en servidor: 1, solicitadas: 5.","requestId":"73d3ab0f-0c14-4378-9a5c-838a3aa26b2d","context":{"requestId":"73d3ab0f-0c14-4378-9a5c-838a3aa26b2d","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:27.9262043Z 
+2026-10-31T22:20:27.9293631Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m2. Una venta con stock insuficiente responde 400 con código STOCK_INSUFICIENTE
+2026-10-31T22:20:27.9295550Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m3. Enviar dos veces el mismo offlineId es idempotente y responde 200 con la venta existente
+2026-10-31T22:20:27.9299836Z [22m[39m{"timestamp":"2026-10-31T22:20:27.924Z","level":"INFO","message":"HTTP POST /api/sales 200 (3ms)","requestId":"386be0cf-7e25-4692-bb2a-5d25c1d0d921","context":{"requestId":"386be0cf-7e25-4692-bb2a-5d25c1d0d921","method":"POST","url":"/api/sales","status":200,"durationMs":3,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9305210Z [22m[39m{"timestamp":"2026-10-31T22:20:27.916Z","level":"WARN","message":"HTTP POST /api/sales 400 (4ms)","requestId":"73d3ab0f-0c14-4378-9a5c-838a3aa26b2d","context":{"requestId":"73d3ab0f-0c14-4378-9a5c-838a3aa26b2d","method":"POST","url":"/api/sales","status":400,"durationMs":4,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9322342Z 
+2026-10-31T22:20:27.9330699Z 
+2026-10-31T22:20:27.9339800Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m4. Concurrencia: updateMany atómico rechaza la segunda venta si el stock ya fue consumido
+2026-10-31T22:20:27.9345032Z [22m[39m{"timestamp":"2026-10-31T22:20:27.932Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Bolígrafo Pilot G2'. Disponibles en servidor: 1, solicitadas: 1.","requestId":"e114230a-1172-4259-a256-c51da068119e","context":{"requestId":"e114230a-1172-4259-a256-c51da068119e","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:27.9347432Z 
+2026-10-31T22:20:27.9349446Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m4. Concurrencia: updateMany atómico rechaza la segunda venta si el stock ya fue consumido
+2026-10-31T22:20:27.9353984Z [22m[39m{"timestamp":"2026-10-31T22:20:27.934Z","level":"WARN","message":"HTTP POST /api/sales 400 (5ms)","requestId":"e114230a-1172-4259-a256-c51da068119e","context":{"requestId":"e114230a-1172-4259-a256-c51da068119e","method":"POST","url":"/api/sales","status":400,"durationMs":5,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9355934Z 
+2026-10-31T22:20:27.9395188Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m5. Un cajero recibe 403 al llamar a rutas restringidas a ADMINISTRADOR
+2026-10-31T22:20:27.9399928Z [22m[39m{"timestamp":"2026-10-31T22:20:27.938Z","level":"WARN","message":"HTTP POST /api/purchases 403 (1ms)","requestId":"58edd6c6-5f27-4e16-9e27-7c073a183613","context":{"requestId":"58edd6c6-5f27-4e16-9e27-7c073a183613","method":"POST","url":"/api/purchases","status":403,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9402567Z 
+2026-10-31T22:20:27.9434835Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m5. Un cajero recibe 403 al llamar a rutas restringidas a ADMINISTRADOR
+2026-10-31T22:20:27.9439377Z [22m[39m{"timestamp":"2026-10-31T22:20:27.942Z","level":"WARN","message":"HTTP GET /api/users 403 (1ms)","requestId":"8112bb0a-6353-4dda-a611-3f57783a326b","context":{"requestId":"8112bb0a-6353-4dda-a611-3f57783a326b","method":"GET","url":"/api/users","status":403,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9441950Z 
+2026-10-31T22:20:27.9528763Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m5. Un cajero recibe 403 al llamar a rutas restringidas a ADMINISTRADOR
+2026-10-31T22:20:27.9554903Z [22m[39m{"timestamp":"2026-10-31T22:20:27.951Z","level":"WARN","message":"HTTP POST /api/products 403 (6ms)","requestId":"0841bf9b-605b-440e-bd0a-418e71191a3b","context":{"requestId":"0841bf9b-605b-440e-bd0a-418e71191a3b","method":"POST","url":"/api/products","status":403,"durationMs":6,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9582108Z 
+2026-10-31T22:20:27.9614081Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m5. Un cajero recibe 403 al llamar a rutas restringidas a ADMINISTRADOR
+2026-10-31T22:20:27.9658455Z [22m[39m{"timestamp":"2026-10-31T22:20:27.957Z","level":"WARN","message":"HTTP POST /api/suppliers 403 (2ms)","requestId":"ac15ff33-0d1a-49bb-b1bb-4dab2e85245f","context":{"requestId":"ac15ff33-0d1a-49bb-b1bb-4dab2e85245f","method":"POST","url":"/api/suppliers","status":403,"durationMs":2,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:27.9671964Z 
+2026-10-31T22:20:28.0268475Z [90mstdout[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0274547Z [22m[39m{"timestamp":"2026-10-31T22:20:28.025Z","level":"INFO","message":"HTTP POST /api/sales 201 (140ms)","requestId":"b87bb712-9c52-4d2b-964e-d0f06ccc47eb","context":{"requestId":"b87bb712-9c52-4d2b-964e-d0f06ccc47eb","method":"POST","url":"/api/sales","status":201,"durationMs":140,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0281057Z 
+2026-10-31T22:20:28.0464446Z [90mstdout[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0469475Z [22m[39m{"timestamp":"2026-10-31T22:20:28.045Z","level":"INFO","message":"HTTP POST /api/sales 201 (129ms)","requestId":"edf50f4a-61be-4fe4-a015-abfce322b1ea","context":{"requestId":"edf50f4a-61be-4fe4-a015-abfce322b1ea","method":"POST","url":"/api/sales","status":201,"durationMs":129,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0471867Z 
+2026-10-31T22:20:28.0600882Z [90mstdout[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0606729Z [22m[39m{"timestamp":"2026-10-31T22:20:28.059Z","level":"INFO","message":"HTTP POST /api/sales 201 (137ms)","requestId":"3d315ff4-33fe-4e55-9f06-d6c282053cac","context":{"requestId":"3d315ff4-33fe-4e55-9f06-d6c282053cac","method":"POST","url":"/api/sales","status":201,"durationMs":137,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0609725Z 
+2026-10-31T22:20:28.0718334Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m1. Una venta con stock suficiente descuenta el inventario y crea el movimiento SALIDA[32m 38[2mms[22m[39m
+2026-10-31T22:20:28.0722545Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m2. Una venta con stock insuficiente responde 400 con código STOCK_INSUFICIENTE[32m 9[2mms[22m[39m
+2026-10-31T22:20:28.0726176Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m3. Enviar dos veces el mismo offlineId es idempotente y responde 200 con la venta existente[32m 8[2mms[22m[39m
+2026-10-31T22:20:28.0730006Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m4. Concurrencia: updateMany atómico rechaza la segunda venta si el stock ya fue consumido[32m 9[2mms[22m[39m
+2026-10-31T22:20:28.0734202Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m5. Un cajero recibe 403 al llamar a rutas restringidas a ADMINISTRADOR[32m 23[2mms[22m[39m
+2026-10-31T22:20:28.0738076Z [90mstdout[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0744116Z [22m[39m{"timestamp":"2026-10-31T22:20:28.069Z","level":"INFO","message":"HTTP POST /api/sales 201 (171ms)","requestId":"cbeb592b-c628-4dfb-b483-287a5e319011","context":{"requestId":"cbeb592b-c628-4dfb-b483-287a5e319011","method":"POST","url":"/api/sales","status":201,"durationMs":171,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0746241Z 
+2026-10-31T22:20:28.0802157Z [90mstdout[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0807014Z [22m[39m{"timestamp":"2026-10-31T22:20:28.079Z","level":"INFO","message":"HTTP POST /api/sales 201 (159ms)","requestId":"f06da78b-c8a9-4689-9471-2948e5820ffe","context":{"requestId":"f06da78b-c8a9-4689-9471-2948e5820ffe","method":"POST","url":"/api/sales","status":201,"durationMs":159,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0808578Z 
+2026-10-31T22:20:28.0817982Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2m6. El registro público no permite crear administradores
+2026-10-31T22:20:28.0820539Z [22m[39m{"timestamp":"2026-10-31T22:20:28.081Z","level":"INFO","message":"HTTP POST /api/auth/register 201 (121ms)","requestId":"dd4dcab3-b4fe-4c11-9c9a-4a4851da7f60","context":{"requestId":"dd4dcab3-b4fe-4c11-9c9a-4a4851da7f60","method":"POST","url":"/api/auth/register","status":201,"durationMs":121,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0822249Z 
+2026-10-31T22:20:28.0831393Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0845801Z [22m[39m{"timestamp":"2026-10-31T22:20:28.082Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 4, solicitadas: 1.","requestId":"b48c1e7f-330b-4379-9cff-4f76c4efa3ac","context":{"requestId":"b48c1e7f-330b-4379-9cff-4f76c4efa3ac","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.0873773Z 
+2026-10-31T22:20:28.0876244Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0879373Z [22m[39m{"timestamp":"2026-10-31T22:20:28.082Z","level":"WARN","message":"HTTP POST /api/sales 400 (170ms)","requestId":"b48c1e7f-330b-4379-9cff-4f76c4efa3ac","context":{"requestId":"b48c1e7f-330b-4379-9cff-4f76c4efa3ac","method":"POST","url":"/api/sales","status":400,"durationMs":170,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0880468Z 
+2026-10-31T22:20:28.0882193Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0886231Z [22m[39m{"timestamp":"2026-10-31T22:20:28.085Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 4, solicitadas: 1.","requestId":"204cb02a-1277-442e-b5a6-1b300d719a07","context":{"requestId":"204cb02a-1277-442e-b5a6-1b300d719a07","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.0888782Z 
+2026-10-31T22:20:28.0890280Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0894385Z [22m[39m{"timestamp":"2026-10-31T22:20:28.085Z","level":"WARN","message":"HTTP POST /api/sales 400 (167ms)","requestId":"204cb02a-1277-442e-b5a6-1b300d719a07","context":{"requestId":"204cb02a-1277-442e-b5a6-1b300d719a07","method":"POST","url":"/api/sales","status":400,"durationMs":167,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0896227Z 
+2026-10-31T22:20:28.0897938Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2m/api/logs exige token de ADMINISTRADOR (401 sin token, 403 con CAJERO, 200 con ADMINISTRADOR)
+2026-10-31T22:20:28.0901305Z [22m[39m{"timestamp":"2026-10-31T22:20:28.086Z","level":"WARN","message":"HTTP GET /api/logs 401 (1ms)","requestId":"391b8c6d-72a2-4214-bed4-d9c4c20dd6e1","context":{"requestId":"391b8c6d-72a2-4214-bed4-d9c4c20dd6e1","method":"GET","url":"/api/logs","status":401,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0902640Z 
+2026-10-31T22:20:28.0903963Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0915749Z [22m[39m{"timestamp":"2026-10-31T22:20:28.087Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 5, solicitadas: 1.","requestId":"e0098f75-688f-4aad-ba41-c9141f415232","context":{"requestId":"e0098f75-688f-4aad-ba41-c9141f415232","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.0946391Z 
+2026-10-31T22:20:28.0949012Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0952106Z [22m[39m{"timestamp":"2026-10-31T22:20:28.088Z","level":"WARN","message":"HTTP POST /api/sales 400 (162ms)","requestId":"e0098f75-688f-4aad-ba41-c9141f415232","context":{"requestId":"e0098f75-688f-4aad-ba41-c9141f415232","method":"POST","url":"/api/sales","status":400,"durationMs":162,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0953241Z 
+2026-10-31T22:20:28.0954496Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0957194Z [22m[39m{"timestamp":"2026-10-31T22:20:28.090Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 5, solicitadas: 1.","requestId":"1779b122-b53b-49e2-abcb-6e273ab1b3de","context":{"requestId":"1779b122-b53b-49e2-abcb-6e273ab1b3de","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.0958749Z 
+2026-10-31T22:20:28.0960226Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2m/api/logs exige token de ADMINISTRADOR (401 sin token, 403 con CAJERO, 200 con ADMINISTRADOR)
+2026-10-31T22:20:28.0963761Z [22m[39m{"timestamp":"2026-10-31T22:20:28.090Z","level":"WARN","message":"HTTP GET /api/logs 403 (1ms)","requestId":"d4a93b49-fc62-4e43-bdfe-64ac57c21483","context":{"requestId":"d4a93b49-fc62-4e43-bdfe-64ac57c21483","method":"GET","url":"/api/logs","status":403,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0964814Z 
+2026-10-31T22:20:28.0966041Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0970339Z [22m[39m{"timestamp":"2026-10-31T22:20:28.091Z","level":"WARN","message":"HTTP POST /api/sales 400 (185ms)","requestId":"1779b122-b53b-49e2-abcb-6e273ab1b3de","context":{"requestId":"1779b122-b53b-49e2-abcb-6e273ab1b3de","method":"POST","url":"/api/sales","status":400,"durationMs":185,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0975394Z 
+2026-10-31T22:20:28.0977788Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0983418Z [22m[39m{"timestamp":"2026-10-31T22:20:28.092Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 4, solicitadas: 1.","requestId":"9001030b-83cb-4b21-a786-08f502c1eb38","context":{"requestId":"9001030b-83cb-4b21-a786-08f502c1eb38","method":"POST","url":"/api/sales","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.0985853Z 
+2026-10-31T22:20:28.0988193Z [90mstderr[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0993078Z [22m[39m{"timestamp":"2026-10-31T22:20:28.093Z","level":"WARN","message":"HTTP POST /api/sales 400 (185ms)","requestId":"9001030b-83cb-4b21-a786-08f502c1eb38","context":{"requestId":"9001030b-83cb-4b21-a786-08f502c1eb38","method":"POST","url":"/api/sales","status":400,"durationMs":185,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.0995081Z 
+2026-10-31T22:20:28.0997951Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2m/api/logs exige token de ADMINISTRADOR (401 sin token, 403 con CAJERO, 200 con ADMINISTRADOR)
+2026-10-31T22:20:28.1003044Z [22m[39m{"timestamp":"2026-10-31T22:20:28.096Z","level":"INFO","message":"HTTP GET /api/logs 200 (3ms)","requestId":"971251c6-8d6a-4d2d-84d5-23fe125b951d","context":{"requestId":"971251c6-8d6a-4d2d-84d5-23fe125b951d","method":"GET","url":"/api/logs","status":200,"durationMs":3,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1004950Z 
+2026-10-31T22:20:28.1012441Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2mJSON malformado en body devuelve 400 con code JSON_INVALIDO
+2026-10-31T22:20:28.1016970Z [22m[39m{"timestamp":"2026-10-31T22:20:28.100Z","level":"WARN","message":"Cuerpo de solicitud inválido: entity.parse.failed","requestId":"4ce49e37-293d-4d4b-9bf4-f10ea214118d","context":{"requestId":"4ce49e37-293d-4d4b-9bf4-f10ea214118d","method":"POST","url":"/api/auth/login","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1022033Z {"timestamp":"2026-10-31T22:20:28.100Z","level":"WARN","message":"HTTP POST /api/auth/login 400 (1ms)","requestId":"4ce49e37-293d-4d4b-9bf4-f10ea214118d","context":{"requestId":"4ce49e37-293d-4d4b-9bf4-f10ea214118d","method":"POST","url":"/api/auth/login","status":400,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1024563Z 
+2026-10-31T22:20:28.1059210Z [90mstdout[2m | tests/integration.concurrency.test.ts[2m > [22m[2mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m[2m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.1064441Z [22m[39m{"timestamp":"2026-10-31T22:20:28.105Z","level":"INFO","message":"HTTP POST /api/sales 200 (5ms)","requestId":"c5a25adc-5c02-4924-ac5a-9e07e934efe9","context":{"requestId":"c5a25adc-5c02-4924-ac5a-9e07e934efe9","method":"POST","url":"/api/sales","status":200,"durationMs":5,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1066985Z 
+2026-10-31T22:20:28.1077133Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2mRutas inexistentes devuelven 404 en formato JSON con RUTA_NO_ENCONTRADA
+2026-10-31T22:20:28.1082964Z [22m[39m{"timestamp":"2026-10-31T22:20:28.105Z","level":"WARN","message":"HTTP GET /api/ruta-inexistente-aleatoria-xyz 404 (0ms)","requestId":"5f30287a-768c-49f8-b8ec-abad811b960c","context":{"requestId":"5f30287a-768c-49f8-b8ec-abad811b960c","method":"GET","url":"/api/ruta-inexistente-aleatoria-xyz","status":404,"durationMs":0,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1088283Z  [32m✓[39m tests/integration.concurrency.test.ts[2m > [22mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22m10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)[33m 449[2mms[22m[39m
+2026-10-31T22:20:28.1090196Z 
+2026-10-31T22:20:28.1125127Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2mcreateSale reintenta ante P2002 de numeroComprobante y completa la venta
+2026-10-31T22:20:28.1130186Z [22m[39m{"timestamp":"2026-10-31T22:20:28.111Z","level":"INFO","message":"HTTP POST /api/sales 201 (2ms)","requestId":"00919f55-a5a3-4b0a-aaaf-57d167bee41a","context":{"requestId":"00919f55-a5a3-4b0a-aaaf-57d167bee41a","method":"POST","url":"/api/sales","status":201,"durationMs":2,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1136444Z 
+2026-10-31T22:20:28.1177456Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m[2mcreateSale responde 200 con la venta existente ante P2002 de offlineId
+2026-10-31T22:20:28.1182893Z [22m[39m{"timestamp":"2026-10-31T22:20:28.116Z","level":"INFO","message":"HTTP POST /api/sales 200 (2ms)","requestId":"a15dadc2-eb24-4654-a16b-5c41aa659f08","context":{"requestId":"a15dadc2-eb24-4654-a16b-5c41aa659f08","method":"POST","url":"/api/sales","status":200,"durationMs":2,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1184940Z 
+2026-10-31T22:20:28.1214350Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 1: Seguridad y Políticas de Autenticación[2m > [22m[2mRechaza contraseña menor a 8 caracteres con 400 y código DATOS_INVALIDOS
+2026-10-31T22:20:28.1219643Z [22m[39m{"timestamp":"2026-10-31T22:20:28.120Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: password: La contraseña debe tener al menos 8 caracteres","requestId":"93a6d850-c7ae-4172-bbd0-435d637ed449","context":{"requestId":"93a6d850-c7ae-4172-bbd0-435d637ed449","method":"POST","url":"/api/auth/register","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1222470Z 
+2026-10-31T22:20:28.1225290Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 1: Seguridad y Políticas de Autenticación[2m > [22m[2mRechaza contraseña menor a 8 caracteres con 400 y código DATOS_INVALIDOS
+2026-10-31T22:20:28.1231015Z [22m[39m{"timestamp":"2026-10-31T22:20:28.121Z","level":"WARN","message":"HTTP POST /api/auth/register 400 (1ms)","requestId":"93a6d850-c7ae-4172-bbd0-435d637ed449","context":{"requestId":"93a6d850-c7ae-4172-bbd0-435d637ed449","method":"POST","url":"/api/auth/register","status":400,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1233767Z 
+2026-10-31T22:20:28.1252750Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 1: Seguridad y Políticas de Autenticación[2m > [22m[2mRechaza contraseña idéntica al correo electrónico con 400 y código DATOS_INVALIDOS
+2026-10-31T22:20:28.1255750Z [22m[39m{"timestamp":"2026-10-31T22:20:28.124Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: password: La contraseña no puede ser igual al correo electrónico","requestId":"6f3fee9e-a493-4563-86e4-0421cae1de47","context":{"requestId":"6f3fee9e-a493-4563-86e4-0421cae1de47","method":"POST","url":"/api/auth/register","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1256972Z 
+2026-10-31T22:20:28.1258332Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 1: Seguridad y Políticas de Autenticación[2m > [22m[2mRechaza contraseña idéntica al correo electrónico con 400 y código DATOS_INVALIDOS
+2026-10-31T22:20:28.1260892Z [22m[39m{"timestamp":"2026-10-31T22:20:28.124Z","level":"WARN","message":"HTTP POST /api/auth/register 400 (1ms)","requestId":"6f3fee9e-a493-4563-86e4-0421cae1de47","context":{"requestId":"6f3fee9e-a493-4563-86e4-0421cae1de47","method":"POST","url":"/api/auth/register","status":400,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1262451Z 
+2026-10-31T22:20:28.1297357Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 1: Seguridad y Políticas de Autenticación[2m > [22m[2mLogin con cuenta desactivada devuelve 401 NO_AUTORIZADO idéntico a usuario inexistente
+2026-10-31T22:20:28.1303562Z [22m[39m{"timestamp":"2026-10-31T22:20:28.127Z","level":"WARN","message":"AppWarning [NO_AUTORIZADO]: Credenciales inválidas. Verifique su correo o contraseña.","requestId":"e7f414b1-153a-4e81-a332-50565b728519","context":{"requestId":"e7f414b1-153a-4e81-a332-50565b728519","method":"POST","url":"/api/auth/login","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1311173Z 
+2026-10-31T22:20:28.1314334Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 1: Seguridad y Políticas de Autenticación[2m > [22m[2mLogin con cuenta desactivada devuelve 401 NO_AUTORIZADO idéntico a usuario inexistente
+2026-10-31T22:20:28.1320066Z [22m[39m{"timestamp":"2026-10-31T22:20:28.128Z","level":"WARN","message":"HTTP POST /api/auth/login 401 (1ms)","requestId":"e7f414b1-153a-4e81-a332-50565b728519","context":{"requestId":"e7f414b1-153a-4e81-a332-50565b728519","method":"POST","url":"/api/auth/login","status":401,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1322447Z 
+2026-10-31T22:20:28.1324316Z  [32m✓[39m tests/integration.concurrency.test.ts[2m > [22mFASE 6: Pruebas de Integración y Concurrencia Real[2m > [22mVerificación de configuración del entorno de pruebas de integración[32m 0[2mms[22m[39m
+2026-10-31T22:20:28.1349903Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22m[2mGET /api/sales con fecha desde inválida responde 400 DATOS_INVALIDOS
+2026-10-31T22:20:28.1356217Z [22m[39m{"timestamp":"2026-10-31T22:20:28.133Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: desde: La fecha \"desde\" no es válida","requestId":"45ed2907-e82a-4545-b11d-ca4e19390e57","context":{"requestId":"45ed2907-e82a-4545-b11d-ca4e19390e57","method":"GET","url":"/api/sales?desde=fecha-invalida-123","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1362111Z {"timestamp":"2026-10-31T22:20:28.134Z","level":"WARN","message":"HTTP GET /api/sales?desde=fecha-invalida-123 400 (2ms)","requestId":"45ed2907-e82a-4545-b11d-ca4e19390e57","context":{"requestId":"45ed2907-e82a-4545-b11d-ca4e19390e57","method":"GET","url":"/api/sales?desde=fecha-invalida-123","status":400,"durationMs":2,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1364723Z 
+2026-10-31T22:20:28.1391045Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22m[2mGET /api/sales con page no numérica responde 400 DATOS_INVALIDOS
+2026-10-31T22:20:28.1397457Z [22m[39m{"timestamp":"2026-10-31T22:20:28.137Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: page: El parámetro page debe ser un número entero positivo","requestId":"acfdcc9e-4b96-49ff-8408-068bb7cdbf8f","context":{"requestId":"acfdcc9e-4b96-49ff-8408-068bb7cdbf8f","method":"GET","url":"/api/sales?page=pagina-uno","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1403297Z {"timestamp":"2026-10-31T22:20:28.138Z","level":"WARN","message":"HTTP GET /api/sales?page=pagina-uno 400 (1ms)","requestId":"acfdcc9e-4b96-49ff-8408-068bb7cdbf8f","context":{"requestId":"acfdcc9e-4b96-49ff-8408-068bb7cdbf8f","method":"GET","url":"/api/sales?page=pagina-uno","status":400,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1482028Z 
+2026-10-31T22:20:28.1536358Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22m[2mViolación de clave foránea P2003 devuelve 409 CONFLICTO sin fugar datos sensibles
+2026-10-31T22:20:28.1541426Z [22m[39m{"timestamp":"2026-10-31T22:20:28.152Z","level":"WARN","message":"Prisma P2003 Violación de clave foránea","requestId":"3fe6af45-c63b-4072-a1f1-e89fa080eef8","context":{"requestId":"3fe6af45-c63b-4072-a1f1-e89fa080eef8","method":"POST","url":"/api/purchases","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1544063Z 
+2026-10-31T22:20:28.1547199Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22m[2mViolación de clave foránea P2003 devuelve 409 CONFLICTO sin fugar datos sensibles
+2026-10-31T22:20:28.1553042Z [22m[39m{"timestamp":"2026-10-31T22:20:28.153Z","level":"WARN","message":"HTTP POST /api/purchases 409 (3ms)","requestId":"3fe6af45-c63b-4072-a1f1-e89fa080eef8","context":{"requestId":"3fe6af45-c63b-4072-a1f1-e89fa080eef8","method":"POST","url":"/api/purchases","status":409,"durationMs":3,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1555390Z 
+2026-10-31T22:20:28.1569201Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mexpone liveness sin depender de la base de datos
+2026-10-31T22:20:28.1572129Z [22m[39m{"timestamp":"2026-10-31T22:20:28.156Z","level":"INFO","message":"HTTP GET /api/live 200 (1ms)","requestId":"d55e3b28-b09e-418f-aa58-7a0610ba4364","context":{"requestId":"d55e3b28-b09e-418f-aa58-7a0610ba4364","method":"GET","url":"/api/live","status":200,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1573223Z 
+2026-10-31T22:20:28.1852168Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mcoalescea sondas concurrentes del health check en una sola consulta
+2026-10-31T22:20:28.1855701Z [22m[39m{"timestamp":"2026-10-31T22:20:28.183Z","level":"INFO","message":"HTTP GET /api/health 200 (22ms)","requestId":"14ba6145-97a5-4a0b-abef-36340a88396e","context":{"requestId":"14ba6145-97a5-4a0b-abef-36340a88396e","method":"GET","url":"/api/health","status":200,"durationMs":22,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1859455Z {"timestamp":"2026-10-31T22:20:28.183Z","level":"INFO","message":"HTTP GET /api/health 200 (21ms)","requestId":"c85082ce-8a1f-4b2d-96d2-0b67fe47b1c1","context":{"requestId":"c85082ce-8a1f-4b2d-96d2-0b67fe47b1c1","method":"GET","url":"/api/health","status":200,"durationMs":21,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1862627Z {"timestamp":"2026-10-31T22:20:28.183Z","level":"INFO","message":"HTTP GET /api/health 200 (21ms)","requestId":"ee94a10b-9e87-49f8-a635-8981353c588f","context":{"requestId":"ee94a10b-9e87-49f8-a635-8981353c588f","method":"GET","url":"/api/health","status":200,"durationMs":21,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1865187Z {"timestamp":"2026-10-31T22:20:28.183Z","level":"INFO","message":"HTTP GET /api/health 200 (21ms)","requestId":"40a21534-4b93-4718-9268-432571f850d3","context":{"requestId":"40a21534-4b93-4718-9268-432571f850d3","method":"GET","url":"/api/health","status":200,"durationMs":21,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1867645Z {"timestamp":"2026-10-31T22:20:28.183Z","level":"INFO","message":"HTTP GET /api/health 200 (21ms)","requestId":"d53258c2-e594-4a6e-9d56-61970108f856","context":{"requestId":"d53258c2-e594-4a6e-9d56-61970108f856","method":"GET","url":"/api/health","status":200,"durationMs":21,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1869943Z {"timestamp":"2026-10-31T22:20:28.184Z","level":"INFO","message":"HTTP GET /api/health 200 (22ms)","requestId":"2de826d2-5c7d-4440-b2ab-996aef38293f","context":{"requestId":"2de826d2-5c7d-4440-b2ab-996aef38293f","method":"GET","url":"/api/health","status":200,"durationMs":22,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1872910Z {"timestamp":"2026-10-31T22:20:28.184Z","level":"INFO","message":"HTTP GET /api/health 200 (22ms)","requestId":"bf82a756-177a-4d29-8b57-27345ac170b5","context":{"requestId":"bf82a756-177a-4d29-8b57-27345ac170b5","method":"GET","url":"/api/health","status":200,"durationMs":22,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1875381Z {"timestamp":"2026-10-31T22:20:28.184Z","level":"INFO","message":"HTTP GET /api/health 200 (22ms)","requestId":"1a73249c-5fc4-42bc-92ab-afec8f2c69aa","context":{"requestId":"1a73249c-5fc4-42bc-92ab-afec8f2c69aa","method":"GET","url":"/api/health","status":200,"durationMs":22,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1877674Z {"timestamp":"2026-10-31T22:20:28.184Z","level":"INFO","message":"HTTP GET /api/health 200 (21ms)","requestId":"c0a066f2-ea70-437d-91b6-5252b5944d7b","context":{"requestId":"c0a066f2-ea70-437d-91b6-5252b5944d7b","method":"GET","url":"/api/health","status":200,"durationMs":21,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1879952Z {"timestamp":"2026-10-31T22:20:28.184Z","level":"INFO","message":"HTTP GET /api/health 200 (21ms)","requestId":"d777cfb8-5a9e-431f-905b-ed461241f8c5","context":{"requestId":"d777cfb8-5a9e-431f-905b-ed461241f8c5","method":"GET","url":"/api/health","status":200,"durationMs":21,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1880982Z 
+2026-10-31T22:20:28.1882316Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m6. El registro público no permite crear administradores[32m 124[2mms[22m[39m
+2026-10-31T22:20:28.1884389Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22m/api/logs exige token de ADMINISTRADOR (401 sin token, 403 con CAJERO, 200 con ADMINISTRADOR)[32m 15[2mms[22m[39m
+2026-10-31T22:20:28.1886779Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22mJSON malformado en body devuelve 400 con code JSON_INVALIDO[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.1888886Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22mRutas inexistentes devuelven 404 en formato JSON con RUTA_NO_ENCONTRADA[32m 5[2mms[22m[39m
+2026-10-31T22:20:28.1891177Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22mcreateSale reintenta ante P2002 de numeroComprobante y completa la venta[32m 6[2mms[22m[39m
+2026-10-31T22:20:28.1893741Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 0: Verificaciones del Parche de Seguridad y Resiliencia[2m > [22mcreateSale responde 200 con la venta existente ante P2002 de offlineId[32m 5[2mms[22m[39m
+2026-10-31T22:20:28.1895882Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 1: Seguridad y Políticas de Autenticación[2m > [22mRechaza contraseña menor a 8 caracteres con 400 y código DATOS_INVALIDOS[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.1898003Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 1: Seguridad y Políticas de Autenticación[2m > [22mRechaza contraseña idéntica al correo electrónico con 400 y código DATOS_INVALIDOS[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.1900141Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 1: Seguridad y Políticas de Autenticación[2m > [22mLogin con cuenta desactivada devuelve 401 NO_AUTORIZADO idéntico a usuario inexistente[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.1902430Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22mGET /api/sales con fecha desde inválida responde 400 DATOS_INVALIDOS[32m 6[2mms[22m[39m
+2026-10-31T22:20:28.1904542Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22mGET /api/sales con page no numérica responde 400 DATOS_INVALIDOS[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.1906743Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 2: Validación de Parámetros de Consulta y Manejo de Errores[2m > [22mViolación de clave foránea P2003 devuelve 409 CONFLICTO sin fugar datos sensibles[32m 15[2mms[22m[39m
+2026-10-31T22:20:28.1908881Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mexpone liveness sin depender de la base de datos[32m 3[2mms[22m[39m
+2026-10-31T22:20:28.1941099Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/products con page y limit devuelve metadata de paginación
+2026-10-31T22:20:28.1944204Z [22m[39m{"timestamp":"2026-10-31T22:20:28.193Z","level":"INFO","message":"HTTP GET /api/products?page=1&limit=5 200 (2ms)","requestId":"317bbb1a-6321-4cd5-81a9-677ffeca76ea","context":{"requestId":"317bbb1a-6321-4cd5-81a9-677ffeca76ea","method":"GET","url":"/api/products?page=1&limit=5","status":200,"durationMs":2,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1945617Z 
+2026-10-31T22:20:28.1982549Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/products rechaza page inválida con 400 sin consultar la base de datos
+2026-10-31T22:20:28.1987202Z [22m[39m{"timestamp":"2026-10-31T22:20:28.197Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: page: page debe ser un entero positivo, page: page debe ser un entero positivo seguro","requestId":"4f9d7d30-d635-4079-9d3b-3ebd58c56b9a","context":{"requestId":"4f9d7d30-d635-4079-9d3b-3ebd58c56b9a","method":"GET","url":"/api/products?page=pagina-uno","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.1991223Z {"timestamp":"2026-10-31T22:20:28.197Z","level":"WARN","message":"HTTP GET /api/products?page=pagina-uno 400 (2ms)","requestId":"4f9d7d30-d635-4079-9d3b-3ebd58c56b9a","context":{"requestId":"4f9d7d30-d635-4079-9d3b-3ebd58c56b9a","method":"GET","url":"/api/products?page=pagina-uno","status":400,"durationMs":2,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.1992964Z 
+2026-10-31T22:20:28.2030526Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/products rechaza filtros booleanos inválidos y búsquedas excesivas
+2026-10-31T22:20:28.2035225Z [22m[39m{"timestamp":"2026-10-31T22:20:28.201Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: lowStock: lowStock debe ser true o false","requestId":"f7b60227-ba7b-4bac-b1c7-d304a97025b5","context":{"requestId":"f7b60227-ba7b-4bac-b1c7-d304a97025b5","method":"GET","url":"/api/products?lowStock=maybe","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.2038698Z {"timestamp":"2026-10-31T22:20:28.202Z","level":"WARN","message":"HTTP GET /api/products?lowStock=maybe 400 (3ms)","requestId":"f7b60227-ba7b-4bac-b1c7-d304a97025b5","context":{"requestId":"f7b60227-ba7b-4bac-b1c7-d304a97025b5","method":"GET","url":"/api/products?lowStock=maybe","status":400,"durationMs":3,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2040063Z 
+2026-10-31T22:20:28.2076955Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/products rechaza filtros booleanos inválidos y búsquedas excesivas
+2026-10-31T22:20:28.2081022Z [22m[39m{"timestamp":"2026-10-31T22:20:28.206Z","level":"WARN","message":"AppWarning [DATOS_INVALIDOS]: search: La búsqueda no puede superar 100 caracteres","requestId":"cf71be2c-53bd-4e72-a6fb-3e73a5f4ec07","context":{"requestId":"cf71be2c-53bd-4e72-a6fb-3e73a5f4ec07","method":"GET","url":"/api/products?search=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","ip":"127.0.0.1"}}
+2026-10-31T22:20:28.2087113Z {"timestamp":"2026-10-31T22:20:28.207Z","level":"WARN","message":"HTTP GET /api/products?search=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 400 (1ms)","requestId":"cf71be2c-53bd-4e72-a6fb-3e73a5f4ec07","context":{"requestId":"cf71be2c-53bd-4e72-a6fb-3e73a5f4ec07","method":"GET","url":"/api/products?search=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","status":400,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2089192Z 
+2026-10-31T22:20:28.2112293Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/products con all=true no pagina y devuelve catálogo completo (modo offline)
+2026-10-31T22:20:28.2115383Z [22m[39m{"timestamp":"2026-10-31T22:20:28.210Z","level":"INFO","message":"HTTP GET /api/products?all=true&limit=1 200 (1ms)","requestId":"01970ca3-4454-451c-8024-6e50630932bb","context":{"requestId":"01970ca3-4454-451c-8024-6e50630932bb","method":"GET","url":"/api/products?all=true&limit=1","status":200,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2116583Z 
+2026-10-31T22:20:28.2134349Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/health devuelve 503 si la base de datos no responde (simulando timeout o caída)
+2026-10-31T22:20:28.2138358Z [22m[39m{"timestamp":"2026-10-31T22:20:28.212Z","level":"WARN","message":"Health check: Base de datos no disponible o demoró más de 2 segundos","context":{"error":"Connection terminated"}}
+2026-10-31T22:20:28.2139224Z 
+2026-10-31T22:20:28.2140737Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22m[2mGET /api/health devuelve 503 si la base de datos no responde (simulando timeout o caída)
+2026-10-31T22:20:28.2144497Z [22m[39m{"timestamp":"2026-10-31T22:20:28.213Z","level":"ERROR","message":"HTTP GET /api/health 503 (1ms)","requestId":"fe0046e6-bbf2-4f91-94c6-94d198f2f9e7","context":{"requestId":"fe0046e6-bbf2-4f91-94c6-94d198f2f9e7","method":"GET","url":"/api/health","status":503,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2146430Z 
+2026-10-31T22:20:28.2166138Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22m[2mTodas las respuestas HTTP incluyen el header X-Request-Id
+2026-10-31T22:20:28.2168740Z [22m[39m{"timestamp":"2026-10-31T22:20:28.216Z","level":"INFO","message":"HTTP GET /api/health 200 (1ms)","requestId":"9edfbf72-dd68-49b1-b3bd-fc92bb961ed2","context":{"requestId":"9edfbf72-dd68-49b1-b3bd-fc92bb961ed2","method":"GET","url":"/api/health","status":200,"durationMs":1,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2169811Z 
+2026-10-31T22:20:28.2186501Z [90mstdout[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22m[2mSi el cliente envía X-Request-Id personalizado, se preserva en el header y la respuesta
+2026-10-31T22:20:28.2188954Z [22m[39m{"timestamp":"2026-10-31T22:20:28.217Z","level":"INFO","message":"HTTP GET /api/health 200 (0ms)","requestId":"trace-id-abc-12345","context":{"requestId":"trace-id-abc-12345","method":"GET","url":"/api/health","status":200,"durationMs":0,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2189890Z 
+2026-10-31T22:20:28.2204242Z [90mstderr[2m | tests/api.test.ts[2m > [22m[2mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22m[2mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22m[2mLas respuestas de error (ej. 404) devuelven el requestId en el cuerpo JSON
+2026-10-31T22:20:28.2207459Z [22m[39m{"timestamp":"2026-10-31T22:20:28.219Z","level":"WARN","message":"HTTP GET /api/ruta-inexistente-para-test 404 (0ms)","requestId":"req-error-404-test","context":{"requestId":"req-error-404-test","method":"GET","url":"/api/ruta-inexistente-para-test","status":404,"durationMs":0,"ip":"127.0.0.1","userAgent":"unknown"}}
+2026-10-31T22:20:28.2208580Z 
+2026-10-31T22:20:28.2220888Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mcoalescea sondas concurrentes del health check en una sola consulta[32m 31[2mms[22m[39m
+2026-10-31T22:20:28.2226003Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mGET /api/products con page y limit devuelve metadata de paginación[32m 5[2mms[22m[39m
+2026-10-31T22:20:28.2228530Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mGET /api/products rechaza page inválida con 400 sin consultar la base de datos[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.2231511Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mGET /api/products rechaza filtros booleanos inválidos y búsquedas excesivas[32m 9[2mms[22m[39m
+2026-10-31T22:20:28.2236285Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mGET /api/products con all=true no pagina y devuelve catálogo completo (modo offline)[32m 4[2mms[22m[39m
+2026-10-31T22:20:28.2240863Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 3: Rendimiento, Paginación Compatible y Health Check Resiliente[2m > [22mGET /api/health devuelve 503 si la base de datos no responde (simulando timeout o caída)[32m 3[2mms[22m[39m
+2026-10-31T22:20:28.2245433Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22musa una cantidad limitada de saltos de proxy en vez de trust proxy permisivo[32m 0[2mms[22m[39m
+2026-10-31T22:20:28.2249202Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22mTodas las respuestas HTTP incluyen el header X-Request-Id[32m 2[2mms[22m[39m
+2026-10-31T22:20:28.2253931Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22mSi el cliente envía X-Request-Id personalizado, se preserva en el header y la respuesta[32m 2[2mms[22m[39m
+2026-10-31T22:20:28.2257962Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22mLas respuestas de error (ej. 404) devuelven el requestId en el cuerpo JSON[32m 2[2mms[22m[39m
+2026-10-31T22:20:28.2262031Z  [32m✓[39m tests/api.test.ts[2m > [22mSuite de Pruebas Automáticas del Backend (Sección 6 del Informe Técnico)[2m > [22mFASE 4: Monitoreo, Logs Estructurados, X-Request-Id y Sanitización[2m > [22msanitizeLogData redacta contraseñas, tokens y authorization de los logs[32m 0[2mms[22m[39m
+2026-10-31T22:20:28.2263745Z 
+2026-10-31T22:20:28.2267733Z [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+2026-10-31T22:20:28.2269315Z [2m      Tests [22m [1m[32m31 passed[39m[22m[90m (31)[39m
+2026-10-31T22:20:28.2270172Z [2m   Start at [22m 22:20:27
+2026-10-31T22:20:28.2275405Z [2m   Duration [22m 1.03s[2m (tests 53%, transform 23%, import 23%, worker 1%, setup 1%)[22m
+2026-10-31T22:20:28.2286170Z 
