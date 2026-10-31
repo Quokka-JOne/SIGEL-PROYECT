@@ -7,10 +7,21 @@ import { loginSchema, registerSchema, verifyEmailSchema } from '../validators/sc
 
 const router = Router();
 
+// BUG-05: Extraer IP real del cliente (Cloudflare cf-connecting-ip / x-forwarded-for)
+const getClientIpKey = (req: any): string => {
+  return (
+    (req.headers['cf-connecting-ip'] as string) ||
+    ((req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()) ||
+    req.ip ||
+    '127.0.0.1'
+  );
+};
+
 // C-05: Rate limit en login para evitar ataques de fuerza bruta
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 20, // 20 intentos por IP
+  keyGenerator: getClientIpKey,
   message: {
     success: false,
     code: 'RATE_LIMIT_EXCEEDED',
@@ -24,6 +35,7 @@ const loginLimiter = rateLimit({
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
   max: 10, // 10 registros por hora por IP
+  keyGenerator: getClientIpKey,
   message: {
     success: false,
     code: 'RATE_LIMIT_EXCEEDED',

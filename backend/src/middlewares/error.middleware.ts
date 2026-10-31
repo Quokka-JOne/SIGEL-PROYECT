@@ -15,11 +15,17 @@ export const errorHandler = (
 
   const requestId = (req as any).id || (req.headers['x-request-id'] as string);
 
+  const clientIp =
+    (req.headers['cf-connecting-ip'] as string) ||
+    ((req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()) ||
+    req.ip ||
+    'unknown';
+
   const context = {
     requestId,
     method: req.method,
     url: req.originalUrl,
-    ip: req.ip,
+    ip: clientIp,
   };
 
   // Known custom application error

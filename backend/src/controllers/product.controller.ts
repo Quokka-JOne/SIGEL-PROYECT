@@ -69,6 +69,7 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
     const queryArgs: any = {
       where,
       orderBy: { nombre: 'asc' },
+      relationLoadStrategy: 'join',
       ...(skip !== undefined ? { skip } : {}),
       ...(take !== undefined ? { take } : {}),
     };
