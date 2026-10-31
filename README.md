@@ -67,7 +67,9 @@ curl -i https://sigel-proyect.onrender.com/api/health
 curl -i https://sigel-proyect.onrender.com/api
 ```
 
-`/api/live` confirma que el proceso está activo sin consultar PostgreSQL. `/api/health` confirma que el proceso y la base de datos están disponibles. El health check reutiliza durante cinco segundos el último resultado saludable para evitar que una prueba concurrente genere una consulta a la base de datos por cada sonda.
+`/api/live` es la sonda de **liveness**: confirma que el proceso está activo y no consulta PostgreSQL. Configúrela para comprobar el proceso sin convertir cada sonda en carga de base de datos. `/api/health` es la sonda de **readiness**: confirma que el proceso y PostgreSQL están disponibles. Reutiliza durante cinco segundos el último resultado saludable y agrupa comprobaciones concurrentes. `HEALTH_CACHE_TTL_MS=0` desactiva esa reutilización y consulta la base de datos en cada comprobación; no lo configure así para monitorización frecuente en producción.
+
+Ambas respuestas de health llevan `Cache-Control: no-store`. `/api/health` añade `Server-Timing`: `db;dur=...;desc="checked"` indica el tiempo de la consulta; `desc="cached"` significa que se reutilizó una comprobación saludable reciente, y `app;dur=...` mide el tiempo del handler. En una respuesta 503 se marca `desc="failed"`. Compare esta duración de servidor con el tiempo medido por el cliente: si el servidor es rápido y el p95 de cliente alto, investigue cold start, región y ruta de red antes de optimizar PostgreSQL.
 
 La prueba de carga de referencia se ejecuta sin modificar datos:
 
@@ -75,7 +77,7 @@ La prueba de carga de referencia se ejecuta sin modificar datos:
 node backend/scripts/load-test.js https://sigel-proyect.onrender.com
 ```
 
-El script realiza 50 solicitudes con concurrencia 10 y reporta p50, media, p95, códigos HTTP y errores 5xx. Para probar el catálogo autenticado, defina temporalmente `AUTH_TOKEN` en el entorno del evaluador; no lo escriba en el repositorio ni en una captura pública.
+El script realiza 50 solicitudes con concurrencia 10 y reporta p50, media, p95, códigos HTTP y errores 5xx. Para una comparación repetible, ejecute tres corridas desde la misma máquina/región, conserve cada salida y distinga el tiempo de warm-up del p95 de las ráfagas; no compare mediciones de regiones o condiciones distintas. Para probar el catálogo autenticado, defina temporalmente `AUTH_TOKEN` en el entorno del evaluador; no lo escriba en el repositorio ni en una captura pública.
 
 Durante la revisión de logs, use un `X-Request-Id` controlado y búsquelo en los logs de Render. El endpoint `/api/logs` requiere un token de administrador y debe probarse únicamente con una cuenta QA. Las cuentas y contraseñas de evaluación deben compartirse por un canal privado y rotarse al finalizar la coevaluación.
 

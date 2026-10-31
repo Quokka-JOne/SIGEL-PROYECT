@@ -530,6 +530,17 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(prisma.$queryRaw).not.toHaveBeenCalled();
     });
 
+    it('expone el tiempo de la comprobación de DB y evita cachear la respuesta', async () => {
+      (prisma.$queryRaw as any).mockResolvedValue([{ 1: 1 }]);
+
+      const res = await request(app).get('/api/health');
+
+      expect(res.status).toBe(200);
+      expect(res.headers['cache-control']).toBe('no-store');
+      expect(res.headers['server-timing']).toMatch(/db;dur=\d+\.\d{2};desc="checked"/);
+      expect(res.headers['server-timing']).toMatch(/app;dur=\d+\.\d{2}/);
+    });
+
     it('coalescea sondas concurrentes del health check en una sola consulta', async () => {
       (prisma.$queryRaw as any).mockImplementation(
         () => new Promise((resolve) => setTimeout(() => resolve([{ 1: 1 }]), 20))
@@ -617,6 +628,8 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(res.body.success).toBe(false);
       expect(res.body.status).toBe('unhealthy');
       expect(res.body.message).toContain('base de datos');
+      expect(res.headers['cache-control']).toBe('no-store');
+      expect(res.headers['server-timing']).toContain('desc="failed"');
     });
   });
 
