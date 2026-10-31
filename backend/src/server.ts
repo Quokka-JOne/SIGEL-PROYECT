@@ -65,7 +65,7 @@ app.use(express.json());
 // no abra una consulta independiente a PostgreSQL por cada sonda.
 const healthCacheTtlMs = process.env.NODE_ENV === 'test'
   ? 0
-  : Math.max(0, Number(process.env.HEALTH_CACHE_TTL_MS) || 5000);
+  : Math.max(0, Number(process.env.HEALTH_CACHE_TTL_MS) || 15000);
 let lastHealthyCheckAt = 0;
 let healthCheckInFlight: Promise<void> | null = null;
 const checkDatabaseHealth = async (): Promise<void> => {
@@ -191,6 +191,7 @@ const startNeonKeepAlive = () => {
   keepAliveTimer = setInterval(async () => {
     try {
       await prisma.$queryRaw`SELECT 1`;
+      lastHealthyCheckAt = Date.now();
     } catch (err: any) {
       console.warn('⚠️ [Keep-Alive] Neon ping omitido o base desconectada:', err.message);
     }
