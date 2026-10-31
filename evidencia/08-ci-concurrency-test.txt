@@ -1,0 +1,53 @@
+================================================================
+EVIDENCIA DE EJECUCIÓN DEL TEST DE CONCURRENCIA EN CI (GITHUB ACTIONS)
+================================================================
+Workflow Run: https://github.com/Quokka-JOne/SIGEL-PROYECT/actions/runs/41247688237
+Commit: b2f4758f (main)
+Job: Backend Tests, Integration & Build (Job ID: 124674437486)
+Paso: Ejecutar pruebas unitarias y de concurrencia real con PostgreSQL (Vitest --verbose)
+Fecha/Hora de Ejecución: Sat, 31 Oct 2026 22:20:26Z - 22:20:28Z
+================================================================
+
+1. LÍNEAS EXACTAS DEL LOG OFICIAL DEL RUNNER DE GITHUB ACTIONS:
+----------------------------------------------------------------
+2026-10-31T22:20:26.5498567Z ##[group]Run npx vitest run --reporter=verbose
+2026-10-31T22:20:26.5498960Z npx vitest run --reporter=verbose
+2026-10-31T22:20:26.5520997Z   NODE_ENV: test
+2026-10-31T22:20:26.5521557Z   JWT_SECRET: super-secret-jwt-key-for-github-actions-testing-32chars
+2026-10-31T22:20:26.5522204Z   CORS_ORIGIN: http://localhost:5173
+2026-10-31T22:20:26.5523097Z   DATABASE_URL: postgresql://jinstock_ci:***@localhost:5432/jinstock_ci_db?sslmode=disable
+2026-10-31T22:20:26.5524345Z   DIRECT_URL: postgresql://jinstock_ci:***@localhost:5432/jinstock_ci_db?sslmode=disable
+2026-10-31T22:20:26.5525492Z   TEST_DATABASE_URL: postgresql://jinstock_ci:***@localhost:5432/jinstock_ci_db?sslmode=disable
+
+[... ejecución simultánea de 10 peticiones POST /api/sales sobre PostgreSQL ...]
+
+2026-10-31T22:20:28.0268475Z stdout | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0274547Z {"timestamp":"2026-10-31T22:20:28.025Z","level":"INFO","message":"HTTP POST /api/sales 201 (140ms)","requestId":"b87bb712-9c52-4d2b-964e-d0f06ccc47eb"...}
+2026-10-31T22:20:28.0464446Z stdout | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0469475Z {"timestamp":"2026-10-31T22:20:28.045Z","level":"INFO","message":"HTTP POST /api/sales 201 (129ms)","requestId":"edf50f4a-61be-4fe4-a015-abfce322b1ea"...}
+2026-10-31T22:20:28.0600882Z stdout | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0606729Z {"timestamp":"2026-10-31T22:20:28.059Z","level":"INFO","message":"HTTP POST /api/sales 201 (137ms)","requestId":"3d315ff4-33fe-4e55-9f06-d6c282053cac"...}
+2026-10-31T22:20:28.0954496Z stderr | tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo)
+2026-10-31T22:20:28.0957194Z {"timestamp":"2026-10-31T22:20:28.090Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 5, solicitadas: 1.","requestId":"1779b122-b53b-49e2-abcb-6e273ab1b3de"...}
+2026-10-31T22:20:28.0983418Z {"timestamp":"2026-10-31T22:20:28.092Z","level":"WARN","message":"AppWarning [STOCK_INSUFICIENTE]: Existencias insuficientes para 'Marcador Permanente Test'. Disponibles en servidor: 4, solicitadas: 1.","requestId":"9001030b-83cb-4b21-a786-08f502c1eb38"...}
+
+2026-10-31T22:20:28.1088283Z  ✓ tests/integration.concurrency.test.ts > FASE 6: Pruebas de Integración y Concurrencia Real > 10 ventas simultáneas sobre un stock inicial de 5: exactamente 5 aprobadas, 5 rechazadas, stock en 0 (nunca negativo) 449ms
+
+----------------------------------------------------------------
+2. RESUMEN FINAL DE LA SUITE VITEST EN GITHUB ACTIONS:
+----------------------------------------------------------------
+2026-10-31T22:20:28.2267733Z  Test Files  2 passed (2)
+2026-10-31T22:20:28.2269315Z       Tests  31 passed (31)
+2026-10-31T22:20:28.2270172Z    Start at  22:20:27
+2026-10-31T22:20:28.2275405Z    Duration  1.03s (tests 53%, transform 23%, import 23%, worker 1%, setup 1%)
+
+----------------------------------------------------------------
+3. DEMOSTRACIÓN TÉCNICA DE QUE NO QUEDA OMITIDO (NO SKIP):
+----------------------------------------------------------------
+- tests/integration.concurrency.test.ts contiene:
+    it.skipIf(!hasRealDb)('10 ventas simultáneas...')
+- hasRealDb evalúa la presencia de TEST_DATABASE_URL y la conectividad real con pg.
+- El service container 'postgres:15-alpine' se inicializó exitosamente en el puerto 5432.
+- El log muestra '✓ tests/integration.concurrency.test.ts ... 449ms' (símbolo ✓ en verde).
+- Si el test hubiese sido omitido, Vitest mostraría '↓' o 'skipped', y el conteo de tests indicaría '1 skipped'.
+- El conteo oficial fue: 'Tests 31 passed (31)' y '0 skipped'.

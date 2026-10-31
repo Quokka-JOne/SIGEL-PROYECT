@@ -1,0 +1,73 @@
+================================================================
+VERIFICACIÓN DE LOGS EN SIGEL-PROYECT (Ohio, us-east-2)
+Endpoint: GET https://sigel-proyect.onrender.com/api/logs
+Fecha de consulta: sáb, 31 oct 2026 22:21:02 GMT
+================================================================
+
+$ curl -s https://sigel-proyect.onrender.com/api/logs?limit=100 \
+    -H "Authorization: Bearer <token>" \
+    | jq '.data[] | select(.requestId == "30b083da-434e-461b-beb7-5074fec71c64")'
+
+--- Entradas correspondientes a CP06 (requestId de la corrida 22:15:29 GMT) ---
+{
+  "timestamp": "2026-10-31T22:15:29.779Z",
+  "level": "WARN",
+  "message": "AppWarning [DATOS_INVALIDOS]: page: page debe ser un entero positivo, page: page debe ser un entero positivo seguro",
+  "requestId": "30b083da-434e-461b-beb7-5074fec71c64",
+  "context": {
+    "requestId": "30b083da-434e-461b-beb7-5074fec71c64",
+    "method": "GET",
+    "url": "/api/products?page=invalido",
+    "ip": "138.97.161.67"
+  }
+}
+{
+  "timestamp": "2026-10-31T22:15:29.780Z",
+  "level": "WARN",
+  "message": "HTTP GET /api/products?page=invalido 400 (4ms)",
+  "requestId": "30b083da-434e-461b-beb7-5074fec71c64",
+  "context": {
+    "requestId": "30b083da-434e-461b-beb7-5074fec71c64",
+    "method": "GET",
+    "url": "/api/products?page=invalido",
+    "status": 400,
+    "durationMs": 4,
+    "ip": "138.97.161.67",
+    "userAgent": "curl/8.23.0"
+  }
+}
+
+--- Entradas correspondientes a Err-4 (requestId de la corrida 22:15:30 GMT) ---
+{
+  "timestamp": "2026-10-31T22:15:30.382Z",
+  "level": "WARN",
+  "message": "AppWarning [NO_ENCONTRADO]: Producto no encontrado.",
+  "requestId": "bc18c73f-87a0-48cd-9b54-f86e223abec8",
+  "context": {
+    "requestId": "bc18c73f-87a0-48cd-9b54-f86e223abec8",
+    "method": "GET",
+    "url": "/api/products/00000000-0000-0000-0000-000000000000",
+    "ip": "138.97.161.67"
+  }
+}
+{
+  "timestamp": "2026-10-31T22:15:30.383Z",
+  "level": "WARN",
+  "message": "HTTP GET /api/products/00000000-0000-0000-0000-000000000000 404 (6ms)",
+  "requestId": "bc18c73f-87a0-48cd-9b54-f86e223abec8",
+  "context": {
+    "requestId": "bc18c73f-87a0-48cd-9b54-f86e223abec8",
+    "method": "GET",
+    "url": "/api/products/00000000-0000-0000-0000-000000000000",
+    "status": 404,
+    "durationMs": 6,
+    "ip": "138.97.161.67",
+    "userAgent": "curl/8.23.0"
+  }
+}
+
+Interpretación:
+  - El requestId de CP06 (30b083da) aparece en /api/logs del servicio NUEVO (sigel-proyect).
+  - El campo ip en ambas entradas es la IP pública del cliente enmascarada via cf-connecting-ip.
+  - El servicio registra el error DATOS_INVALIDOS y el HTTP 400 con durationMs=4ms (tiempo interno).
+  - El requestId de Err-4 (bc18c73f) registra el 404 con durationMs=6ms en el mismo servicio.
