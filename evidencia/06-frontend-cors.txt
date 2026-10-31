@@ -1,27 +1,40 @@
 ================================================================
 VERIFICACIÓN DEL FRONTEND Y PREFLIGHT CORS
-Fecha de la corrida: Sat, 31 Oct 2026 22:16 GMT
+Fecha de la corrida: Sat, 31 Oct 2026 22:19 GMT
 ================================================================
 
 ================================================================
-1. BUNDLE EN CLOUDFLARE PAGES → apunta a sigel-proyect.onrender.com
+1. BUNDLE EN CLOUDFLARE PAGES — el backend viejo no aparece
 ================================================================
-Fecha/hora: Sat, 31 Oct 2026 22:16 GMT
+Fecha/hora: Sat, 31 Oct 2026 22:19 GMT
 
 Paso 1: obtener el nombre del archivo JS principal del frontend en producción.
 
 $ curl -s https://jinstock-proyect.pages.dev | grep -o 'assets/[^"]*\.js' | head -n 1
 assets/index-BtSh0bfo.js
 
-Paso 2: buscar dentro del bundle la URL del backend incrustada por Vite.
+Paso 2: comprobar que el backend NUEVO está presente.
+
+$ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js \
+    | grep -c "sigel-proyect.onrender.com"
+1
+
+Paso 3 (clave): comprobar que el backend VIEJO NO aparece en ningún lugar del bundle.
+
+$ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js \
+    | grep -c "jinstock-proyect.onrender.com"
+0
+
+Conclusión: el bundle de producción contiene exactamente 1 referencia a
+sigel-proyect.onrender.com y cero referencias a jinstock-proyect.onrender.com.
+El frontend apunta únicamente al servicio nuevo en Ohio.
+
+Paso 4: ver el contexto de las referencias encontradas.
 
 $ curl -s https://jinstock-proyect.pages.dev/assets/index-BtSh0bfo.js \
     | grep -o 'https://sigel-proyect.onrender.com/api[^"]*' | head -n 2
 https://sigel-proyect.onrender.com/api
 https://sigel-proyect.onrender.com/api/auth/verify
-
-Conclusión: el bundle de producción llama exclusivamente a sigel-proyect.onrender.com/api.
-No aparece ninguna referencia a jinstock-proyect.onrender.com (servicio anterior).
 
 ================================================================
 2. PREFLIGHT CORS → HTTP 204 No Content
