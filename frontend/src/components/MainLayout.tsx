@@ -268,21 +268,10 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
     '/pos': 'sky',
     '/ventas': 'coral',
   };
-  const avatarShapeByRoute: Record<string, string> = {
-    '/dashboard': 'cloud',
-    '/copilot': 'sphere',
-    '/inventario': 'rounded-box',
-    '/compras': 'cone',
-    '/reportes': 'dome',
-    '/usuarios': 'cloud',
-    '/pos': 'dome',
-    '/ventas': 'rounded-box',
-  };
   const backgroundTheme = themeByRoute[location.pathname] || 'plum';
-  const avatarShape = avatarShapeByRoute[location.pathname] || 'sphere';
 
   return (
-    <div className={`app-shell app-theme-${backgroundTheme} app-shape-${avatarShape} text-white min-h-screen flex flex-col font-sans`}>
+    <div className={`app-shell app-theme-${backgroundTheme} text-white min-h-screen flex flex-col font-sans`}>
       {/* ── TOP HEADER ─────────────────────────────────────────── */}
       <header className="print:hidden px-3 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 flex flex-col md:flex-row justify-between items-center gap-2.5 sm:gap-4 border-b border-white/5 bg-[#14131a] sticky top-0 z-40 backdrop-blur-md">
         {/* Left: Logo & role chip */}

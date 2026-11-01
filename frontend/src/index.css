@@ -163,20 +163,14 @@
   --app-glow-primary: rgba(74, 20, 140, 0.3);
   --app-glow-secondary: rgba(167, 136, 244, 0.13);
   --app-glow-tertiary: rgba(255, 107, 107, 0.1);
-  --app-avatar-body: #a788f4;
-  --app-avatar-highlight: #decfff;
-  --app-avatar-mid: #8051d1;
-  --app-avatar-shadow: #4a148c;
-  --app-avatar-eye-glow: rgba(220, 190, 255, 0.62);
-  --app-avatar-eye-y: 42%;
-  --app-avatar-eye-radius-x: 3%;
-  --app-avatar-eye-open-y: 8%;
-  --app-avatar-eye-radius-y: 8%;
   background-color: #111111;
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 100% 8%, var(--app-glow-primary) 0%, transparent 34%),
+    radial-gradient(ellipse at 0% 42%, var(--app-glow-secondary) 0%, transparent 30%),
+    radial-gradient(ellipse at 85% 80%, var(--app-glow-tertiary) 0%, transparent 28%);
   background-attachment: fixed;
-  background-size: 160px 160px;
+  background-size: 160px 160px, auto, auto, auto;
   position: relative;
   isolation: isolate;
   overflow-x: clip;
@@ -187,94 +181,40 @@
   content: '';
   position: fixed;
   z-index: -1;
-  width: clamp(138px, 19vw, 218px);
-  height: clamp(126px, 17vw, 194px);
+  width: 68vmax;
+  height: 62vmax;
   pointer-events: none;
+  filter: blur(28px);
   will-change: transform, border-radius;
-  box-shadow: 0 16px 42px -22px var(--app-glow-primary);
 }
 
 .app-shell::before {
-  top: 16vh;
-  right: 5vw;
-  opacity: 0.34;
-  border-radius: 48% 52% 43% 57% / 53% 43% 57% 47%;
-  background:
-    radial-gradient(ellipse var(--app-avatar-eye-radius-x) var(--app-avatar-eye-radius-y) at 39% var(--app-avatar-eye-y), #000 94%, transparent 100%),
-    radial-gradient(ellipse var(--app-avatar-eye-radius-x) var(--app-avatar-eye-radius-y) at 61% var(--app-avatar-eye-y), #000 94%, transparent 100%),
-    radial-gradient(ellipse 9% 15% at 39% var(--app-avatar-eye-y), var(--app-avatar-eye-glow) 0%, transparent 100%),
-    radial-gradient(ellipse 9% 15% at 61% var(--app-avatar-eye-y), var(--app-avatar-eye-glow) 0%, transparent 100%),
-    radial-gradient(ellipse at 28% 18%, var(--app-avatar-highlight) 0%, transparent 42%),
-    linear-gradient(145deg, var(--app-avatar-body) 0%, var(--app-avatar-mid) 48%, var(--app-avatar-shadow) 100%);
-  animation: ui-avatar-float 27s ease-in-out infinite alternate, ui-avatar-eye-blink 8.2s ease-in-out 1.7s infinite;
+  top: -24vmax;
+  right: -18vmax;
+  background: radial-gradient(ellipse at center, var(--app-glow-primary) 0%, var(--app-glow-secondary) 36%, transparent 72%);
+  animation: ui-glow-flow 30s ease-in-out infinite alternate;
 }
 
 .app-shell::after {
-  bottom: 12vh;
-  left: 4vw;
-  opacity: 0.24;
-  width: clamp(112px, 15vw, 172px);
-  height: clamp(104px, 14vw, 160px);
-  border-radius: 57% 43% 54% 46% / 45% 56% 44% 55%;
-  background:
-    radial-gradient(ellipse var(--app-avatar-eye-radius-x) var(--app-avatar-eye-radius-y) at 40% var(--app-avatar-eye-y), #000 94%, transparent 100%),
-    radial-gradient(ellipse var(--app-avatar-eye-radius-x) var(--app-avatar-eye-radius-y) at 61% var(--app-avatar-eye-y), #000 94%, transparent 100%),
-    radial-gradient(ellipse 9% 15% at 40% var(--app-avatar-eye-y), var(--app-avatar-eye-glow) 0%, transparent 100%),
-    radial-gradient(ellipse 9% 15% at 61% var(--app-avatar-eye-y), var(--app-avatar-eye-glow) 0%, transparent 100%),
-    radial-gradient(ellipse at 30% 18%, var(--app-avatar-highlight) 0%, transparent 42%),
-    linear-gradient(145deg, var(--app-avatar-shadow) 0%, var(--app-avatar-mid) 50%, var(--app-avatar-body) 100%);
-  box-shadow: 0 16px 42px -22px var(--app-glow-secondary);
-  animation: ui-avatar-float 34s ease-in-out -12s infinite alternate-reverse, ui-avatar-eye-blink 9.6s ease-in-out 4.2s infinite;
+  bottom: -26vmax;
+  left: -22vmax;
+  background: radial-gradient(ellipse at center, var(--app-glow-tertiary) 0%, var(--app-glow-secondary) 40%, transparent 72%);
+  animation: ui-glow-flow 38s ease-in-out -13s infinite alternate-reverse;
 }
 
-@keyframes ui-avatar-float {
+@keyframes ui-glow-flow {
   0% {
-    transform: translate3d(0, 0, 0) rotate(-2deg) scale(0.98);
+    transform: translate3d(0, 0, 0) scale(0.96);
+    border-radius: 54% 46% 62% 38% / 46% 56% 44% 54%;
   }
   50% {
-    transform: translate3d(-8px, 10px, 0) rotate(1deg) scale(1.03);
+    transform: translate3d(-3vw, 3vh, 0) scale(1.04);
+    border-radius: 39% 61% 45% 55% / 57% 43% 57% 43%;
   }
   100% {
-    transform: translate3d(7px, -7px, 0) rotate(2deg) scale(1);
+    transform: translate3d(3vw, -2vh, 0) scale(1.08);
+    border-radius: 61% 39% 54% 46% / 42% 58% 42% 58%;
   }
-}
-
-.app-shape-cloud { --app-avatar-eye-y: 45%; }
-.app-shape-cloud::before,
-.app-shape-cloud::after {
-  clip-path: polygon(19% 83%, 13% 80%, 8% 74%, 6% 66%, 7% 58%, 11% 52%, 17% 49%, 18% 42%, 22% 36%, 29% 32%, 36% 33%, 41% 26%, 47% 22%, 54% 21%, 61% 24%, 66% 30%, 69% 37%, 77% 39%, 83% 43%, 87% 49%, 88% 55%, 93% 59%, 96% 66%, 94% 73%, 90% 79%, 83% 83%, 74% 84%, 65% 82%, 57% 86%, 47% 86%, 37% 84%, 27% 86%);
-}
-
-.app-shape-rounded-box {
-  --app-avatar-eye-y: 43%;
-  --app-avatar-eye-radius-x: 3.8%;
-  --app-avatar-eye-open-y: 9.8%;
-}
-.app-shape-rounded-box::before,
-.app-shape-rounded-box::after {
-  border-radius: 28% 28% 32% 32% / 26% 26% 34% 34%;
-}
-
-.app-shape-cone { --app-avatar-eye-y: 57%; }
-.app-shape-cone::before,
-.app-shape-cone::after {
-  clip-path: polygon(50% 2%, 96% 91%, 89% 99%, 11% 99%, 4% 91%);
-}
-
-.app-shape-dome { --app-avatar-eye-y: 52%; }
-.app-shape-dome::before,
-.app-shape-dome::after {
-  border-radius: 50% 50% 12% 12% / 72% 72% 16% 16%;
-}
-
-.app-shape-sphere {
-  --app-avatar-eye-y: 42%;
-  --app-avatar-eye-radius-x: 3.8%;
-  --app-avatar-eye-open-y: 9.8%;
-}
-.app-shape-sphere::before,
-.app-shape-sphere::after {
-  border-radius: 50%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -288,55 +228,30 @@
   --app-glow-primary: rgba(74, 20, 140, 0.32);
   --app-glow-secondary: rgba(167, 136, 244, 0.14);
   --app-glow-tertiary: rgba(95, 143, 255, 0.1);
-  --app-avatar-body: #a788f4;
-  --app-avatar-highlight: #decfff;
-  --app-avatar-mid: #8051d1;
-  --app-avatar-shadow: #4a148c;
-  --app-avatar-eye-glow: rgba(220, 190, 255, 0.62);
 }
 
 .app-theme-sky {
   --app-glow-primary: rgba(95, 143, 255, 0.25);
   --app-glow-secondary: rgba(143, 177, 255, 0.14);
   --app-glow-tertiary: rgba(167, 136, 244, 0.1);
-  --app-avatar-body: #82aaff;
-  --app-avatar-highlight: #d2e1ff;
-  --app-avatar-mid: #5277d4;
-  --app-avatar-shadow: #3154b4;
-  --app-avatar-eye-glow: rgba(175, 205, 255, 0.62);
 }
 
 .app-theme-coral {
   --app-glow-primary: rgba(255, 107, 107, 0.2);
   --app-glow-secondary: rgba(167, 136, 244, 0.13);
   --app-glow-tertiary: rgba(253, 219, 53, 0.08);
-  --app-avatar-body: #ff8e84;
-  --app-avatar-highlight: #ffe0cc;
-  --app-avatar-mid: #da5c70;
-  --app-avatar-shadow: #a7445d;
-  --app-avatar-eye-glow: rgba(255, 198, 181, 0.64);
 }
 
 .app-theme-sun {
   --app-glow-primary: rgba(253, 219, 53, 0.15);
   --app-glow-secondary: rgba(255, 107, 107, 0.11);
   --app-glow-tertiary: rgba(95, 143, 255, 0.12);
-  --app-avatar-body: #fddb35;
-  --app-avatar-highlight: #fff2a8;
-  --app-avatar-mid: #e4a832;
-  --app-avatar-shadow: #b7782f;
-  --app-avatar-eye-glow: rgba(255, 239, 150, 0.68);
 }
 
 .app-theme-lavender {
   --app-glow-primary: rgba(167, 136, 244, 0.24);
   --app-glow-secondary: rgba(95, 143, 255, 0.12);
   --app-glow-tertiary: rgba(255, 107, 107, 0.09);
-  --app-avatar-body: #c2afff;
-  --app-avatar-highlight: #efe7ff;
-  --app-avatar-mid: #9472e5;
-  --app-avatar-shadow: #694bc2;
-  --app-avatar-eye-glow: rgba(226, 207, 255, 0.64);
 }
 
 ::-webkit-scrollbar {
@@ -512,16 +427,4 @@
   body.printing-cash-closing #receipt-ticket-printable * {
     visibility: hidden !important;
   }
-}
-
-@property --app-avatar-eye-radius-y {
-  syntax: '<percentage>';
-  inherits: true;
-  initial-value: 8%;
-}
-
-@keyframes ui-avatar-eye-blink {
-  0%, 91%, 100% { --app-avatar-eye-radius-y: var(--app-avatar-eye-open-y, 8%); }
-  94% { --app-avatar-eye-radius-y: 0.9%; }
-  97% { --app-avatar-eye-radius-y: var(--app-avatar-eye-open-y, 8%); }
 }
