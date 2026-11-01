@@ -469,12 +469,13 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
   try {
     await purgeDummyData();
 
-    const [pRes, cRes, sRes, uRes, salesRes] = await Promise.all([
+    const [pRes, cRes, sRes, uRes, salesRes, purRes] = await Promise.all([
       apiFetch<LocalProduct[]>('/products?includeInactive=false&all=true'),
       apiFetch<LocalCategory[]>('/categories'),
       apiFetch<LocalSupplier[]>('/suppliers?includeInactive=true'),
       apiFetch<any[]>('/users'),
       apiFetch<any[]>('/sales?limit=50'),
+      apiFetch<any[]>('/purchases'),
     ]);
 
     let prodCount = 0;
@@ -498,6 +499,10 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
 
     if (salesRes.success && salesRes.data) {
       await cacheSalesLocally(salesRes.data);
+    }
+
+    if (purRes.success && purRes.data) {
+      await cachePurchasesLocally(purRes.data);
     }
 
     notifyListeners();

@@ -23,8 +23,6 @@ export const DashboardPage: React.FC = () => {
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [syncing, setSyncing] = useState<boolean>(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const fetchDashboardMetrics = async () => {
     setLoading(true);
@@ -118,21 +116,6 @@ export const DashboardPage: React.FC = () => {
       await loadFromDexie();
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleManualSync = async () => {
-    setSyncing(true);
-    setSyncMessage(null);
-    try {
-      const res = await syncAllFromServer();
-      setSyncMessage(res.message);
-      await fetchDashboardMetrics();
-    } catch {
-      setSyncMessage('Error al sincronizar con Neon.');
-    } finally {
-      setSyncing(false);
-      setTimeout(() => setSyncMessage(null), 5000);
     }
   };
 
@@ -312,25 +295,10 @@ export const DashboardPage: React.FC = () => {
           </span>
         </div>
 
-        {syncMessage && (
-          <div className="w-full text-center text-[11px] font-semibold text-purple-300 bg-purple-950/60 border border-purple-500/40 rounded-lg py-1.5 px-2 my-2 animate-in fade-in">
-            {syncMessage}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2 w-full mt-2">
-          <button
-            type="button"
-            onClick={handleManualSync}
-            disabled={syncing}
-            className="w-full py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-purple-900/30 cursor-pointer"
-          >
-            <span className={`material-symbols-outlined text-sm ${syncing ? 'animate-spin' : ''}`}>sync</span>
-            {syncing ? 'Sincronizando...' : 'Sincronizar con Neon'}
-          </button>
+        <div className="w-full mt-3">
           <Link
             to="/pos"
-            className="block text-center w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold transition-colors"
+            className="block text-center w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 rounded-xl text-xs font-bold transition-colors"
           >
             Abrir Punto de Venta
           </Link>

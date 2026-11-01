@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiFetch, setAuthToken, setStoredUser, getStoredUser, removeAuthToken, getAuthToken } from '../services/api';
+import { syncAllFromServer } from '../services/syncService';
 
 export type Rol = 'ADMINISTRADOR' | 'CAJERO';
 
@@ -41,6 +42,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res.success && res.data) {
           setUser(res.data);
           setStoredUser(res.data, Boolean(localStorage.getItem('jinstock_token')));
+          // Sincronizar automáticamente toda la base de datos local desde Neon en segundo plano
+          syncAllFromServer().catch(() => {});
         } else if (res.status === 401 || res.status === 403) {
           // C-05: Si el token está vencido o inválido (401/403), cerrar sesión y limpiar almacenamiento
           console.warn('[Auth] Sesión inválida o expirada (401/403). Cerrando sesión.');
@@ -95,6 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(res.data.token);
       setUser(res.data.usuario);
       setStoredUser(res.data.usuario, remember);
+      // Sincronizar automáticamente toda la base de datos local desde Neon al iniciar sesión
+      syncAllFromServer().catch(() => {});
       return { success: true, message: res.message, usuario: res.data.usuario };
     }
 
