@@ -258,8 +258,20 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
     </button>
   );
 
+  const themeByRoute: Record<string, string> = {
+    '/dashboard': 'plum',
+    '/copilot': 'lavender',
+    '/inventario': 'sky',
+    '/compras': 'coral',
+    '/reportes': 'sun',
+    '/usuarios': 'lavender',
+    '/pos': 'sky',
+    '/ventas': 'coral',
+  };
+  const backgroundTheme = themeByRoute[location.pathname] || 'plum';
+
   return (
-    <div className="bg-[#100f14] text-white min-h-screen flex flex-col font-sans">
+    <div className={`app-shell app-theme-${backgroundTheme} text-white min-h-screen flex flex-col font-sans`}>
       {/* ── TOP HEADER ─────────────────────────────────────────── */}
       <header className="print:hidden px-3 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 flex flex-col md:flex-row justify-between items-center gap-2.5 sm:gap-4 border-b border-white/5 bg-[#14131a] sticky top-0 z-40 backdrop-blur-md">
         {/* Left: Logo & role chip */}

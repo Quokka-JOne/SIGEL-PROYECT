@@ -144,12 +144,7 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: '#100f14', minHeight: '100vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
-      
-      {/* Background Gradients */}
-      <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(74,85,221,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '20%', right: '-10%', width: '60%', height: '60%', background: 'radial-gradient(circle, rgba(221,74,104,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      
+    <div className="app-shell app-theme-lavender" style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
       {activeTab === 'login' && !isVerifying ? (
         // --- LOGIN VIEW ---
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 1 }}>
