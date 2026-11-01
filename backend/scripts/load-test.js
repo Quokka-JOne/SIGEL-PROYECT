@@ -175,7 +175,28 @@ async function main() {
   }
   console.log(`✅ Warm-up de salud completado en ${warmupSec.toFixed(2)}s (HTTP 200).`);
 
-  const token = process.env.AUTH_TOKEN;
+  let token = process.env.AUTH_TOKEN;
+  if (!token) {
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.INITIAL_ADMIN_EMAIL || 'admin@jinstock.ni';
+    const adminPassword = process.env.ADMIN_PASSWORD || process.env.INITIAL_ADMIN_PASSWORD || 'Admin.2026!Secure';
+    try {
+      const loginRes = await requestAsync(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+        timeout: 10000,
+      });
+      if (loginRes.ok && loginRes.status === 200) {
+        const body = JSON.parse(loginRes.body);
+        token = body.data?.token || body.token;
+        if (token) {
+          console.log(`🔑 Sesión iniciada automáticamente como ${adminEmail} para probar la ruta real de sincronización.`);
+        }
+      }
+    } catch (_) {
+      // Si falla login, continúa sin token
+    }
+  }
   const targetDataRoute = '/api/products?includeInactive=false';
   if (token) {
     console.log('🔥 Precalentando pool de base de datos con pasada previa al catálogo...');
