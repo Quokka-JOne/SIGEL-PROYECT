@@ -37,6 +37,28 @@ export const UsersPage: React.FC = () => {
 
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
 
+  // --- Estado: Modal Reset Contraseña (Admin) ---
+  const [resetTarget, setResetTarget] = useState<UserAccount | null>(null);
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [showResetNew, setShowResetNew] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  // --- Estado: Modal Cambiar Mi Contraseña ---
+  const [isChangeOwnOpen, setIsChangeOwnOpen] = useState(false);
+  const [ownCurrentPwd, setOwnCurrentPwd] = useState('');
+  const [ownNewPwd, setOwnNewPwd] = useState('');
+  const [ownConfirmPwd, setOwnConfirmPwd] = useState('');
+  const [showOwnCurrent, setShowOwnCurrent] = useState(false);
+  const [showOwnNew, setShowOwnNew] = useState(false);
+  const [showOwnConfirm, setShowOwnConfirm] = useState(false);
+  const [ownError, setOwnError] = useState<string | null>(null);
+  const [ownSuccess, setOwnSuccess] = useState<string | null>(null);
+  const [ownLoading, setOwnLoading] = useState(false);
+
   const fetchUsers = async () => {
     setLoading(true);
     setActionError(null);
@@ -133,14 +155,122 @@ export const UsersPage: React.FC = () => {
     }
   };
 
+  // --- Handler: Admin resetea contraseña de otro usuario ---
+  const openResetModal = (usr: UserAccount) => {
+    setResetTarget(usr);
+    setResetNewPassword('');
+    setResetConfirmPassword('');
+    setResetError(null);
+    setResetSuccess(null);
+    setShowResetNew(false);
+    setShowResetConfirm(false);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError(null);
+    setResetSuccess(null);
+
+    if (!resetNewPassword || resetNewPassword.length < 8) {
+      setResetError('La nueva contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      setResetError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    setResetLoading(true);
+    const res = await apiFetch(`/users/${resetTarget!.id}/password`, {
+      method: 'PATCH',
+      body: JSON.stringify({ newPassword: resetNewPassword }),
+    });
+    setResetLoading(false);
+
+    if (res.success) {
+      setResetSuccess(res.message || 'Contraseña actualizada correctamente.');
+      setTimeout(() => setResetTarget(null), 1200);
+    } else {
+      setResetError(res.message || 'Error al actualizar la contraseña.');
+    }
+  };
+
+  // --- Handler: Usuario cambia su propia contraseña ---
+  const openChangeOwnModal = () => {
+    setOwnCurrentPwd('');
+    setOwnNewPwd('');
+    setOwnConfirmPwd('');
+    setOwnError(null);
+    setOwnSuccess(null);
+    setShowOwnCurrent(false);
+    setShowOwnNew(false);
+    setShowOwnConfirm(false);
+    setIsChangeOwnOpen(true);
+  };
+
+  const handleChangeOwnPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOwnError(null);
+    setOwnSuccess(null);
+
+    if (!ownCurrentPwd) {
+      setOwnError('Ingrese su contraseña actual.');
+      return;
+    }
+    if (!ownNewPwd || ownNewPwd.length < 8) {
+      setOwnError('La nueva contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (ownNewPwd !== ownConfirmPwd) {
+      setOwnError('Las contraseñas nuevas no coinciden.');
+      return;
+    }
+
+    setOwnLoading(true);
+    const res = await apiFetch('/users/me/password', {
+      method: 'PATCH',
+      body: JSON.stringify({ currentPassword: ownCurrentPwd, newPassword: ownNewPwd }),
+    });
+    setOwnLoading(false);
+
+    if (res.success) {
+      setOwnSuccess('¡Contraseña actualizada correctamente!');
+      setTimeout(() => setIsChangeOwnOpen(false), 1400);
+    } else {
+      setOwnError(res.message || 'Error al actualizar la contraseña.');
+    }
+  };
+
   if (!isAdmin) {
     return (
-      <div className="p-8 text-center text-white">
+      <div className="p-8 text-center text-white flex flex-col items-center gap-4">
         <span className="material-symbols-outlined text-4xl text-rose-400 mb-2">lock</span>
         <h2 className="text-xl font-bold">Acceso Restringido</h2>
         <p className="text-xs text-gray-400 mt-1">
           Solo los usuarios con rol de <strong>Administrador</strong> tienen acceso a la gestión de colaboradores.
         </p>
+        {/* Botón para que el cajero cambie su propia contraseña */}
+        <button
+          onClick={openChangeOwnModal}
+          className="mt-4 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
+        >
+          <span className="material-symbols-outlined text-lg">lock_reset</span>
+          Cambiar mi contraseña
+        </button>
+
+        {isChangeOwnOpen && (
+          <ChangeOwnPasswordModal
+            onClose={() => setIsChangeOwnOpen(false)}
+            onSubmit={handleChangeOwnPassword}
+            ownCurrentPwd={ownCurrentPwd} setOwnCurrentPwd={setOwnCurrentPwd}
+            ownNewPwd={ownNewPwd} setOwnNewPwd={setOwnNewPwd}
+            ownConfirmPwd={ownConfirmPwd} setOwnConfirmPwd={setOwnConfirmPwd}
+            showOwnCurrent={showOwnCurrent} setShowOwnCurrent={setShowOwnCurrent}
+            showOwnNew={showOwnNew} setShowOwnNew={setShowOwnNew}
+            showOwnConfirm={showOwnConfirm} setShowOwnConfirm={setShowOwnConfirm}
+            ownError={ownError} ownSuccess={ownSuccess} ownLoading={ownLoading}
+          />
+        )}
       </div>
     );
   }
@@ -164,18 +294,27 @@ export const UsersPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setFormError(null);
-            setFormSuccess(null);
-            setFormData({ nombre: '', email: '', password: '', rol: 'CAJERO' });
-            setIsModalOpen(true);
-          }}
-          className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-lg shadow-purple-900/30"
-        >
-          <span className="material-symbols-outlined text-lg">person_add</span>
-          Nuevo Colaborador
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openChangeOwnModal}
+            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">lock_reset</span>
+            Mi Contraseña
+          </button>
+          <button
+            onClick={() => {
+              setFormError(null);
+              setFormSuccess(null);
+              setFormData({ nombre: '', email: '', password: '', rol: 'CAJERO' });
+              setIsModalOpen(true);
+            }}
+            className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-lg shadow-purple-900/30"
+          >
+            <span className="material-symbols-outlined text-lg">person_add</span>
+            Nuevo Colaborador
+          </button>
+        </div>
       </div>
 
       {actionError && (
@@ -324,6 +463,15 @@ export const UsersPage: React.FC = () => {
                         >
                           {usr.estado ? 'Desactivar' : 'Activar'}
                         </button>
+                        {/* Botón: Resetear contraseña (Admin) */}
+                        <button
+                          onClick={() => openResetModal(usr)}
+                          title="Resetear contraseña"
+                          className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-sm">lock_reset</span>
+                          <span>Contraseña</span>
+                        </button>
                         <button
                           onClick={() => handleDeleteUser(usr)}
                           disabled={usr.id === user?.id}
@@ -454,6 +602,230 @@ export const UsersPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal: Resetear contraseña (Admin sobre otro usuario) */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-400">lock_reset</span>
+                Resetear Contraseña
+              </h3>
+              <button onClick={() => setResetTarget(null)} className="text-gray-400 hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400">
+              Establecer nueva contraseña para{' '}
+              <span className="text-white font-bold">{resetTarget.nombre}</span>{' '}
+              <span className="font-mono text-gray-500">({resetTarget.email})</span>
+            </p>
+
+            {resetError && (
+              <div className="p-3 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs">{resetError}</div>
+            )}
+            {resetSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
+                {resetSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-3 text-xs">
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Nueva Contraseña *</label>
+                <div className="relative">
+                  <input
+                    type={showResetNew ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={resetNewPassword}
+                    onChange={(e) => setResetNewPassword(e.target.value)}
+                    placeholder="Mínimo 8 caracteres"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                  <button type="button" onClick={() => setShowResetNew(!showResetNew)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                    <span className="material-symbols-outlined text-[20px]">{showResetNew ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-gray-400 font-semibold block mb-1">Confirmar Contraseña *</label>
+                <div className="relative">
+                  <input
+                    type={showResetConfirm ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={resetConfirmPassword}
+                    onChange={(e) => setResetConfirmPassword(e.target.value)}
+                    placeholder="Repita la contraseña"
+                    className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                  <button type="button" onClick={() => setShowResetConfirm(!showResetConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                    <span className="material-symbols-outlined text-[20px]">{showResetConfirm ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-3 border-t border-white/10 mt-2">
+                <button type="button" onClick={() => setResetTarget(null)}
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl font-semibold text-gray-300">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={resetLoading}
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+                  {resetLoading
+                    ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    : <span className="material-symbols-outlined text-base">save</span>}
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Cambiar propia contraseña */}
+      {isChangeOwnOpen && (
+        <ChangeOwnPasswordModal
+          onClose={() => setIsChangeOwnOpen(false)}
+          onSubmit={handleChangeOwnPassword}
+          ownCurrentPwd={ownCurrentPwd} setOwnCurrentPwd={setOwnCurrentPwd}
+          ownNewPwd={ownNewPwd} setOwnNewPwd={setOwnNewPwd}
+          ownConfirmPwd={ownConfirmPwd} setOwnConfirmPwd={setOwnConfirmPwd}
+          showOwnCurrent={showOwnCurrent} setShowOwnCurrent={setShowOwnCurrent}
+          showOwnNew={showOwnNew} setShowOwnNew={setShowOwnNew}
+          showOwnConfirm={showOwnConfirm} setShowOwnConfirm={setShowOwnConfirm}
+          ownError={ownError} ownSuccess={ownSuccess} ownLoading={ownLoading}
+        />
+      )}
     </div>
   );
 };
+
+// --- Componente reutilizable: Modal Cambiar Propia Contraseña ---
+interface ChangeOwnPasswordModalProps {
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  ownCurrentPwd: string; setOwnCurrentPwd: (v: string) => void;
+  ownNewPwd: string; setOwnNewPwd: (v: string) => void;
+  ownConfirmPwd: string; setOwnConfirmPwd: (v: string) => void;
+  showOwnCurrent: boolean; setShowOwnCurrent: (v: boolean) => void;
+  showOwnNew: boolean; setShowOwnNew: (v: boolean) => void;
+  showOwnConfirm: boolean; setShowOwnConfirm: (v: boolean) => void;
+  ownError: string | null;
+  ownSuccess: string | null;
+  ownLoading: boolean;
+}
+
+const ChangeOwnPasswordModal: React.FC<ChangeOwnPasswordModalProps> = ({
+  onClose, onSubmit,
+  ownCurrentPwd, setOwnCurrentPwd,
+  ownNewPwd, setOwnNewPwd,
+  ownConfirmPwd, setOwnConfirmPwd,
+  showOwnCurrent, setShowOwnCurrent,
+  showOwnNew, setShowOwnNew,
+  showOwnConfirm, setShowOwnConfirm,
+  ownError, ownSuccess, ownLoading,
+}) => (
+  <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <span className="material-symbols-outlined text-purple-400">lock_reset</span>
+          Cambiar Mi Contraseña
+        </h3>
+        <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <span className="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      {ownError && (
+        <div className="p-3 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs">{ownError}</div>
+      )}
+      {ownSuccess && (
+        <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-emerald-400 text-base">check_circle</span>
+          {ownSuccess}
+        </div>
+      )}
+
+      <form onSubmit={onSubmit} className="flex flex-col gap-3 text-xs">
+        <div>
+          <label className="text-gray-400 font-semibold block mb-1">Contraseña Actual *</label>
+          <div className="relative">
+            <input
+              type={showOwnCurrent ? 'text' : 'password'}
+              required
+              value={ownCurrentPwd}
+              onChange={(e) => setOwnCurrentPwd(e.target.value)}
+              placeholder="Su contraseña actual"
+              className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+            />
+            <button type="button" onClick={() => setShowOwnCurrent(!showOwnCurrent)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+              <span className="material-symbols-outlined text-[20px]">{showOwnCurrent ? 'visibility_off' : 'visibility'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-gray-400 font-semibold block mb-1">Nueva Contraseña *</label>
+          <div className="relative">
+            <input
+              type={showOwnNew ? 'text' : 'password'}
+              required
+              minLength={8}
+              value={ownNewPwd}
+              onChange={(e) => setOwnNewPwd(e.target.value)}
+              placeholder="Mínimo 8 caracteres"
+              className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+            />
+            <button type="button" onClick={() => setShowOwnNew(!showOwnNew)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+              <span className="material-symbols-outlined text-[20px]">{showOwnNew ? 'visibility_off' : 'visibility'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-gray-400 font-semibold block mb-1">Confirmar Nueva Contraseña *</label>
+          <div className="relative">
+            <input
+              type={showOwnConfirm ? 'text' : 'password'}
+              required
+              minLength={8}
+              value={ownConfirmPwd}
+              onChange={(e) => setOwnConfirmPwd(e.target.value)}
+              placeholder="Repita la nueva contraseña"
+              className="w-full bg-[#100f14] border border-[#2d2c35] rounded-xl px-3 py-2 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
+            />
+            <button type="button" onClick={() => setShowOwnConfirm(!showOwnConfirm)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+              <span className="material-symbols-outlined text-[20px]">{showOwnConfirm ? 'visibility_off' : 'visibility'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-3 border-t border-white/10 mt-2">
+          <button type="button" onClick={onClose}
+            className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl font-semibold text-gray-300">
+            Cancelar
+          </button>
+          <button type="submit" disabled={ownLoading}
+            className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+            {ownLoading
+              ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              : <span className="material-symbols-outlined text-base">save</span>}
+            Actualizar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+);

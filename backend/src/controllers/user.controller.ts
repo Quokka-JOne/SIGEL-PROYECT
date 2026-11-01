@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/prisma';
 import { Rol } from '@prisma/client';
-import { ValidationError, NotFoundError, ConflictError, ForbiddenError } from '../utils/errors';
+import { ValidationError, NotFoundError, ConflictError, ForbiddenError, UnauthorizedError } from '../utils/errors';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -163,3 +163,80 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
   }
 };
 
+// ADMIN: Resetea la contraseña de cualquier usuario
+export const resetUserPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 8) {
+      throw new ValidationError('La nueva contraseña debe tener al menos 8 caracteres.');
+    }
+
+    const target = await prisma.usuario.findUnique({ where: { id } });
+    if (!target) {
+      throw new NotFoundError('Usuario no encontrado.');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+
+    await prisma.usuario.update({
+      where: { id },
+      data: { passwordHash },
+    });
+
+    res.json({
+      success: true,
+      message: `Contraseña del usuario '${target.nombre}' actualizada correctamente.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// USUARIO AUTENTICADO: Cambia su propia contraseña (requiere contraseña actual)
+export const changeOwnPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      throw new UnauthorizedError('No autenticado.');
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      throw new ValidationError('Se requieren la contraseña actual y la nueva contraseña.');
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.trim().length < 8) {
+      throw new ValidationError('La nueva contraseña debe tener al menos 8 caracteres.');
+    }
+
+    const user = await prisma.usuario.findUnique({ where: { id: req.user.id } });
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado.');
+    }
+
+    const isCurrentValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isCurrentValid) {
+      throw new ValidationError('La contraseña actual es incorrecta.');
+    }
+
+    if (currentPassword === newPassword.trim()) {
+      throw new ValidationError('La nueva contraseña debe ser diferente a la contraseña actual.');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+
+    await prisma.usuario.update({
+      where: { id: req.user.id },
+      data: { passwordHash },
+    });
+
+    res.json({
+      success: true,
+      message: 'Contraseña actualizada correctamente.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
