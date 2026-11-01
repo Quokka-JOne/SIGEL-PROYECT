@@ -57,10 +57,12 @@
     background:
       radial-gradient(ellipse 3% var(--app-avatar-eye-radius-y) at 39% 45%, #000 94%, transparent 100%),
       radial-gradient(ellipse 3% var(--app-avatar-eye-radius-y) at 61% 45%, #000 94%, transparent 100%),
+      radial-gradient(ellipse 9% 15% at 39% 45%, rgba(220, 190, 255, 0.72) 0%, transparent 100%),
+      radial-gradient(ellipse 9% 15% at 61% 45%, rgba(220, 190, 255, 0.72) 0%, transparent 100%),
       radial-gradient(ellipse at 28% 18%, #decfff 0%, transparent 42%),
       linear-gradient(145deg, var(--lavender) 0%, #8051d1 48%, var(--plum) 100%);
     filter: drop-shadow(0 14px 28px rgba(74, 20, 140, 0.3));
-    animation: ui-avatar-float 27s ease-in-out infinite alternate, ui-avatar-eye-pulse 7.2s ease-in-out infinite;
+    animation: ui-avatar-float 27s ease-in-out infinite alternate, ui-avatar-eye-blink 8.2s ease-in-out 1.7s infinite;
   }
   
   .landing-root::after {
@@ -75,10 +77,12 @@
     background:
       radial-gradient(ellipse var(--app-avatar-eye-radius-x) var(--app-avatar-eye-radius-y) at 40% 42%, #000 94%, transparent 100%),
       radial-gradient(ellipse var(--app-avatar-eye-radius-x) var(--app-avatar-eye-radius-y) at 61% 42%, #000 94%, transparent 100%),
+      radial-gradient(ellipse 9% 15% at 40% 42%, rgba(255, 216, 189, 0.72) 0%, transparent 100%),
+      radial-gradient(ellipse 9% 15% at 61% 42%, rgba(255, 216, 189, 0.72) 0%, transparent 100%),
       radial-gradient(ellipse at 30% 18%, #ffd8bd 0%, transparent 42%),
       linear-gradient(145deg, var(--coral) 0%, #c9679a 48%, var(--sky) 100%);
     filter: drop-shadow(0 12px 26px rgba(95, 143, 255, 0.26));
-    animation: ui-avatar-float 34s ease-in-out -12s infinite alternate-reverse, ui-avatar-eye-pulse 8.6s ease-in-out -2.4s infinite;
+    animation: ui-avatar-float 34s ease-in-out -12s infinite alternate-reverse, ui-avatar-eye-blink 9.6s ease-in-out 4.2s infinite;
   }
   
   .landing-root > *:not(.landing-nav):not(.landing-skip) {
