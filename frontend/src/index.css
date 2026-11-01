@@ -196,8 +196,8 @@
   opacity: 0.34;
   border-radius: 48% 52% 43% 57% / 53% 43% 57% 47%;
   background:
-    radial-gradient(ellipse at 39% var(--app-avatar-eye-y), rgba(24, 18, 34, 0.82) 0 3.1%, transparent 3.8%),
-    radial-gradient(ellipse at 61% var(--app-avatar-eye-y), rgba(24, 18, 34, 0.82) 0 3.1%, transparent 3.8%),
+    radial-gradient(ellipse 1.5% 3.8% at 39% var(--app-avatar-eye-y), #000 94%, transparent 100%),
+    radial-gradient(ellipse 1.5% 3.8% at 61% var(--app-avatar-eye-y), #000 94%, transparent 100%),
     radial-gradient(ellipse at 28% 18%, var(--app-avatar-highlight) 0%, transparent 42%),
     linear-gradient(145deg, var(--app-avatar-body) 0%, var(--app-avatar-mid) 48%, var(--app-avatar-shadow) 100%);
   animation: ui-avatar-float 27s ease-in-out infinite alternate;
@@ -211,8 +211,8 @@
   height: clamp(104px, 14vw, 160px);
   border-radius: 57% 43% 54% 46% / 45% 56% 44% 55%;
   background:
-    radial-gradient(ellipse at 40% var(--app-avatar-eye-y), rgba(24, 18, 34, 0.82) 0 2.8%, transparent 3.5%),
-    radial-gradient(ellipse at 61% var(--app-avatar-eye-y), rgba(24, 18, 34, 0.82) 0 2.8%, transparent 3.5%),
+    radial-gradient(ellipse 1.5% 3.8% at 40% var(--app-avatar-eye-y), #000 94%, transparent 100%),
+    radial-gradient(ellipse 1.5% 3.8% at 61% var(--app-avatar-eye-y), #000 94%, transparent 100%),
     radial-gradient(ellipse at 30% 18%, var(--app-avatar-highlight) 0%, transparent 42%),
     linear-gradient(145deg, var(--app-avatar-shadow) 0%, var(--app-avatar-mid) 50%, var(--app-avatar-body) 100%);
   box-shadow: 0 16px 42px -22px var(--app-glow-secondary);
