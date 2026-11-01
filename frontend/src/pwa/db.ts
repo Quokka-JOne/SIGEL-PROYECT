@@ -118,7 +118,7 @@ export interface LocalUser {
 /** IDs de datos ficticios que nunca deben persistir ni mostrarse al usuario */
 export const DUMMY_PRODUCT_IDS = ['prod-001', 'prod-002', 'prod-003', 'prod-004', 'prod-005', 'prod-006', 'prod-007'];
 export const DUMMY_CATEGORY_IDS = ['cat-001', 'cat-002', 'cat-003', 'cat-004', 'cat-005'];
-export const DUMMY_SUPPLIER_IDS = ['prov-001', 'prov-002'];
+export const DUMMY_SUPPLIER_IDS = ['prov-001', 'prov-002', 'prov-003'];
 
 export class JINStockDB extends Dexie {
   products!: Table<LocalProduct>;
@@ -169,8 +169,6 @@ export class JINStockDB extends Dexie {
     });
 
     // Versión 5: Limpieza de datos ficticios de instalaciones previas.
-    // Esta migración elimina todos los productos/categorías/proveedores dummy (IDs hardcodeados)
-    // que quedaron en Dexie de versiones anteriores y que no existen en la base de datos online.
     this.version(5)
       .stores({
         products: 'id, codigoBarras, sku, nombre, categoriaId, estado, stock',
@@ -183,15 +181,36 @@ export class JINStockDB extends Dexie {
         localUsers: 'id, nombre, rol, estado, cachedAt',
       })
       .upgrade(async (tx) => {
-        // Eliminar productos ficticios
         await tx.table('products').where('id').anyOf(DUMMY_PRODUCT_IDS).delete();
-        // Eliminar categorías ficticias
         await tx.table('categories').where('id').anyOf(DUMMY_CATEGORY_IDS).delete();
-        // Eliminar proveedores ficticios
         await tx.table('suppliers').where('id').anyOf(DUMMY_SUPPLIER_IDS).delete();
-        // Marcar que ya se hizo la limpieza de datos dummy
         await tx.table('metadata').put({ key: 'dummyDataCleaned', value: 'v5' });
-        console.log('[JINStockDB v5] Datos ficticios eliminados de Dexie.');
+      });
+
+    // Versión 6: Limpieza profunda y definitiva de todos los datos ficticios y tablas obsoletas en Dexie
+    this.version(6)
+      .stores({
+        products: 'id, codigoBarras, sku, nombre, categoriaId, estado, stock',
+        categories: 'id, nombre, estado',
+        offlineSales: '++id, offlineId, numeroComprobante, estado, synced, fecha',
+        metadata: 'key',
+        suppliers: 'id, nombre, ruc, estado',
+        purchases: 'id, numeroFactura, proveedorId, fecha, estado',
+        localSales: 'id, numeroComprobante, fecha, estado, cachedAt',
+        localUsers: 'id, nombre, rol, estado, cachedAt',
+      })
+      .upgrade(async (tx) => {
+        // Purgar productos ficticios
+        await tx.table('products').where('id').anyOf(DUMMY_PRODUCT_IDS).delete();
+        // Purgar categorías ficticias
+        await tx.table('categories').where('id').anyOf(DUMMY_CATEGORY_IDS).delete();
+        // Purgar TODOS los proveedores ficticios (prov-001, prov-002, prov-003)
+        await tx.table('suppliers').where('id').anyOf(['prov-001', 'prov-002', 'prov-003']).delete();
+        // Vaciar usuarios y ventas locales cacheadas para forzar recarga limpia desde Neon
+        await tx.table('localUsers').clear();
+        await tx.table('localSales').clear();
+        await tx.table('metadata').put({ key: 'dummyDataCleaned', value: 'v6' });
+        console.log('[JINStockDB v6] Purgados datos locales obsoletos y ficticios.');
       });
   }
 }

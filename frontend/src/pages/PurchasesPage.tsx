@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { db, type LocalPurchase } from '../pwa/db';
-import { getLocalSuppliersFromDexie, getLocalCatalogFromDexie } from '../services/syncService';
+import {
+  getLocalSuppliersFromDexie,
+  getLocalCatalogFromDexie,
+  cacheSuppliersLocally,
+  cachePurchasesLocally,
+} from '../services/syncService';
 
 export interface SupplierItem {
   id: string;
@@ -117,7 +122,7 @@ export const PurchasesPage: React.FC = () => {
         if (suppRes.data.length > 0 && !selectedSupplierId) {
           setSelectedSupplierId(suppRes.data[0].id);
         }
-        db.suppliers.bulkPut(suppRes.data).catch(() => {});
+        cacheSuppliersLocally(suppRes.data).catch(() => {});
       } else {
         const localSupps = await getLocalSuppliersFromDexie();
         setSuppliers(localSupps);
@@ -143,6 +148,7 @@ export const PurchasesPage: React.FC = () => {
 
       if (purRes.success && purRes.data) {
         setPurchasesHistory(purRes.data);
+        cachePurchasesLocally(purRes.data).catch(() => {});
       } else {
         const localPurchases = await db.purchases.toArray();
         setPurchasesHistory(localPurchases.reverse());

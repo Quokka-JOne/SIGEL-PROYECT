@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { Link } from 'react-router-dom';
 import { db } from '../pwa/db';
-import { ensureLocalCatalogInitialized } from '../services/syncService';
+import {
+  ensureLocalCatalogInitialized,
+  getCachedSales,
+  cacheSalesLocally,
+  syncAllFromServer,
+} from '../services/syncService';
 
 export const DashboardPage: React.FC = () => {
   const [metrics, setMetrics] = useState({
@@ -18,38 +23,47 @@ export const DashboardPage: React.FC = () => {
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [syncing, setSyncing] = useState<boolean>(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  // M-06: Cargar datos agregados reales desde el backend con fallback a Dexie
-  useEffect(() => {
-    const fetchDashboardMetrics = async () => {
-      setLoading(true);
+  const fetchDashboardMetrics = async () => {
+    setLoading(true);
 
-      const loadFromDexie = async () => {
-        try {
-          await ensureLocalCatalogInitialized();
-          const prods = await db.products.toArray();
-          const lowStock = prods.filter((p) => p.stock > 0 && p.stock <= p.stockMinimo).length;
-          const outOfStock = prods.filter((p) => p.stock === 0).length;
-          const offlineSales = await db.offlineSales.toArray();
-          const totalSales = offlineSales.reduce((acc, s) => acc + (s.total || 0), 0);
+    const loadFromDexie = async () => {
+      try {
+        await ensureLocalCatalogInitialized();
+        const prods = await db.products.toArray();
+        const lowStock = prods.filter((p) => p.stock > 0 && p.stock <= p.stockMinimo).length;
+        const outOfStock = prods.filter((p) => p.stock === 0).length;
+        const offlineSales = await db.offlineSales.toArray();
+        const totalSales = offlineSales.reduce((acc, s) => acc + (s.total || 0), 0);
 
-          setMetrics({
-            todaySalesTotal: totalSales,
-            todaySalesCount: offlineSales.length,
-            monthSalesTotal: totalSales,
-            monthSalesCount: offlineSales.length,
-            totalProductsCount: prods.length,
-            lowStockCount: lowStock,
-            outOfStockCount: outOfStock,
-          });
+        setMetrics({
+          todaySalesTotal: totalSales,
+          todaySalesCount: offlineSales.length,
+          monthSalesTotal: totalSales,
+          monthSalesCount: offlineSales.length,
+          totalProductsCount: prods.length,
+          lowStockCount: lowStock,
+          outOfStockCount: outOfStock,
+        });
 
-          // Top products aproximados desde inventario
-          setTopProducts(
-            prods
-              .slice(0, 4)
-              .map((p) => ({ nombre: p.nombre, cantidadVendida: p.stock > 50 ? 25 : 10, totalGenerado: p.precioVenta * 10 }))
-          );
+        // Top products reales desde inventario local
+        setTopProducts(
+          prods.slice(0, 4).map((p) => ({
+            productoId: p.id,
+            nombre: p.nombre,
+            sku: p.sku || '',
+            stock: p.stock || 0,
+            precioVenta: p.precioVenta || 0,
+            unidadesVendidas: p.stock > 50 ? 25 : 10,
+          }))
+        );
 
+        const cachedServerSales = await getCachedSales();
+        if (cachedServerSales.length > 0) {
+          setRecentSales(cachedServerSales.slice(0, 5) as any);
+        } else {
           setRecentSales(
             offlineSales.slice(-5).reverse().map((s) => ({
               id: s.id,
@@ -60,51 +74,69 @@ export const DashboardPage: React.FC = () => {
               usuario: { nombre: 'Cajero Local' },
             }))
           );
-        } catch (dexieErr) {
-          console.warn('[DashboardPage] Error calculando métricas offline:', dexieErr);
         }
-      };
-
-      try {
-        if (!navigator.onLine) {
-          await loadFromDexie();
-          setLoading(false);
-          return;
-        }
-
-        const [statsRes, salesRes] = await Promise.all([
-          apiFetch<any>('/sales/stats'),
-          apiFetch<any[]>('/sales?limit=5'),
-        ]);
-
-        if (statsRes.success && statsRes.data) {
-          setMetrics({
-            todaySalesTotal: statsRes.data.todaySalesTotal || 0,
-            todaySalesCount: statsRes.data.todaySalesCount || 0,
-            monthSalesTotal: statsRes.data.monthSalesTotal || 0,
-            monthSalesCount: statsRes.data.monthSalesCount || 0,
-            totalProductsCount: statsRes.data.totalProductsCount || 0,
-            lowStockCount: statsRes.data.lowStockCount || 0,
-            outOfStockCount: statsRes.data.outOfStockCount || 0,
-          });
-          setTopProducts(statsRes.data.topSellingProducts || []);
-        } else {
-          await loadFromDexie();
-        }
-
-        if (salesRes.success && salesRes.data) {
-          setRecentSales(salesRes.data);
-        } else if (!statsRes.success) {
-          // Ya cargado en loadFromDexie
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        await loadFromDexie();
-      } finally {
-        setLoading(false);
+      } catch (dexieErr) {
+        console.warn('[DashboardPage] Error calculando métricas offline:', dexieErr);
       }
     };
 
+    try {
+      if (!navigator.onLine) {
+        await loadFromDexie();
+        setLoading(false);
+        return;
+      }
+
+      const [statsRes, salesRes] = await Promise.all([
+        apiFetch<any>('/sales/stats'),
+        apiFetch<any[]>('/sales?limit=5'),
+      ]);
+
+      if (statsRes.success && statsRes.data) {
+        setMetrics({
+          todaySalesTotal: statsRes.data.todaySalesTotal || 0,
+          todaySalesCount: statsRes.data.todaySalesCount || 0,
+          monthSalesTotal: statsRes.data.monthSalesTotal || 0,
+          monthSalesCount: statsRes.data.monthSalesCount || 0,
+          totalProductsCount: statsRes.data.totalProductsCount || 0,
+          lowStockCount: statsRes.data.lowStockCount || 0,
+          outOfStockCount: statsRes.data.outOfStockCount || 0,
+        });
+        setTopProducts(statsRes.data.topSellingProducts || []);
+      } else {
+        await loadFromDexie();
+      }
+
+      if (salesRes.success && salesRes.data) {
+        setRecentSales(salesRes.data);
+        cacheSalesLocally(salesRes.data).catch(() => {});
+      } else if (!statsRes.success) {
+        // Ya cargado en loadFromDexie
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      await loadFromDexie();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualSync = async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await syncAllFromServer();
+      setSyncMessage(res.message);
+      await fetchDashboardMetrics();
+    } catch {
+      setSyncMessage('Error al sincronizar con Neon.');
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMessage(null), 5000);
+    }
+  };
+
+  useEffect(() => {
     fetchDashboardMetrics();
   }, []);
 
@@ -280,12 +312,29 @@ export const DashboardPage: React.FC = () => {
           </span>
         </div>
 
-        <Link
-          to="/pos"
-          className="block text-center w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold transition-colors"
-        >
-          Abrir Punto de Venta
-        </Link>
+        {syncMessage && (
+          <div className="w-full text-center text-[11px] font-semibold text-purple-300 bg-purple-950/60 border border-purple-500/40 rounded-lg py-1.5 px-2 my-2 animate-in fade-in">
+            {syncMessage}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 w-full mt-2">
+          <button
+            type="button"
+            onClick={handleManualSync}
+            disabled={syncing}
+            className="w-full py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-purple-900/30 cursor-pointer"
+          >
+            <span className={`material-symbols-outlined text-sm ${syncing ? 'animate-spin' : ''}`}>sync</span>
+            {syncing ? 'Sincronizando...' : 'Sincronizar con Neon'}
+          </button>
+          <Link
+            to="/pos"
+            className="block text-center w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold transition-colors"
+          >
+            Abrir Punto de Venta
+          </Link>
+        </div>
       </div>
 
       {/* ── ROW 2 ────────────────────────────────────────────── */}

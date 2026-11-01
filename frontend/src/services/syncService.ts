@@ -128,20 +128,17 @@ export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = [];
 /**
  * Purga datos ficticios de Dexie (llamada manual o por migración)
  */
-async function purgeDummyData(): Promise<void> {
+export async function purgeDummyData(): Promise<void> {
   try {
-    const cleaned = await db.metadata.get('dummyDataCleaned');
-    if (cleaned?.value === 'v5') return; // ya limpiado por migración Dexie v5
-
     const [pDel, cDel, sDel] = await Promise.all([
       db.products.where('id').anyOf(DUMMY_PRODUCT_IDS).delete(),
       db.categories.where('id').anyOf(DUMMY_CATEGORY_IDS).delete(),
       db.suppliers.where('id').anyOf(DUMMY_SUPPLIER_IDS).delete(),
     ]);
     if (pDel + cDel + sDel > 0) {
-      console.log(`[SyncService] Purga de datos ficticios: ${pDel} productos, ${cDel} categorías, ${sDel} proveedores eliminados.`);
+      console.log(`[SyncService] Purga de datos ficticios ejecutada: ${pDel} productos, ${cDel} categorías, ${sDel} proveedores eliminados.`);
     }
-    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v5' });
+    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v6' });
   } catch (e) {
     console.warn('[SyncService] Error en purga de datos ficticios:', e);
   }
@@ -310,13 +307,17 @@ export async function refreshCatalogInBackground(): Promise<void> {
 export function initSyncManager() {
   if (typeof window === 'undefined') return;
 
-  // Al arrancar: purgar datos ficticios que pudieran quedar
-  purgeDummyData();
+  // Al arrancar: purgar datos ficticios y resincronizar en segundo plano si hay internet
+  purgeDummyData().then(() => {
+    if (navigator.onLine) {
+      syncAllFromServer().catch(() => {});
+    }
+  });
 
   // Escuchar cuando el navegador recupera la conexión a internet
   window.addEventListener('online', () => {
-    console.log('🌐 [SyncManager] Conexión a Internet detectada. Sincronizando catálogo y ventas...');
-    refreshCatalogInBackground();
+    console.log('🌐 [SyncManager] Conexión a Internet detectada. Sincronizando catálogo completo y ventas...');
+    syncAllFromServer().catch(() => {});
     syncPendingSales();
   });
 
@@ -337,19 +338,19 @@ export function initSyncManager() {
   // Sincronizar inmediatamente al cargar si hay conexión
   if (navigator.onLine) {
     setTimeout(() => {
-      refreshCatalogInBackground();
+      syncAllFromServer().catch(() => {});
       syncPendingSales();
-    }, 2000);
+    }, 1500);
   }
 }
 
 /**
- * Cachear ventas del servidor en Dexie para modo offline
+ * Cachear ventas del servidor en Dexie para modo offline (reemplazo limpio)
  */
 export async function cacheSalesLocally(sales: any[]): Promise<void> {
   try {
     const now = new Date().toISOString();
-    const localSales: LocalSale[] = sales.map((s) => ({
+    const localSales: LocalSale[] = (sales || []).map((s) => ({
       id: String(s.id),
       numeroComprobante: s.numeroComprobante || '',
       fecha: s.fecha || s.createdAt || now,
@@ -367,11 +368,16 @@ export async function cacheSalesLocally(sales: any[]): Promise<void> {
       })),
       cachedAt: now,
     }));
-    if (localSales.length > 0) {
-      await db.localSales.bulkPut(localSales);
-    }
+
+    await db.transaction('rw', db.localSales, async () => {
+      await db.localSales.clear();
+      if (localSales.length > 0) {
+        await db.localSales.bulkPut(localSales);
+      }
+    });
+
     await db.metadata.put({ key: 'lastSalesSync', value: now });
-    console.log(`[SyncService] ${localSales.length} ventas cacheadas en Dexie.`);
+    console.log(`[SyncService] ${localSales.length} ventas cacheadas en Dexie (reemplazo limpio).`);
   } catch (err) {
     console.warn('[SyncService] Error cacheando ventas:', err);
   }
@@ -391,12 +397,29 @@ export async function getCachedSales(): Promise<LocalSale[]> {
 }
 
 /**
- * Cachear usuarios del servidor en Dexie para modo offline
+ * Cachear compras del servidor en Dexie para modo offline (reemplazo limpio)
+ */
+export async function cachePurchasesLocally(purchases: any[]): Promise<void> {
+  try {
+    await db.transaction('rw', db.purchases, async () => {
+      await db.purchases.clear();
+      if (purchases && purchases.length > 0) {
+        await db.purchases.bulkPut(purchases);
+      }
+    });
+    console.log(`[SyncService] ${(purchases || []).length} compras cacheadas en Dexie.`);
+  } catch (err) {
+    console.warn('[SyncService] Error cacheando compras:', err);
+  }
+}
+
+/**
+ * Cachear usuarios del servidor en Dexie para modo offline (reemplazo limpio)
  */
 export async function cacheUsersLocally(users: any[]): Promise<void> {
   try {
     const now = new Date().toISOString();
-    const localUsers: LocalUser[] = users.map((u) => ({
+    const localUsers: LocalUser[] = (users || []).map((u) => ({
       id: String(u.id),
       nombre: u.nombre || '',
       email: u.email || '',
@@ -406,11 +429,16 @@ export async function cacheUsersLocally(users: any[]): Promise<void> {
       createdAt: u.createdAt,
       cachedAt: now,
     }));
-    if (localUsers.length > 0) {
-      await db.localUsers.bulkPut(localUsers);
-    }
+
+    await db.transaction('rw', db.localUsers, async () => {
+      await db.localUsers.clear();
+      if (localUsers.length > 0) {
+        await db.localUsers.bulkPut(localUsers);
+      }
+    });
+
     await db.metadata.put({ key: 'lastUsersSync', value: now });
-    console.log(`[SyncService] ${localUsers.length} usuarios cacheados en Dexie.`);
+    console.log(`[SyncService] ${localUsers.length} usuarios cacheados en Dexie (reemplazo limpio).`);
   } catch (err) {
     console.warn('[SyncService] Error cacheando usuarios:', err);
   }
@@ -426,5 +454,61 @@ export async function getCachedUsers(): Promise<LocalUser[]> {
   } catch (err) {
     console.warn('[SyncService] Error obteniendo usuarios cacheados:', err);
     return [];
+  }
+}
+
+/**
+ * Sincronización maestra total: descarga todos los datos reales de Neon y
+ * actualiza todas las tablas de Dexie de forma limpia por reemplazo.
+ */
+export async function syncAllFromServer(): Promise<{ success: boolean; message: string; details?: any }> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return { success: false, message: 'Sin conexión a Internet.' };
+  }
+
+  try {
+    await purgeDummyData();
+
+    const [pRes, cRes, sRes, uRes, salesRes] = await Promise.all([
+      apiFetch<LocalProduct[]>('/products?includeInactive=false&all=true'),
+      apiFetch<LocalCategory[]>('/categories'),
+      apiFetch<LocalSupplier[]>('/suppliers?includeInactive=true'),
+      apiFetch<any[]>('/users'),
+      apiFetch<any[]>('/sales?limit=50'),
+    ]);
+
+    let prodCount = 0;
+    let suppCount = 0;
+    let userCount = 0;
+
+    if (pRes.success && pRes.data) {
+      await cacheCatalogLocally(pRes.data, cRes.data || [], true);
+      prodCount = pRes.data.length;
+    }
+
+    if (sRes.success && sRes.data) {
+      await cacheSuppliersLocally(sRes.data);
+      suppCount = sRes.data.length;
+    }
+
+    if (uRes.success && uRes.data) {
+      await cacheUsersLocally(uRes.data);
+      userCount = uRes.data.length;
+    }
+
+    if (salesRes.success && salesRes.data) {
+      await cacheSalesLocally(salesRes.data);
+    }
+
+    notifyListeners();
+
+    return {
+      success: true,
+      message: `Sincronización completa con Neon: ${prodCount} productos, ${suppCount} proveedores, ${userCount} usuarios.`,
+      details: { prodCount, suppCount, userCount },
+    };
+  } catch (err: any) {
+    console.error('[SyncService] Error en syncAllFromServer:', err);
+    return { success: false, message: err?.message || 'Error durante la sincronización total.' };
   }
 }
