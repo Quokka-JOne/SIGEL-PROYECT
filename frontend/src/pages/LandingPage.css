@@ -54,6 +54,7 @@
     height: 420px;
     background: radial-gradient(circle, rgba(167, 136, 244, 0.2) 0%, rgba(74, 20, 140, 0.12) 40%, transparent 72%);
     filter: blur(35px);
+    animation: ui-glow-flow 32s ease-in-out infinite alternate;
   }
   
   .landing-root::after {
@@ -63,6 +64,7 @@
     height: 380px;
     background: radial-gradient(circle, rgba(255, 107, 107, 0.12) 0%, rgba(167, 136, 244, 0.1) 42%, transparent 72%);
     filter: blur(45px);
+    animation: ui-glow-flow 40s ease-in-out -17s infinite alternate-reverse;
   }
   
   .landing-root > *:not(.landing-nav):not(.landing-skip) {

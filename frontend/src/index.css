@@ -171,6 +171,57 @@
     radial-gradient(ellipse at 85% 80%, var(--app-glow-tertiary) 0%, transparent 28%);
   background-attachment: fixed;
   background-size: 160px 160px, auto, auto, auto;
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+
+.app-shell::before,
+.app-shell::after {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  width: 68vmax;
+  height: 62vmax;
+  pointer-events: none;
+  filter: blur(28px);
+  will-change: transform, border-radius;
+}
+
+.app-shell::before {
+  top: -24vmax;
+  right: -18vmax;
+  background: radial-gradient(ellipse at center, var(--app-glow-primary) 0%, var(--app-glow-secondary) 36%, transparent 72%);
+  animation: ui-glow-flow 30s ease-in-out infinite alternate;
+}
+
+.app-shell::after {
+  bottom: -26vmax;
+  left: -22vmax;
+  background: radial-gradient(ellipse at center, var(--app-glow-tertiary) 0%, var(--app-glow-secondary) 40%, transparent 72%);
+  animation: ui-glow-flow 38s ease-in-out -13s infinite alternate-reverse;
+}
+
+@keyframes ui-glow-flow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.96);
+    border-radius: 54% 46% 62% 38% / 46% 56% 44% 54%;
+  }
+  50% {
+    transform: translate3d(-3vw, 3vh, 0) scale(1.04);
+    border-radius: 39% 61% 45% 55% / 57% 43% 57% 43%;
+  }
+  100% {
+    transform: translate3d(3vw, -2vh, 0) scale(1.08);
+    border-radius: 61% 39% 54% 46% / 42% 58% 42% 58%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell::before,
+  .app-shell::after {
+    animation: none !important;
+  }
 }
 
 .app-theme-plum {
