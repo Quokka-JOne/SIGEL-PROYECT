@@ -25,9 +25,20 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       ];
     }
 
-    // FASE 3: Filtro lowStock ejecutado en la base de datos (evita cargar todo a memoria)
+    // FASE 3: Filtro lowStock — usa Prisma.sql para comparar columna contra columna stock <= stockMinimo
+    // (prisma.producto.fields.stockMinimo no funciona para comparaciones entre columnas)
+    let lowStockIds: string[] | null = null;
     if (lowStock === 'true') {
-      where.stock = { lte: prisma.producto.fields.stockMinimo };
+      const rows = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Producto" WHERE stock <= "stockMinimo" AND estado = true
+      `;
+      lowStockIds = rows.map((r) => r.id);
+      if (lowStockIds.length === 0) {
+        // No hay productos con stock bajo — devolver array vacío directamente
+        res.json({ success: true, data: [], total: 0 });
+        return;
+      }
+      where.id = { in: lowStockIds };
     }
 
     // FASE 3: Paginación opcional con tope de 100 preservando compatibilidad offline (all=true o sin paginar)
