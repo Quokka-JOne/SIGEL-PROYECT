@@ -8,6 +8,7 @@ import {
   syncPendingSales,
   onSyncChange,
 } from '../services/syncService';
+import { nowISOStringNI } from '../utils/dateNI';
 
 export interface PosProduct {
   id: string;
@@ -266,7 +267,7 @@ export const PosPage: React.FC = () => {
       offlineId: offlineSaleId,
       numeroComprobante: localReceiptNumber,
       usuarioId: user?.id || 'usr-offline',
-      fecha: new Date().toISOString(),
+      fecha: nowISOStringNI(),
       total: totalNIO,
       metodoPago: paymentMethod,
       montoPagadoNIO: paidNIOVal > 0 ? paidNIOVal : totalNIO,
@@ -280,7 +281,7 @@ export const PosPage: React.FC = () => {
       })),
       estado: 'PENDIENTE',
       synced: 0,
-      createdAt: new Date().toISOString(),
+      createdAt: nowISOStringNI(),
     };
 
     await db.offlineSales.add(offlineRecord);

@@ -9,23 +9,55 @@
  */
 
 /**
- * Retorna la fecha de hoy como "YYYY-MM-DD" en la zona horaria local del navegador.
- * Funciona correctamente en Nicaragua (UTC-6) y cualquier otra zona.
+ * Retorna la fecha de hoy como "YYYY-MM-DD" en la zona horaria de Nicaragua (America/Managua).
+ * Garantiza que a las 8 PM del 31 de octubre retorna "2026-10-31" sin saltar a noviembre.
  */
 export function localDateString(date: Date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Managua',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(date);
 }
 
 /**
- * Retorna la fecha de hace N días (en hora local) como "YYYY-MM-DD".
+ * Retorna la fecha de hace N días en hora de Nicaragua como "YYYY-MM-DD".
  */
 export function localDateStringDaysAgo(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return localDateString(d);
+}
+
+/**
+ * Retorna un string ISO con el offset exacto de Nicaragua (-06:00).
+ * Ejemplo: "2026-10-31T20:55:00-06:00" en vez de saltar al 1 de noviembre UTC.
+ */
+export function nowISOStringNI(): string {
+  const d = new Date();
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Managua',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(d);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value || '00';
+  const year = get('year');
+  const month = get('month');
+  const day = get('day');
+  let hour = get('hour');
+  if (hour === '24') hour = '00';
+  const minute = get('minute');
+  const second = get('second');
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}-06:00`;
 }
 
 /**

@@ -50,6 +50,7 @@ export const createSaleSchema = z.object({
   montoPagadoUSD: z.number().nonnegative().nullable().optional(),
   cambioNIO: z.number().nonnegative().nullable().optional(),
   offlineId: z.string().nullable().optional(),
+  fecha: z.string().nullable().optional(),
 });
 
 export const anularSaleSchema = z.object({

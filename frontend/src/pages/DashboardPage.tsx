@@ -8,6 +8,7 @@ import {
   cacheSalesLocally,
   syncAllFromServer,
 } from '../services/syncService';
+import { localDateString } from '../utils/dateNI';
 
 export const DashboardPage: React.FC = () => {
   const [metrics, setMetrics] = useState({
@@ -34,12 +35,21 @@ export const DashboardPage: React.FC = () => {
         const lowStock = prods.filter((p) => p.stock > 0 && p.stock <= p.stockMinimo).length;
         const outOfStock = prods.filter((p) => p.stock === 0).length;
         const offlineSales = await db.offlineSales.toArray();
-        const totalSales = offlineSales.reduce((acc, s) => acc + (s.total || 0), 0);
+        // Filtrar solo las ventas del día de hoy en hora de Nicaragua
+        const todayNI = localDateString();
+        const todaysSales = offlineSales.filter((s) => {
+          if (!s.fecha) return false;
+          // s.fecha puede ser ISO con offset "-06:00" o UTC "Z"
+          const saleDate = localDateString(new Date(s.fecha));
+          return saleDate === todayNI;
+        });
+        const totalSalesToday = todaysSales.reduce((acc, s) => acc + (s.total || 0), 0);
+        const totalSalesMonth = offlineSales.reduce((acc, s) => acc + (s.total || 0), 0);
 
         setMetrics({
-          todaySalesTotal: totalSales,
-          todaySalesCount: offlineSales.length,
-          monthSalesTotal: totalSales,
+          todaySalesTotal: totalSalesToday,
+          todaySalesCount: todaysSales.length,
+          monthSalesTotal: totalSalesMonth,
           monthSalesCount: offlineSales.length,
           totalProductsCount: prods.length,
           lowStockCount: lowStock,

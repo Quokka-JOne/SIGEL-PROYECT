@@ -69,6 +69,7 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
         montoPagadoUSD: sale.montoPagadoUSD,
         cambioNIO: sale.cambioNIO,
         offlineId: sale.offlineId,
+        fecha: sale.fecha,
       };
 
       const res = await apiFetch('/sales', {

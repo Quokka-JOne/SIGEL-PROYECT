@@ -23,7 +23,7 @@ async function ensureSequenceReady() {
 export const createSale = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     await ensureSequenceReady();
-    const { detalles, metodoPago, montoPagadoNIO, montoPagadoUSD, cambioNIO, offlineId } = req.body;
+    const { detalles, metodoPago, montoPagadoNIO, montoPagadoUSD, cambioNIO, offlineId, fecha } = req.body;
     const usuarioId = req.user?.id;
 
     if (!usuarioId) {
@@ -179,6 +179,7 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
           estado: 'COMPLETADA',
           offlineId: offlineId || null,
           synced: true,
+          ...(fecha ? { fecha: new Date(fecha) } : {}),
           detalles: {
             create: saleDetailsData,
           },

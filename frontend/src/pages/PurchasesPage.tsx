@@ -8,6 +8,7 @@ import {
   cacheSuppliersLocally,
   cachePurchasesLocally,
 } from '../services/syncService';
+import { nowISOStringNI } from '../utils/dateNI';
 
 export interface SupplierItem {
   id: string;
@@ -246,7 +247,7 @@ export const PurchasesPage: React.FC = () => {
         numeroFactura: invoiceNumber.trim() || `FAC-OFF-${Date.now().toString().slice(-6)}`,
         proveedorId: selectedSupplierId,
         proveedor: { nombre: selectedSupp?.nombre || 'Proveedor Local' },
-        fecha: new Date().toISOString(),
+        fecha: nowISOStringNI(),
         total: grandTotal,
         estado: 'COMPLETADA',
         detalles: purchaseItems.map((item) => ({
