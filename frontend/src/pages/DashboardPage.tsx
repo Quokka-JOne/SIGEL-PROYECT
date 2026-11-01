@@ -34,50 +34,87 @@ export const DashboardPage: React.FC = () => {
         const prods = await db.products.toArray();
         const lowStock = prods.filter((p) => p.stock > 0 && p.stock <= p.stockMinimo).length;
         const outOfStock = prods.filter((p) => p.stock === 0).length;
-        const offlineSales = await db.offlineSales.toArray();
-        // Filtrar solo las ventas del día de hoy en hora de Nicaragua
+
+        // Ventas cacheadas del servidor (sincronizadas desde Neon)
+        const cachedServerSales = await getCachedSales();
+        // Ventas offline pendientes (sin subir aún al servidor)
+        const offlinePending = await db.offlineSales
+          .where('estado')
+          .anyOf('PENDIENTE', 'SINCRONIZANDO', 'ERROR', 'REVISION')
+          .toArray();
+
         const todayNI = localDateString();
-        const todaysSales = offlineSales.filter((s) => {
-          if (!s.fecha) return false;
-          // s.fecha puede ser ISO con offset "-06:00" o UTC "Z"
-          const saleDate = localDateString(new Date(s.fecha));
-          return saleDate === todayNI;
-        });
-        const totalSalesToday = todaysSales.reduce((acc, s) => acc + (s.total || 0), 0);
-        const totalSalesMonth = offlineSales.reduce((acc, s) => acc + (s.total || 0), 0);
+        const currentMonthYear = todayNI.slice(0, 7); // "YYYY-MM"
+
+        // Filtrar por hoy (Nicaragua) en ambas fuentes
+        const serverToday = cachedServerSales.filter(
+          (s) => s.fecha && localDateString(new Date(s.fecha)) === todayNI
+        );
+        const serverMonth = cachedServerSales.filter(
+          (s) => s.fecha && localDateString(new Date(s.fecha)).slice(0, 7) === currentMonthYear
+        );
+        const pendingToday = offlinePending.filter(
+          (s) => s.fecha && localDateString(new Date(s.fecha)) === todayNI
+        );
+        const pendingMonth = offlinePending.filter(
+          (s) => s.fecha && localDateString(new Date(s.fecha)).slice(0, 7) === currentMonthYear
+        );
+
+        const todaySalesTotal =
+          serverToday.reduce((a, s) => a + (s.total || 0), 0) +
+          pendingToday.reduce((a, s) => a + (s.total || 0), 0);
+        const monthSalesTotal =
+          serverMonth.reduce((a, s) => a + (s.total || 0), 0) +
+          pendingMonth.reduce((a, s) => a + (s.total || 0), 0);
 
         setMetrics({
-          todaySalesTotal: totalSalesToday,
-          todaySalesCount: todaysSales.length,
-          monthSalesTotal: totalSalesMonth,
-          monthSalesCount: offlineSales.length,
+          todaySalesTotal,
+          todaySalesCount: serverToday.length + pendingToday.length,
+          monthSalesTotal,
+          monthSalesCount: serverMonth.length + pendingMonth.length,
           totalProductsCount: prods.length,
           lowStockCount: lowStock,
           outOfStockCount: outOfStock,
         });
 
-        // Top products reales desde inventario local
-        setTopProducts(
-          prods.slice(0, 4).map((p) => ({
-            productoId: p.id,
-            nombre: p.nombre,
-            sku: p.sku || '',
-            stock: p.stock || 0,
-            precioVenta: p.precioVenta || 0,
-            unidadesVendidas: p.stock > 50 ? 25 : 10,
-          }))
-        );
+        // Top productos calculados desde detalles de ventas reales (no datos ficticios)
+        const allSalesForTop = [...cachedServerSales, ...offlinePending];
+        const productSalesMap: Record<string, { nombre: string; stock: number; precioVenta: number; unidadesVendidas: number }> = {};
+        for (const sale of allSalesForTop) {
+          const details = (sale as any).detalles || [];
+          for (const d of details) {
+            const pid = d.productoId || d.producto?.id;
+            const nombre = d.productoNombre || d.producto?.nombre || `Producto ${pid}`;
+            if (!pid) continue;
+            if (!productSalesMap[pid]) {
+              const localProd = prods.find((p) => p.id === pid);
+              productSalesMap[pid] = {
+                nombre,
+                stock: localProd?.stock ?? 0,
+                precioVenta: localProd?.precioVenta ?? (d.precioUnitario || 0),
+                unidadesVendidas: 0,
+              };
+            }
+            productSalesMap[pid].unidadesVendidas += Number(d.cantidad) || 0;
+          }
+        }
+        const computedTop = Object.entries(productSalesMap)
+          .map(([productoId, v]) => ({ productoId, ...v }))
+          .sort((a, b) => b.unidadesVendidas - a.unidadesVendidas)
+          .slice(0, 4);
+        setTopProducts(computedTop);
 
-        const cachedServerSales = await getCachedSales();
+        // Ventas recientes: server cache primero, luego pendientes offline
         if (cachedServerSales.length > 0) {
           setRecentSales(cachedServerSales.slice(0, 5) as any);
         } else {
           setRecentSales(
-            offlineSales.slice(-5).reverse().map((s) => ({
+            offlinePending.slice(-5).reverse().map((s) => ({
               id: s.id,
               numeroComprobante: s.numeroComprobante,
               fecha: s.fecha,
               total: s.total,
+              metodoPago: s.metodoPago,
               estado: s.estado,
               usuario: { nombre: 'Cajero Local' },
             }))
