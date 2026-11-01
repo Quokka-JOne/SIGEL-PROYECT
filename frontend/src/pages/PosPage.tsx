@@ -132,7 +132,8 @@ export const PosPage: React.FC = () => {
       }
 
       // Guardar en almacenamiento local Dexie (F-02)
-      cacheCatalogLocally(prodRes.data as any, (catRes.data || []) as any);
+      const isFullCatalog = !searchTerm && (!selectedCategory || selectedCategory === 'all');
+      cacheCatalogLocally(prodRes.data as any, (catRes.data || []) as any, isFullCatalog);
     } else {
       // C-01 & F-02: Servidor sin conexión o con error de backend, leer del almacenamiento local Dexie
       setIsOfflineMode(true);
@@ -498,7 +499,6 @@ export const PosPage: React.FC = () => {
             <div className="relative flex-1 flex items-center bg-[#100f14] border border-[#2d2c35] rounded-xl px-4 py-2.5 focus-within:border-purple-500 transition-colors">
               <span className="material-symbols-outlined text-purple-400 mr-2 text-[22px]">barcode_scanner</span>
               <input
-                autoFocus
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

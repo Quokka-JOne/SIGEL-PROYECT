@@ -255,14 +255,38 @@ export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = [
 /**
  * F-02: Guardar catálogo en caché local Dexie
  */
-export async function cacheCatalogLocally(products: LocalProduct[], categories: LocalCategory[]): Promise<void> {
+export async function cacheCatalogLocally(
+  products: LocalProduct[],
+  categories: LocalCategory[],
+  clearExisting = false
+): Promise<void> {
   try {
+    const dummyProductIds = DEFAULT_OFFLINE_PRODUCTS.map((p) => p.id);
+    const dummyCategoryIds = DEFAULT_OFFLINE_CATEGORIES.map((c) => c.id);
+
     if (categories && categories.length > 0) {
+      if (clearExisting) {
+        await db.categories.clear();
+      } else {
+        const hasRealCategories = categories.some((c) => !dummyCategoryIds.includes(c.id));
+        if (hasRealCategories) {
+          await db.categories.where('id').anyOf(dummyCategoryIds).delete();
+        }
+      }
       await db.categories.bulkPut(categories);
     }
+
     if (products && products.length > 0) {
+      const hasRealProducts = products.some((p) => !dummyProductIds.includes(p.id));
+      if (hasRealProducts) {
+        await db.products.where('id').anyOf(dummyProductIds).delete();
+      }
+      if (clearExisting) {
+        await db.products.clear();
+      }
       await db.products.bulkPut(products);
     }
+
     await db.metadata.put({
       key: 'lastCatalogSync',
       value: new Date().toISOString(),
@@ -330,6 +354,24 @@ export async function getLocalCatalogFromDexie(query?: string, categoryId?: stri
       cats = await db.categories.toArray();
     }
 
+    // Purgar productos ficticios/dummy si ya existen productos reales del backend en Dexie
+    const dummyProductIds = DEFAULT_OFFLINE_PRODUCTS.map((p) => p.id);
+    const hasRealProducts = prods.some((p) => !dummyProductIds.includes(p.id));
+    if (hasRealProducts) {
+      const dummyFound = prods.filter((p) => dummyProductIds.includes(p.id));
+      if (dummyFound.length > 0) {
+        await db.products.where('id').anyOf(dummyProductIds).delete();
+        prods = await db.products.toArray();
+      }
+
+      const dummyCategoryIds = DEFAULT_OFFLINE_CATEGORIES.map((c) => c.id);
+      const dummyCatsFound = cats.filter((c) => dummyCategoryIds.includes(c.id));
+      if (dummyCatsFound.length > 0) {
+        await db.categories.where('id').anyOf(dummyCategoryIds).delete();
+        cats = await db.categories.toArray();
+      }
+    }
+
     const meta = await db.metadata.get('lastCatalogSync');
 
     // Filtros locales
@@ -373,7 +415,7 @@ export async function refreshCatalogInBackground(): Promise<void> {
       apiFetch<LocalCategory[]>('/categories'),
     ]);
     if (pRes.success && pRes.data && pRes.data.length > 0) {
-      await cacheCatalogLocally(pRes.data, cRes.data || []);
+      await cacheCatalogLocally(pRes.data, cRes.data || [], true);
     }
   } catch (e) {
     // Silencioso en segundo plano
