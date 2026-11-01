@@ -15,6 +15,7 @@
     --sky: #5f8fff;
     --coral: #ff6b6b;
     --sun: #fddb35;
+    --app-avatar-eye-radius-y: 8%;
   
     --paper: #111111;
     --card: #19171e;
@@ -52,12 +53,12 @@
     clip-path: polygon(19% 83%, 13% 80%, 8% 74%, 6% 66%, 7% 58%, 11% 52%, 17% 49%, 18% 42%, 22% 36%, 29% 32%, 36% 33%, 41% 26%, 47% 22%, 54% 21%, 61% 24%, 66% 30%, 69% 37%, 77% 39%, 83% 43%, 87% 49%, 88% 55%, 93% 59%, 96% 66%, 94% 73%, 90% 79%, 83% 83%, 74% 84%, 65% 82%, 57% 86%, 47% 86%, 37% 84%, 27% 86%);
     opacity: 0.34;
     background:
-      radial-gradient(ellipse 1.9% 4.8% at 39% 45%, #000 94%, transparent 100%),
-      radial-gradient(ellipse 1.9% 4.8% at 61% 45%, #000 94%, transparent 100%),
+      radial-gradient(ellipse 3% var(--app-avatar-eye-radius-y) at 39% 45%, #000 94%, transparent 100%),
+      radial-gradient(ellipse 3% var(--app-avatar-eye-radius-y) at 61% 45%, #000 94%, transparent 100%),
       radial-gradient(ellipse at 28% 18%, #decfff 0%, transparent 42%),
       linear-gradient(145deg, var(--lavender) 0%, #8051d1 48%, var(--plum) 100%);
     filter: drop-shadow(0 14px 28px rgba(74, 20, 140, 0.3));
-    animation: ui-avatar-float 27s ease-in-out infinite alternate;
+    animation: ui-avatar-float 27s ease-in-out infinite alternate, ui-avatar-eye-blink 8.2s ease-in-out 1.7s infinite;
   }
   
   .landing-root::after {
@@ -68,12 +69,12 @@
     border-radius: 50%;
     opacity: 0.24;
     background:
-      radial-gradient(ellipse 1.9% 4.8% at 40% 42%, #000 94%, transparent 100%),
-      radial-gradient(ellipse 1.9% 4.8% at 61% 42%, #000 94%, transparent 100%),
+      radial-gradient(ellipse 3% var(--app-avatar-eye-radius-y) at 40% 42%, #000 94%, transparent 100%),
+      radial-gradient(ellipse 3% var(--app-avatar-eye-radius-y) at 61% 42%, #000 94%, transparent 100%),
       radial-gradient(ellipse at 30% 18%, #ffd8bd 0%, transparent 42%),
       linear-gradient(145deg, var(--coral) 0%, #c9679a 48%, var(--sky) 100%);
     filter: drop-shadow(0 12px 26px rgba(95, 143, 255, 0.26));
-    animation: ui-avatar-float 34s ease-in-out -12s infinite alternate-reverse;
+    animation: ui-avatar-float 34s ease-in-out -12s infinite alternate-reverse, ui-avatar-eye-blink 9.6s ease-in-out 4.2s infinite;
   }
   
   .landing-root > *:not(.landing-nav):not(.landing-skip) {
