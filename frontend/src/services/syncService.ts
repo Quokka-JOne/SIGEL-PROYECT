@@ -166,10 +166,12 @@ export async function cacheCatalogLocally(
 
     if (products && products.length > 0) {
       await db.transaction('rw', db.products, async () => {
+        // Preservar productos creados localmente en modo offline que aún no han subido a Neon
+        const pendingLocal = await db.products.filter((p) => p.id.startsWith('prod-local-')).toArray();
         if (clearExisting) {
           await db.products.clear();
         }
-        await db.products.bulkPut(products);
+        await db.products.bulkPut([...products, ...pendingLocal]);
       });
     }
 
@@ -177,7 +179,7 @@ export async function cacheCatalogLocally(
       key: 'lastCatalogSync',
       value: new Date().toISOString(),
     });
-    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v5' });
+    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v6' });
 
     console.log(`[SyncService] Catálogo sincronizado en Dexie (clearExisting=${clearExisting}): ${products.length} productos, ${categories.length} categorías.`);
   } catch (err) {
@@ -186,14 +188,16 @@ export async function cacheCatalogLocally(
 }
 
 /**
- * F-02: Guardar proveedores en caché local (reemplazo total, sin datos ficticios)
+ * F-02: Guardar proveedores en caché local (reemplazo limpio, preservando pendientes offline)
  */
 export async function cacheSuppliersLocally(suppliers: LocalSupplier[]): Promise<void> {
   try {
     if (suppliers && suppliers.length > 0) {
       await db.transaction('rw', db.suppliers, async () => {
+        // Preservar proveedores creados localmente en modo offline
+        const pendingLocal = await db.suppliers.filter((s) => s.id.startsWith('prov-local-')).toArray();
         await db.suppliers.clear();
-        await db.suppliers.bulkPut(suppliers);
+        await db.suppliers.bulkPut([...suppliers, ...pendingLocal]);
       });
       await db.metadata.put({ key: 'lastSuppliersSync', value: new Date().toISOString() });
       console.log(`[SyncService] ${suppliers.length} proveedores sincronizados en Dexie.`);
@@ -468,6 +472,52 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
 
   try {
     await purgeDummyData();
+
+    // 1. Subir a Neon los proveedores creados localmente en offline
+    const pendingSupps = await db.suppliers.filter((s) => s.id.startsWith('prov-local-')).toArray();
+    for (const sup of pendingSupps) {
+      try {
+        const res = await apiFetch<any>('/suppliers', {
+          method: 'POST',
+          body: JSON.stringify({
+            nombre: sup.nombre,
+            ruc: sup.ruc || undefined,
+            telefono: sup.telefono || undefined,
+            email: sup.email || undefined,
+            direccion: sup.direccion || undefined,
+          }),
+        });
+        if (res.success) {
+          await db.suppliers.delete(sup.id);
+        }
+      } catch {}
+    }
+
+    // 2. Subir a Neon los productos creados localmente en offline
+    const pendingProds = await db.products.filter((p) => p.id.startsWith('prod-local-')).toArray();
+    for (const prod of pendingProds) {
+      try {
+        const res = await apiFetch<any>('/products', {
+          method: 'POST',
+          body: JSON.stringify({
+            nombre: prod.nombre,
+            codigoBarras: prod.codigoBarras || undefined,
+            sku: prod.sku || undefined,
+            descripcion: prod.descripcion || undefined,
+            imagenUrl: prod.imagenUrl || undefined,
+            categoriaId: prod.categoriaId,
+            precioVenta: prod.precioVenta,
+            costo: prod.costo,
+            stock: prod.stock,
+            stockMinimo: prod.stockMinimo,
+            unidadMedida: prod.unidadMedida || 'Unidad',
+          }),
+        });
+        if (res.success) {
+          await db.products.delete(prod.id);
+        }
+      } catch {}
+    }
 
     const [pRes, cRes, sRes, uRes, salesRes, purRes] = await Promise.all([
       apiFetch<LocalProduct[]>('/products?includeInactive=false&all=true'),
