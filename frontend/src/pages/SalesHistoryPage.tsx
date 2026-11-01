@@ -127,12 +127,12 @@ export const SalesHistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+    <div className="flex flex-col gap-5 sm:gap-6 max-w-7xl mx-auto font-body text-white pb-24 md:pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">receipt_long</span>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-purple-400 text-2xl sm:text-3xl">receipt_long</span>
             {isAdmin ? 'Historial General de Ventas' : 'Mis Ventas Registradas'}
           </h1>
           <p className="text-xs text-gray-400 mt-1">
@@ -159,9 +159,9 @@ export const SalesHistoryPage: React.FC = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-[#1c1b22] border border-[#2d2c35] p-4 rounded-2xl flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-gray-400 font-semibold">Desde:</span>
+      <div className="bg-[#1c1b22] border border-[#2d2c35] p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 text-xs flex-1 sm:flex-none">
+          <span className="text-gray-400 font-semibold w-12 sm:w-auto">Desde:</span>
           <input
             type="date"
             value={desde}
@@ -169,11 +169,11 @@ export const SalesHistoryPage: React.FC = () => {
               setDesde(e.target.value);
               setPage(1);
             }}
-            className="bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-purple-500"
+            className="flex-1 sm:flex-none bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-purple-500"
           />
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-gray-400 font-semibold">Hasta:</span>
+        <div className="flex items-center gap-2 text-xs flex-1 sm:flex-none">
+          <span className="text-gray-400 font-semibold w-12 sm:w-auto">Hasta:</span>
           <input
             type="date"
             value={hasta}
@@ -181,7 +181,7 @@ export const SalesHistoryPage: React.FC = () => {
               setHasta(e.target.value);
               setPage(1);
             }}
-            className="bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-purple-500"
+            className="flex-1 sm:flex-none bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-purple-500"
           />
         </div>
         {(desde || hasta) && (
@@ -191,7 +191,7 @@ export const SalesHistoryPage: React.FC = () => {
               setHasta('');
               setPage(1);
             }}
-            className="text-xs text-purple-400 hover:text-purple-300 underline font-semibold"
+            className="text-xs text-purple-400 hover:text-purple-300 underline font-semibold self-start sm:self-center"
           >
             Limpiar Filtros
           </button>
@@ -212,7 +212,7 @@ export const SalesHistoryPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[680px] text-left text-xs">
               <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Comprobante</th>
@@ -316,8 +316,8 @@ export const SalesHistoryPage: React.FC = () => {
 
       {/* Sale Detail Modal */}
       {selectedSale && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-lg rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-lg rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <div>
                 <h3 className="text-base font-bold text-white">Detalle de Comprobante</h3>
@@ -375,8 +375,8 @@ export const SalesHistoryPage: React.FC = () => {
 
       {/* Anular Modal (T-05) */}
       {anularModalOpen && saleToAnular && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-2 text-rose-400 pb-2 border-b border-white/10">
               <span className="material-symbols-outlined text-2xl">warning</span>
               <h3 className="text-base font-bold text-white">Anulación de Venta</h3>

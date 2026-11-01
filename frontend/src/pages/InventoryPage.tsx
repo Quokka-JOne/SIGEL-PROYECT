@@ -430,12 +430,12 @@ export const InventoryPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+    <div className="flex flex-col gap-5 sm:gap-6 max-w-7xl mx-auto font-body text-white pb-24 md:pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 border-b border-white/5">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">inventory_2</span>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-purple-400 text-2xl sm:text-3xl">inventory_2</span>
             Control de Inventario & Kardex
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -445,24 +445,24 @@ export const InventoryPage: React.FC = () => {
             {!navigator.onLine && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Modo Offline (Base de datos local)
+                Modo Offline
               </span>
             )}
           </div>
         </div>
 
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setIsCategoryModalOpen(true)}
-              className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-none px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
             >
               <span className="material-symbols-outlined text-base">category</span>
-              Gestionar Categorías
+              Categorías
             </button>
             <button
               onClick={handleOpenCreateModal}
-              className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-purple-900/30"
+              className="flex-1 sm:flex-none px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-lg shadow-purple-900/30"
             >
               <span className="material-symbols-outlined text-base">add_box</span>
               Nuevo Producto
@@ -487,8 +487,8 @@ export const InventoryPage: React.FC = () => {
       )}
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#1c1b22] border border-[#2d2c35] p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-md">
-        <div className="flex-1 min-w-[260px] relative">
+      <div className="bg-[#1c1b22] border border-[#2d2c35] p-3 sm:p-3.5 rounded-2xl flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-3 shadow-md">
+        <div className="flex-1 min-w-[220px] relative">
           <span className="material-symbols-outlined absolute left-3.5 top-2.5 text-gray-400 text-lg">search</span>
           <input
             type="text"
@@ -499,11 +499,11 @@ export const InventoryPage: React.FC = () => {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
+            className="flex-1 sm:flex-none bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-500"
           >
             <option value="all">Todas las categorías</option>
             {categories.map((c) => (
@@ -517,7 +517,7 @@ export const InventoryPage: React.FC = () => {
           <div className="flex rounded-xl bg-[#100f14] p-1 border border-[#2d2c35] text-xs">
             <button
               onClick={() => setStatusFilter('all')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold transition-all ${
                 statusFilter === 'all' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -525,15 +525,15 @@ export const InventoryPage: React.FC = () => {
             </button>
             <button
               onClick={() => setStatusFilter('low')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold transition-all ${
                 statusFilter === 'low' ? 'bg-amber-500 text-black' : 'text-gray-400 hover:text-white'
               }`}
             >
-              Stock Bajo
+              Bajo
             </button>
             <button
               onClick={() => setStatusFilter('out')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold transition-all ${
                 statusFilter === 'out' ? 'bg-rose-600 text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -556,7 +556,7 @@ export const InventoryPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Producto</th>
@@ -678,8 +678,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* Modal: Crear / Editar Producto */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-xl rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-xl rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-purple-400">
@@ -857,8 +857,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* Modal: T-06 Ajuste de Inventario Manual (Kardex AJUSTE) */}
       {isAdjustModalOpen && adjustProduct && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-2 pb-2 border-b border-white/10">
               <span className="material-symbols-outlined text-amber-400 text-2xl">tune</span>
               <div>
@@ -933,8 +933,8 @@ export const InventoryPage: React.FC = () => {
 
       {/* Modal: M-05 Gestión de Categorías */}
       {isCategoryModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-lg rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-lg rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-purple-400">category</span>

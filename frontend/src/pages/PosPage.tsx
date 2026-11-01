@@ -47,6 +47,7 @@ export const PosPage: React.FC = () => {
 
   // Cart & Checkout state
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [mobileTab, setMobileTab] = useState<'catalog' | 'cart'>('catalog');
   const [paymentMethod, setPaymentMethod] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'MULTIDIVISA'>('EFECTIVO');
   const [cashNIO, setCashNIO] = useState<string>('');
   const [cashUSD, setCashUSD] = useState<string>('');
@@ -454,10 +455,44 @@ export const PosPage: React.FC = () => {
         </div>
       )}
 
+      {/* Mobile Tab Selector (Visible only on < lg) */}
+      <div className="lg:hidden flex items-center bg-[#1c1b22] p-1 rounded-2xl border border-[#2d2c35] mb-4 shadow-md">
+        <button
+          type="button"
+          onClick={() => setMobileTab('catalog')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            mobileTab === 'catalog'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <span className="material-symbols-outlined text-base">inventory_2</span>
+          <span>Catálogo ({products.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileTab('cart')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all relative ${
+            mobileTab === 'cart'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <span className="material-symbols-outlined text-base">shopping_cart</span>
+          <span>Carrito</span>
+          {cart.length > 0 && (
+            <span className="bg-white text-purple-900 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+              {cart.reduce((s, i) => s + i.cantidad, 0)}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Main Grid: Products + Cart */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-16 lg:pb-0">
         {/* LEFT COLUMN: Catalog & Fast Entry (col-span-8) */}
-        <div className="lg:col-span-8 flex flex-col gap-4">
+        <div className={`lg:col-span-8 flex flex-col gap-4 ${mobileTab === 'catalog' ? 'flex' : 'hidden lg:flex'}`}>
           {/* Barcode & Search Bar */}
           <div className="bg-[#1c1b22] p-3 rounded-2xl border border-[#2d2c35] flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shadow-md">
             <div className="relative flex-1 flex items-center bg-[#100f14] border border-[#2d2c35] rounded-xl px-4 py-2.5 focus-within:border-purple-500 transition-colors">
@@ -572,8 +607,8 @@ export const PosPage: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: Order Cart & Checkout (col-span-4) */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          <div className="bg-[#1c1b22] p-5 rounded-2xl border border-[#2d2c35] flex flex-col gap-4 sticky top-4 shadow-xl">
+        <div className={`lg:col-span-4 flex flex-col gap-4 ${mobileTab === 'cart' ? 'flex' : 'hidden lg:flex'}`}>
+          <div className="bg-[#1c1b22] p-4 sm:p-5 rounded-2xl border border-[#2d2c35] flex flex-col gap-4 sticky top-4 shadow-xl">
             {/* Cart Header */}
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
@@ -753,6 +788,28 @@ export const PosPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Cart Quick Access on Mobile */}
+      {cart.length > 0 && mobileTab === 'catalog' && (
+        <div className="lg:hidden fixed bottom-16 sm:bottom-20 left-3 right-3 sm:left-6 sm:right-6 z-40">
+          <button
+            type="button"
+            onClick={() => setMobileTab('cart')}
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-3 rounded-2xl shadow-2xl flex items-center justify-between border border-purple-400/30 active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-xl">shopping_cart</span>
+              <span className="text-xs font-bold">
+                {cart.reduce((s, i) => s + i.cantidad, 0)} arts. • C$ {totalNIO.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-black bg-white/20 px-3 py-1 rounded-xl">
+              <span>Cobrar</span>
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* MODAL COLA OFFLINE (C-01 & F-01) */}
       {isQueueModalOpen && (

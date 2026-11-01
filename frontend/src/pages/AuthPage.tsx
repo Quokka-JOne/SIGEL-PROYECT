@@ -152,13 +152,13 @@ export const AuthPage: React.FC = () => {
       
       {activeTab === 'login' && !isVerifying ? (
         // --- LOGIN VIEW ---
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 1 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 1 }}>
           <Logo />
-          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 32 }}>Gestiona tu pasión, escala tu negocio.</p>
+          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24, textAlign: 'center' }}>Gestiona tu pasión, escala tu negocio.</p>
           
-          <div style={{ background: '#24232b', border: '1px solid #33323c', borderRadius: 24, padding: '40px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-            <h2 style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Bienvenido</h2>
-            <p style={{ fontSize: 14, color: '#9ca3af', marginBottom: 24 }}>Ingresa tus credenciales para acceder</p>
+          <div className="w-full max-w-[420px] bg-[#24232b] border border-[#33323c] rounded-3xl p-6 sm:p-9 shadow-2xl">
+            <h2 style={{ fontSize: 26, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Bienvenido</h2>
+            <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>Ingresa tus credenciales para acceder</p>
             
             {typeof navigator !== 'undefined' && !navigator.onLine && (
               <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#fef08a', padding: 14, borderRadius: 12, fontSize: 13, marginBottom: 18 }}>
@@ -305,11 +305,11 @@ export const AuthPage: React.FC = () => {
         </div>
       ) : isVerifying ? (
         // --- VERIFY VIEW ---
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 1 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 1 }}>
           <Logo />
-          <div style={{ background: '#24232b', border: '1px solid #33323c', borderRadius: 24, padding: '40px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+          <div className="w-full max-w-[420px] bg-[#24232b] border border-[#33323c] rounded-3xl p-6 sm:p-9 shadow-2xl">
             <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Verifica tu correo</h2>
-            <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>Hemos enviado un código de 6 dígitos a <strong>{verificationEmail}</strong>.</p>
+            <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 20 }}>Hemos enviado un código de 6 dígitos a <strong>{verificationEmail}</strong>.</p>
             
             {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
             {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
@@ -331,21 +331,21 @@ export const AuthPage: React.FC = () => {
         <div style={{ flex: 1, display: 'flex', zIndex: 1 }} className="flex-col lg:flex-row">
           
           {/* Left Column */}
-          <div style={{ flex: 1, padding: '60px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="flex-1 p-6 sm:p-10 lg:p-16 flex flex-col justify-center">
             <div style={{ maxWidth: 480, margin: '0 auto' }}>
               <Logo />
-              <h1 style={{ fontSize: 'clamp(36px, 4vw, 48px)', fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 48, letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: 32, letterSpacing: '-0.02em' }}>
                 Únete a la nueva<br/>era de la <span style={{ color: '#ef4444' }}>gestión<br/>literaria.</span>
               </h1>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={{ display: 'flex', gap: 16 }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: 20 }}>rocket_launch</span>
                   </div>
                   <div>
-                    <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Escala sin límites</h3>
-                    <p style={{ fontSize: 14, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>Nuestra plataforma crece con tu librería, desde un solo local hasta cadenas nacionales.</p>
+                    <h3 style={{ fontSize: 17, fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Escala sin límites</h3>
+                    <p style={{ fontSize: 13, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>Nuestra plataforma crece con tu librería, desde un solo local hasta cadenas nacionales.</p>
                   </div>
                 </div>
                 
@@ -354,8 +354,8 @@ export const AuthPage: React.FC = () => {
                     <span className="material-symbols-outlined" style={{ color: '#eab308', fontSize: 20 }}>shield</span>
                   </div>
                   <div>
-                    <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Seguridad Total</h3>
-                    <p style={{ fontSize: 14, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>Tus datos de inventario y ventas protegidos con encriptación de nivel bancario.</p>
+                    <h3 style={{ fontSize: 17, fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Seguridad Total</h3>
+                    <p style={{ fontSize: 13, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>Tus datos de inventario y ventas protegidos con encriptación de nivel bancario.</p>
                   </div>
                 </div>
 
@@ -364,8 +364,8 @@ export const AuthPage: React.FC = () => {
                     <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: 20 }}>sentiment_satisfied</span>
                   </div>
                   <div>
-                    <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Soporte 24/7</h3>
-                    <p style={{ fontSize: 14, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>Equipo humano dedicado a resolver cualquier duda en minutos, no días.</p>
+                    <h3 style={{ fontSize: 17, fontWeight: 700, color: '#fff', margin: '0 0 4px 0' }}>Soporte 24/7</h3>
+                    <p style={{ fontSize: 13, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>Equipo humano dedicado a resolver cualquier duda en minutos, no días.</p>
                   </div>
                 </div>
               </div>
@@ -373,23 +373,23 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Right Column (Form) */}
-          <div style={{ flex: 1, padding: '40px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#24232b', border: '1px solid #33323c', borderRadius: 32, padding: '48px 40px', width: '100%', maxWidth: 500, boxShadow: '0 20px 40px rgba(0,0,0,0.5)', position: 'relative' }}>
+          <div className="flex-1 p-4 sm:p-8 flex items-center justify-center">
+            <div className="w-full max-w-[500px] bg-[#24232b] border border-[#33323c] rounded-3xl p-6 sm:p-10 shadow-2xl relative">
               
-              <div style={{ position: 'absolute', top: 32, right: 32, display: 'flex', gap: 6 }}>
+              <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 6 }}>
                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ffbd2e' }} />
                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4b5563' }} />
                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4b5563' }} />
               </div>
 
-              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#fff', marginBottom: 8 }}>Crear Cuenta</h2>
-              <p style={{ fontSize: 14, color: '#9ca3af', marginBottom: 32 }}>Comienza tu prueba de 14 días gratis</p>
+              <h2 style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Crear Cuenta</h2>
+              <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 24 }}>Comienza tu prueba de 14 días gratis</p>
               
               {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
               {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
 
-              <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div style={{ display: 'flex', gap: 16 }}>
+              <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Nombre</label>
                     <input type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Ej. Juan" style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 15 }} />

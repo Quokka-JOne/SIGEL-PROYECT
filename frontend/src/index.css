@@ -138,6 +138,9 @@
   html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
     font-family: 'Geist', sans-serif;
   }
   body {

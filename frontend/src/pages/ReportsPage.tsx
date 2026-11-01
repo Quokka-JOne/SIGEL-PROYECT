@@ -140,12 +140,12 @@ export const ReportsPage: React.FC = () => {
   const diff = Number((counted - expected).toFixed(2));
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+    <div className="flex flex-col gap-5 sm:gap-6 max-w-7xl mx-auto font-body text-white pb-24 md:pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 border-b border-white/5">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">analytics</span>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-purple-400 text-2xl sm:text-3xl">analytics</span>
             Reportes & Cierre de Caja
           </h1>
           <p className="text-xs text-gray-400 mt-1">
@@ -153,7 +153,7 @@ export const ReportsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={exportToCSV}
             className="px-3.5 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
@@ -172,52 +172,52 @@ export const ReportsPage: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
+      <div className="flex gap-2 border-b border-white/10 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {[
           { id: 'SALES', label: 'Ventas por Fecha', icon: 'point_of_sale' },
-          { id: 'PURCHASES', label: 'Compras a Proveedores', icon: 'local_shipping' },
-          { id: 'TOP_PRODUCTS', label: 'Productos Más Vendidos', icon: 'trending_up' },
-          { id: 'CASH_CLOSING', label: 'Cierre de Caja Diario', icon: 'account_balance_wallet' },
+          { id: 'PURCHASES', label: 'Compras Proveedores', icon: 'local_shipping' },
+          { id: 'TOP_PRODUCTS', label: 'Más Vendidos', icon: 'trending_up' },
+          { id: 'CASH_CLOSING', label: 'Cierre de Caja', icon: 'account_balance_wallet' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shrink-0 transition-all ${
               activeTab === tab.id
                 ? 'bg-purple-600 text-white shadow-md'
                 : 'bg-[#1c1b22] text-gray-400 hover:text-white border border-[#2d2c35]'
             }`}
           >
             <span className="material-symbols-outlined text-sm">{tab.icon}</span>
-            {tab.label}
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Date Filter Bar */}
       {activeTab !== 'CASH_CLOSING' ? (
-        <div className="bg-[#1c1b22] border border-[#2d2c35] p-3.5 rounded-2xl flex flex-wrap items-center gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 font-semibold">Desde:</span>
+        <div className="bg-[#1c1b22] border border-[#2d2c35] p-3 sm:p-3.5 rounded-2xl flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 text-xs">
+          <div className="flex items-center gap-2 flex-1 sm:flex-none">
+            <span className="text-gray-400 font-semibold w-12 sm:w-auto">Desde:</span>
             <input
               type="date"
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
-              className="bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500"
+              className="flex-1 sm:flex-none bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 font-semibold">Hasta:</span>
+          <div className="flex items-center gap-2 flex-1 sm:flex-none">
+            <span className="text-gray-400 font-semibold w-12 sm:w-auto">Hasta:</span>
             <input
               type="date"
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
-              className="bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500"
+              className="flex-1 sm:flex-none bg-[#100f14] border border-[#2d2c35] text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500"
             />
           </div>
         </div>
       ) : (
-        <div className="bg-[#1c1b22] border border-[#2d2c35] p-3.5 rounded-2xl flex flex-wrap items-center gap-4 text-xs">
+        <div className="bg-[#1c1b22] border border-[#2d2c35] p-3 sm:p-3.5 rounded-2xl flex flex-wrap items-center gap-3 sm:gap-4 text-xs">
           <div className="flex items-center gap-2">
             <span className="text-gray-400 font-semibold">Fecha de Arqueo:</span>
             <input
@@ -270,7 +270,8 @@ export const ReportsPage: React.FC = () => {
 
               {/* Sales List Table */}
               <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl overflow-hidden shadow-xl">
-                <table className="w-full text-left text-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[620px] text-left text-xs">
                   <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
                     <tr>
                       <th className="py-3 px-4">Comprobante</th>
@@ -294,6 +295,7 @@ export const ReportsPage: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           )}
@@ -342,34 +344,36 @@ export const ReportsPage: React.FC = () => {
               <div className="p-4 border-b border-white/5">
                 <h3 className="text-sm font-bold text-white">Ranking de Productos Más Vendidos</h3>
               </div>
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
-                  <tr>
-                    <th className="py-3 px-4">#</th>
-                    <th className="py-3 px-4">Producto</th>
-                    <th className="py-3 px-4">Categoría</th>
-                    <th className="py-3 px-4 text-center">Unidades Vendidas</th>
-                    <th className="py-3 px-4 text-right">Ingreso Generado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {topProductsReport.map((p, idx) => (
-                    <tr key={p.productoId} className="hover:bg-white/5">
-                      <td className="py-3 px-4 font-bold text-purple-400">{idx + 1}</td>
-                      <td className="py-3 px-4 font-semibold text-white">{p.nombre}</td>
-                      <td className="py-3 px-4 text-gray-400">{p.categoria}</td>
-                      <td className="py-3 px-4 text-center font-bold text-white">
-                        <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full">
-                          {p.cantidadVendida} u.
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right font-extrabold text-emerald-400">
-                        C$ {Number(p.ingresoTotal).toFixed(2)}
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[620px] text-left text-xs">
+                  <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
+                    <tr>
+                      <th className="py-3 px-4">#</th>
+                      <th className="py-3 px-4">Producto</th>
+                      <th className="py-3 px-4">Categoría</th>
+                      <th className="py-3 px-4 text-center">Unidades Vendidas</th>
+                      <th className="py-3 px-4 text-right">Ingreso Generado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {topProductsReport.map((p, idx) => (
+                      <tr key={p.productoId} className="hover:bg-white/5">
+                        <td className="py-3 px-4 font-bold text-purple-400">{idx + 1}</td>
+                        <td className="py-3 px-4 font-semibold text-white">{p.nombre}</td>
+                        <td className="py-3 px-4 text-gray-400">{p.categoria}</td>
+                        <td className="py-3 px-4 text-center font-bold text-white">
+                          <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full">
+                            {p.cantidadVendida} u.
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right font-extrabold text-emerald-400">
+                          C$ {Number(p.ingresoTotal).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

@@ -222,31 +222,31 @@ ${outOfStock.map((p) => `• ${p.nombre}`).join('\n')}`;
     .sort((a, b) => a.diasCobertura - b.diasCobertura);
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+    <div className="flex flex-col gap-5 sm:gap-6 max-w-7xl mx-auto font-body text-white pb-24 md:pb-16">
       {/* Header (M-07: Rotulación honesta con datos reales verificables) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 border-b border-white/5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">smart_toy</span>
-            <h1 className="text-2xl font-extrabold text-white">JIN Copilot · Asistente Analítico</h1>
+            <span className="material-symbols-outlined text-purple-400 text-2xl sm:text-3xl">smart_toy</span>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white">JIN Copilot · Asistente Analítico</h1>
           </div>
           <p className="text-xs text-gray-400">
             Reglas de negocio y análisis predictivo de rotación con días de cobertura (Datos Reales de Inventario).
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* M-07: Rótulo honesto */}
           <span className="bg-purple-500/10 border border-purple-500/30 text-purple-300 px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-            Motor Analítico Local Activo
+            Motor Analítico Activo
           </span>
           <Link
             to="/compras"
             className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
           >
             <span className="material-symbols-outlined text-sm">local_shipping</span>
-            Ir a Compras
+            Compras
           </Link>
         </div>
       </div>
@@ -345,7 +345,7 @@ ${outOfStock.map((p) => `• ${p.nombre}`).join('\n')}`;
         </div>
 
         {/* RIGHT COLUMN: Interactive Chat (col-span-5) */}
-        <div className="lg:col-span-5 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 flex flex-col h-[580px] shadow-xl">
+        <div className="lg:col-span-5 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-3.5 sm:p-4 flex flex-col h-[460px] sm:h-[580px] shadow-xl">
           <div className="pb-3 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">

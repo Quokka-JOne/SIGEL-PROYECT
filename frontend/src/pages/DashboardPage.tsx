@@ -131,17 +131,17 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-16 font-body">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pb-24 md:pb-16 font-body">
       {/* ── ROW 1 ────────────────────────────────────────────── */}
       {/* Revenue Overview (Span 2) */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-        <div className="flex justify-between items-start mb-4">
+      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-purple-400 text-lg">calendar_month</span>
               <h3 className="text-sm font-semibold text-gray-300">Ventas del Mes</h3>
             </div>
-            <p className="text-3xl font-extrabold text-white mt-1">
+            <p className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
               {formatMoney(metrics.monthSalesTotal)}
             </p>
             <span className="text-xs text-purple-300 font-medium">
@@ -149,7 +149,7 @@ export const DashboardPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="bg-purple-500/10 border border-purple-500/20 text-purple-300 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+          <div className="bg-purple-500/10 border border-purple-500/20 text-purple-300 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto">
             <span className="material-symbols-outlined text-sm">trending_up</span>
             <span>Hoy: {formatMoney(metrics.todaySalesTotal)}</span>
           </div>
@@ -195,7 +195,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Inventory Status (Span 1) */}
-      <div className="col-span-1 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div className="col-span-1 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-semibold text-white flex items-center gap-2">
             <span className="material-symbols-outlined text-purple-400 text-lg">inventory_2</span>
@@ -263,7 +263,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Sync Readiness (Span 1) */}
-      <div className="col-span-1 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div className="col-span-1 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-2">
           <span className="material-symbols-outlined text-emerald-400 text-lg">cloud_done</span>
           Disponibilidad PWA
@@ -290,7 +290,7 @@ export const DashboardPage: React.FC = () => {
 
       {/* ── ROW 2 ────────────────────────────────────────────── */}
       {/* Recent Sales (Span 2) */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col">
+      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col">
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-purple-400 text-lg">history</span>
@@ -337,7 +337,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* M-06: Real Best Sellers (Span 2) */}
-      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-5 shadow-xl flex flex-col">
+      <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col">
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-amber-400 text-lg">award_star</span>

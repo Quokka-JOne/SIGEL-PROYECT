@@ -442,12 +442,12 @@ export const PurchasesPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto font-body text-white">
+    <div className="flex flex-col gap-5 sm:gap-6 max-w-7xl mx-auto font-body text-white pb-24 md:pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 border-b border-white/5">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">local_shipping</span>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-purple-400 text-2xl sm:text-3xl">local_shipping</span>
             Gestión de Compras & Proveedores
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -457,7 +457,7 @@ export const PurchasesPage: React.FC = () => {
             {!navigator.onLine && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Modo Offline (Proveedores en Dexie)
+                Modo Offline
               </span>
             )}
           </div>
@@ -465,7 +465,7 @@ export const PurchasesPage: React.FC = () => {
 
         <button
           onClick={() => setIsSupplierModalOpen(true)}
-          className="px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+          className="self-start sm:self-auto px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
         >
           <span className="material-symbols-outlined text-base">person_add</span>
           Nuevo Proveedor
@@ -488,23 +488,23 @@ export const PurchasesPage: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-white/10 pb-3">
+      <div className="flex gap-2 border-b border-white/10 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {[
-          { id: 'NEW_PURCHASE', label: 'Registrar Factura de Compra', icon: 'add_shopping_cart' },
+          { id: 'NEW_PURCHASE', label: 'Registrar Factura', icon: 'add_shopping_cart' },
           { id: 'PURCHASE_HISTORY', label: 'Historial de Compras', icon: 'history' },
-          { id: 'SUPPLIERS', label: 'Directorio de Proveedores', icon: 'contacts' },
+          { id: 'SUPPLIERS', label: 'Directorio Proveedores', icon: 'contacts' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shrink-0 transition-all ${
               activeTab === tab.id
                 ? 'bg-purple-600 text-white shadow-md'
                 : 'bg-[#1c1b22] text-gray-400 hover:text-white border border-[#2d2c35]'
             }`}
           >
             <span className="material-symbols-outlined text-sm">{tab.icon}</span>
-            {tab.label}
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
@@ -670,7 +670,8 @@ export const PurchasesPage: React.FC = () => {
       {/* TAB 2: PURCHASE HISTORY */}
       {activeTab === 'PURCHASE_HISTORY' && (
         <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl overflow-hidden shadow-xl">
-          <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-xs">
             <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
               <tr>
                 <th className="py-3 px-4">Factura</th>
@@ -721,6 +722,7 @@ export const PurchasesPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -770,8 +772,8 @@ export const PurchasesPage: React.FC = () => {
 
       {/* Modal: Registrar Proveedor */}
       {isSupplierModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-purple-400">person_add</span>
@@ -862,8 +864,8 @@ export const PurchasesPage: React.FC = () => {
 
       {/* Modal: T-05 Cancelar Compra */}
       {anularModalOpen && purchaseToAnular && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#1c1b22] border border-[#2d2c35] w-full max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-2 text-rose-400 pb-2 border-b border-white/10">
               <span className="material-symbols-outlined text-2xl">warning</span>
               <h3 className="text-base font-bold text-white">Cancelar Factura de Compra</h3>
