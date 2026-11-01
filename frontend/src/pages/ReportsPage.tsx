@@ -150,6 +150,14 @@ export const ReportsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const printCashClosing = () => {
+    document.body.classList.add('printing-cash-closing');
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('printing-cash-closing');
+    }, { once: true });
+    window.print();
+  };
+
   // Cierre de caja contado vs esperado
   const counted = parseFloat(countedCash) || 0;
   const expected = cashClosingReport?.efectivoEsperadoNIO || 0;
@@ -400,7 +408,11 @@ export const ReportsPage: React.FC = () => {
 
           {/* TAB 4: CIERRE DE CAJA DIARIO (F-03) */}
           {activeTab === 'CASH_CLOSING' && cashClosingReport && (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div id="cash-closing-printable" className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              <div className="cash-closing-print-heading col-span-full hidden border-b border-gray-300 pb-3">
+                <h1 className="text-2xl font-bold">Acta de Cierre de Caja</h1>
+                <p className="text-sm mt-1">Fecha: {cashClosingReport.fecha || closingDate}</p>
+              </div>
               {/* Summary Metrics */}
               <div className="md:col-span-7 flex flex-col gap-4">
                 <div className="bg-[#1c1b22] border border-[#2d2c35] p-5 rounded-2xl flex flex-col gap-4">
@@ -495,8 +507,8 @@ export const ReportsPage: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => window.print()}
-                    className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                    onClick={printCashClosing}
+                    className="print:hidden w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
                   >
                     <span className="material-symbols-outlined text-sm">print</span>
                     Imprimir Acta de Cierre de Caja

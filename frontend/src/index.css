@@ -243,3 +243,56 @@
     font-size: 10px !important;
   }
 }
+
+/* Modo de impresión del acta: el bloque global anterior solo autoriza tickets térmicos. */
+@media print {
+  body.printing-cash-closing * {
+    visibility: hidden !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable,
+  body.printing-cash-closing #cash-closing-printable * {
+    visibility: visible !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable .cash-closing-print-heading {
+    display: block !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #111 !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable div {
+    background: #fff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable * {
+    color: #111 !important;
+    text-shadow: none !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable button,
+  body.printing-cash-closing #cash-closing-printable input {
+    display: none !important;
+  }
+
+  body.printing-cash-closing #receipt-ticket-printable,
+  body.printing-cash-closing #receipt-ticket-printable * {
+    visibility: hidden !important;
+  }
+}
