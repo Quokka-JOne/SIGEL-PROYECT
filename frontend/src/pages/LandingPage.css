@@ -49,15 +49,13 @@
     right: 4vw;
     width: clamp(132px, 17vw, 196px);
     height: clamp(120px, 15vw, 172px);
-    border-radius: 48% 52% 43% 57% / 53% 43% 57% 47%;
+    clip-path: polygon(19% 83%, 13% 80%, 8% 74%, 6% 66%, 7% 58%, 11% 52%, 17% 49%, 18% 42%, 22% 36%, 29% 32%, 36% 33%, 41% 26%, 47% 22%, 54% 21%, 61% 24%, 66% 30%, 69% 37%, 77% 39%, 83% 43%, 87% 49%, 88% 55%, 93% 59%, 96% 66%, 94% 73%, 90% 79%, 83% 83%, 74% 84%, 65% 82%, 57% 86%, 47% 86%, 37% 84%, 27% 86%);
     opacity: 0.34;
     background:
-      radial-gradient(ellipse at 39% 42%, #211a2b 0 2.6%, transparent 3.3%),
-      radial-gradient(ellipse at 61% 42%, #211a2b 0 2.6%, transparent 3.3%),
-      radial-gradient(ellipse at 37% 39%, rgba(255, 255, 255, 0.96) 0 8%, transparent 8.9%),
-      radial-gradient(ellipse at 63% 39%, rgba(255, 255, 255, 0.96) 0 8%, transparent 8.9%),
-      radial-gradient(ellipse at 50% 66%, rgba(27, 20, 38, 0.72) 0 2.4%, transparent 3.2%),
-      linear-gradient(145deg, var(--lavender) 5%, var(--plum) 100%);
+      radial-gradient(ellipse at 39% 45%, rgba(24, 18, 34, 0.82) 0 3.1%, transparent 3.8%),
+      radial-gradient(ellipse at 61% 45%, rgba(24, 18, 34, 0.82) 0 3.1%, transparent 3.8%),
+      radial-gradient(ellipse at 28% 18%, #decfff 0%, transparent 42%),
+      linear-gradient(145deg, var(--lavender) 0%, #8051d1 48%, var(--plum) 100%);
     filter: drop-shadow(0 14px 28px rgba(74, 20, 140, 0.3));
     animation: ui-avatar-float 27s ease-in-out infinite alternate;
   }
@@ -67,15 +65,13 @@
     top: 67%;
     width: clamp(112px, 14vw, 160px);
     height: clamp(104px, 13vw, 148px);
-    border-radius: 57% 43% 54% 46% / 45% 56% 44% 55%;
+    border-radius: 50%;
     opacity: 0.24;
     background:
-      radial-gradient(ellipse at 40% 43%, #201a2a 0 2.2%, transparent 3%),
-      radial-gradient(ellipse at 61% 43%, #201a2a 0 2.2%, transparent 3%),
-      radial-gradient(ellipse at 38% 40%, rgba(255, 255, 255, 0.94) 0 7%, transparent 7.9%),
-      radial-gradient(ellipse at 63% 40%, rgba(255, 255, 255, 0.94) 0 7%, transparent 7.9%),
-      radial-gradient(ellipse at 50% 66%, rgba(255, 255, 255, 0.34) 0 4%, transparent 4.8%),
-      linear-gradient(145deg, var(--coral) 0%, var(--sky) 100%);
+      radial-gradient(ellipse at 40% 42%, rgba(24, 18, 34, 0.82) 0 2.8%, transparent 3.5%),
+      radial-gradient(ellipse at 61% 42%, rgba(24, 18, 34, 0.82) 0 2.8%, transparent 3.5%),
+      radial-gradient(ellipse at 30% 18%, #ffd8bd 0%, transparent 42%),
+      linear-gradient(145deg, var(--coral) 0%, #c9679a 48%, var(--sky) 100%);
     filter: drop-shadow(0 12px 26px rgba(95, 143, 255, 0.26));
     animation: ui-avatar-float 34s ease-in-out -12s infinite alternate-reverse;
   }

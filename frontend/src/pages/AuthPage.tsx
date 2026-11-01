@@ -144,7 +144,7 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="app-shell app-theme-lavender" style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
+    <div className="app-shell app-theme-coral app-shape-sphere" style={{ fontFamily: "'Inter', sans-serif", minHeight: '100vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
       {activeTab === 'login' && !isVerifying ? (
         // --- LOGIN VIEW ---
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 1 }}>
