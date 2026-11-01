@@ -1,4 +1,14 @@
-import { db, type LocalProduct, type LocalCategory, type LocalSupplier, type LocalSale, type LocalUser } from '../pwa/db';
+import {
+  db,
+  DUMMY_PRODUCT_IDS,
+  DUMMY_CATEGORY_IDS,
+  DUMMY_SUPPLIER_IDS,
+  type LocalProduct,
+  type LocalCategory,
+  type LocalSupplier,
+  type LocalSale,
+  type LocalUser,
+} from '../pwa/db';
 import { apiFetch } from './api';
 
 type SyncListener = () => void;
@@ -39,7 +49,6 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
   let errorsCount = 0;
 
   try {
-    // Buscar ventas en cola pendientes o que tuvieron error recuperable
     const pendingSales = await db.offlineSales
       .where('estado')
       .anyOf('PENDIENTE', 'ERROR')
@@ -47,7 +56,6 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
 
     for (const sale of pendingSales) {
       processed++;
-      // 1. Marcar como SINCRONIZANDO
       await db.offlineSales.update(sale.id!, {
         estado: 'SINCRONIZANDO',
         updatedAt: new Date().toISOString(),
@@ -69,7 +77,6 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
       });
 
       if (res.success) {
-        // Venta registrada exitosamente o ya existía (idempotencia)
         await db.offlineSales.update(sale.id!, {
           estado: 'SINCRONIZADO',
           synced: 1,
@@ -79,14 +86,12 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
         });
         successCount++;
       } else if (res.networkError || (res.status && res.status >= 500)) {
-        // Fallo de red o servidor 5xx: devolver a PENDIENTE para el próximo reintento automático
         await db.offlineSales.update(sale.id!, {
           estado: 'PENDIENTE',
           updatedAt: new Date().toISOString(),
         });
         errorsCount++;
       } else if (res.code === 'STOCK_INSUFICIENTE') {
-        // Conflicto de inventario (Fase 1): marcar en REVISION para intervención del cajero
         await db.offlineSales.update(sale.id!, {
           estado: 'REVISION',
           error: res.message || 'Existencias insuficientes al sincronizar con el servidor.',
@@ -94,7 +99,6 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
         });
         errorsCount++;
       } else {
-        // Error de validación u otro error de servidor
         await db.offlineSales.update(sale.id!, {
           estado: 'ERROR',
           error: res.message || 'Error inesperado del servidor.',
@@ -115,228 +119,120 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
   return { processed, successCount, errorsCount };
 }
 
-export const DEFAULT_OFFLINE_SUPPLIERS: LocalSupplier[] = [
-  {
-    id: 'prov-001',
-    nombre: 'Comercial Gonper, S.A.',
-    ruc: 'J0310000001499',
-    telefono: '',
-    email: '',
-    direccion: '',
-    estado: true,
-  },
-  {
-    id: 'prov-002',
-    nombre: 'Libreria y Distribuidora Jardin, S.A.',
-    ruc: 'J20504166318',
-    telefono: '',
-    email: '',
-    direccion: '',
-    estado: true,
-  },
-];
-
-export const DEFAULT_OFFLINE_CATEGORIES: LocalCategory[] = [
-  { id: 'cat-001', nombre: 'Cuadernos y Libretas', descripcion: 'Cuadernos universitarios y libretas escolares', estado: true },
-  { id: 'cat-002', nombre: 'Escritura y Corrección', descripcion: 'Lápices, lapiceros y borradores', estado: true },
-  { id: 'cat-003', nombre: 'Papelería y Resmas', descripcion: 'Resmas bond y cartulinas', estado: true },
-  { id: 'cat-004', nombre: 'Mochilas y Estuches', descripcion: 'Mochilas escolares y cartucheras', estado: true },
-  { id: 'cat-005', nombre: 'Arte y Manualidades', descripcion: 'Pinturas acrílicas, colores y pinceles', estado: true },
-];
-
-export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = [
-  {
-    id: 'prod-001',
-    nombre: 'Cuaderno Universitario Líder 200 Págs Cosido Rayado',
-    codigoBarras: '7411002230012',
-    sku: 'CUAD-LID-200R',
-    descripcion: 'Cuaderno con pasta dura resistente, papel bond blanco de alta blancura',
-    categoriaId: 'cat-001',
-    categoriaNombre: 'Cuadernos y Libretas',
-    precioVenta: 75.0,
-    costo: 50.0,
-    stock: 120,
-    stockMinimo: 15,
-    unidadMedida: 'Unidad',
-    estado: true,
-  },
-  {
-    id: 'prod-002',
-    nombre: 'Cuaderno Universitario Líder 200 Págs Cuadriculado',
-    codigoBarras: '7411002230029',
-    sku: 'CUAD-LID-200C',
-    descripcion: 'Cuaderno espiral cuadro grande para matemáticas y cálculo',
-    categoriaId: 'cat-001',
-    categoriaNombre: 'Cuadernos y Libretas',
-    precioVenta: 78.0,
-    costo: 52.0,
-    stock: 95,
-    stockMinimo: 15,
-    unidadMedida: 'Unidad',
-    estado: true,
-  },
-  {
-    id: 'prod-003',
-    nombre: 'Resma Papel Bond Chamex Carta 75g (500 Hojas)',
-    codigoBarras: '7891048035222',
-    sku: 'PAP-CHAM-75C',
-    descripcion: 'Papel bond multiuso para fotocopias e impresiones de nitidez láser',
-    categoriaId: 'cat-003',
-    categoriaNombre: 'Papelería y Resmas',
-    precioVenta: 185.0,
-    costo: 140.0,
-    stock: 45,
-    stockMinimo: 10,
-    unidadMedida: 'Resma',
-    estado: true,
-  },
-  {
-    id: 'prod-004',
-    nombre: 'Caja Lapiceros Bic Cristal Azul (12 Unidades)',
-    codigoBarras: '070330113884',
-    sku: 'LAP-BIC-AZ12',
-    descripcion: 'Punta media 1.0mm, tinta suave duradera clásica de uso escolar y oficina',
-    categoriaId: 'cat-002',
-    categoriaNombre: 'Escritura y Corrección',
-    precioVenta: 120.0,
-    costo: 85.0,
-    stock: 60,
-    stockMinimo: 10,
-    unidadMedida: 'Caja',
-    estado: true,
-  },
-  {
-    id: 'prod-005',
-    nombre: 'Caja Lápices de Color Prismacolor Junior 24 Colores',
-    codigoBarras: '7501006528741',
-    sku: 'COL-PRIS-24',
-    descripcion: 'Minas suaves y resistentes de 4mm, colores intensos y mezclables',
-    categoriaId: 'cat-005',
-    categoriaNombre: 'Arte y Manualidades',
-    precioVenta: 260.0,
-    costo: 195.0,
-    stock: 25,
-    stockMinimo: 5,
-    unidadMedida: 'Caja',
-    estado: true,
-  },
-  {
-    id: 'prod-006',
-    nombre: 'Mochila Escolar Totto Acuarela Resistente',
-    codigoBarras: '7704758362145',
-    sku: 'MOC-TOT-ACU',
-    descripcion: 'Compartimento para laptop 14", lona impermeable y correas ergonómicas',
-    categoriaId: 'cat-004',
-    categoriaNombre: 'Mochilas y Estuches',
-    precioVenta: 950.0,
-    costo: 720.0,
-    stock: 8,
-    stockMinimo: 3,
-    unidadMedida: 'Unidad',
-    estado: true,
-  },
-  {
-    id: 'prod-007',
-    nombre: 'Borrador de Nata Pelikan Blanco Grande WS-30',
-    codigoBarras: '4012700720444',
-    sku: 'BOR-PEL-WS30',
-    descripcion: 'No mancha ni rompe el papel, libre de látex y residuos suaves',
-    categoriaId: 'cat-002',
-    categoriaNombre: 'Escritura y Corrección',
-    precioVenta: 15.0,
-    costo: 8.5,
-    stock: 80,
-    stockMinimo: 20,
-    unidadMedida: 'Unidad',
-    estado: true,
-  },
-];
+// ─── Las constantes DEFAULT_OFFLINE_* se mantienen solo como referencia de IDs a purgar.
+// NUNCA se muestran al usuario como datos reales.
+export const DEFAULT_OFFLINE_SUPPLIERS: LocalSupplier[] = [];
+export const DEFAULT_OFFLINE_CATEGORIES: LocalCategory[] = [];
+export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = [];
 
 /**
- * F-02: Guardar catálogo en caché local Dexie
+ * Purga datos ficticios de Dexie (llamada manual o por migración)
+ */
+async function purgeDummyData(): Promise<void> {
+  try {
+    const cleaned = await db.metadata.get('dummyDataCleaned');
+    if (cleaned?.value === 'v5') return; // ya limpiado por migración Dexie v5
+
+    const [pDel, cDel, sDel] = await Promise.all([
+      db.products.where('id').anyOf(DUMMY_PRODUCT_IDS).delete(),
+      db.categories.where('id').anyOf(DUMMY_CATEGORY_IDS).delete(),
+      db.suppliers.where('id').anyOf(DUMMY_SUPPLIER_IDS).delete(),
+    ]);
+    if (pDel + cDel + sDel > 0) {
+      console.log(`[SyncService] Purga de datos ficticios: ${pDel} productos, ${cDel} categorías, ${sDel} proveedores eliminados.`);
+    }
+    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v5' });
+  } catch (e) {
+    console.warn('[SyncService] Error en purga de datos ficticios:', e);
+  }
+}
+
+/**
+ * F-02: Guardar catálogo en caché local Dexie.
+ * Modo "reemplazante total" — borra todo lo que no vino del servidor.
+ * Esto garantiza que offline = exactamente lo que está en línea.
  */
 export async function cacheCatalogLocally(
   products: LocalProduct[],
   categories: LocalCategory[],
-  clearExisting = false
+  clearExisting: boolean = true,
 ): Promise<void> {
   try {
-    const dummyProductIds = DEFAULT_OFFLINE_PRODUCTS.map((p) => p.id);
-    const dummyCategoryIds = DEFAULT_OFFLINE_CATEGORIES.map((c) => c.id);
-
     if (categories && categories.length > 0) {
-      if (clearExisting) {
-        await db.categories.clear();
-      } else {
-        const hasRealCategories = categories.some((c) => !dummyCategoryIds.includes(c.id));
-        if (hasRealCategories) {
-          await db.categories.where('id').anyOf(dummyCategoryIds).delete();
+      await db.transaction('rw', db.categories, async () => {
+        if (clearExisting) {
+          await db.categories.clear();
         }
-      }
-      await db.categories.bulkPut(categories);
+        await db.categories.bulkPut(categories);
+      });
     }
 
     if (products && products.length > 0) {
-      const hasRealProducts = products.some((p) => !dummyProductIds.includes(p.id));
-      if (hasRealProducts) {
-        await db.products.where('id').anyOf(dummyProductIds).delete();
-      }
-      if (clearExisting) {
-        await db.products.clear();
-      }
-      await db.products.bulkPut(products);
+      await db.transaction('rw', db.products, async () => {
+        if (clearExisting) {
+          await db.products.clear();
+        }
+        await db.products.bulkPut(products);
+      });
     }
 
     await db.metadata.put({
       key: 'lastCatalogSync',
       value: new Date().toISOString(),
     });
-    console.log(`[SyncService] Catálogo sincronizado en Dexie: ${products.length} productos, ${categories.length} categorías.`);
+    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v5' });
+
+    console.log(`[SyncService] Catálogo sincronizado en Dexie (clearExisting=${clearExisting}): ${products.length} productos, ${categories.length} categorías.`);
   } catch (err) {
     console.warn('[SyncService] Error al guardar catálogo en Dexie:', err);
   }
 }
 
 /**
- * Inicializar catálogo predeterminado si Dexie está vacío
+ * F-02: Guardar proveedores en caché local (reemplazo total, sin datos ficticios)
  */
-export async function ensureLocalCatalogInitialized(): Promise<void> {
+export async function cacheSuppliersLocally(suppliers: LocalSupplier[]): Promise<void> {
   try {
-    const prodCount = await db.products.count();
-    if (prodCount === 0) {
-      console.log('⚡ [SyncService] Inicializando catálogo predeterminado en Dexie para funcionamiento offline...');
-      await cacheCatalogLocally(DEFAULT_OFFLINE_PRODUCTS, DEFAULT_OFFLINE_CATEGORIES);
-    }
-
-    const suppCount = await db.suppliers.count();
-    if (suppCount === 0) {
-      console.log('⚡ [SyncService] Inicializando proveedores predeterminados en Dexie para funcionamiento offline...');
-      await db.suppliers.bulkPut(DEFAULT_OFFLINE_SUPPLIERS);
+    if (suppliers && suppliers.length > 0) {
+      await db.transaction('rw', db.suppliers, async () => {
+        await db.suppliers.clear();
+        await db.suppliers.bulkPut(suppliers);
+      });
+      await db.metadata.put({ key: 'lastSuppliersSync', value: new Date().toISOString() });
+      console.log(`[SyncService] ${suppliers.length} proveedores sincronizados en Dexie.`);
     }
   } catch (err) {
-    console.warn('[SyncService] Error verificando catálogo local Dexie:', err);
+    console.warn('[SyncService] Error cacheando proveedores:', err);
   }
 }
 
 /**
- * Obtener proveedores desde caché local Dexie
+ * Ya no se inicializa con datos ficticios. Si Dexie está vacío sin conexión,
+ * el usuario verá una pantalla de "Sin datos — conéctate para sincronizar".
+ */
+export async function ensureLocalCatalogInitialized(): Promise<void> {
+  // Solo purgar datos ficticios si quedaron de versiones anteriores
+  await purgeDummyData();
+}
+
+/**
+ * Obtener proveedores desde caché local Dexie.
+ * Retorna array vacío si no hay datos reales — nunca retorna ficticios.
  */
 export async function getLocalSuppliersFromDexie(): Promise<LocalSupplier[]> {
   try {
-    let supps = await db.suppliers.toArray();
-    if (supps.length === 0) {
-      await ensureLocalCatalogInitialized();
-      supps = await db.suppliers.toArray();
-    }
-    return supps.length > 0 ? supps : DEFAULT_OFFLINE_SUPPLIERS;
+    await purgeDummyData();
+    const supps = await db.suppliers.toArray();
+    return supps;
   } catch (err) {
     console.warn('[SyncService] Error obteniendo proveedores de Dexie:', err);
-    return DEFAULT_OFFLINE_SUPPLIERS;
+    return [];
   }
 }
 
 /**
- * F-02: Obtener catálogo desde caché local Dexie cuando no hay red
+ * F-02: Obtener catálogo desde caché local Dexie cuando no hay red.
+ * Solo retorna datos que vinieron del servidor (nunca ficticios).
  */
 export async function getLocalCatalogFromDexie(query?: string, categoryId?: string): Promise<{
   products: LocalProduct[];
@@ -344,33 +240,10 @@ export async function getLocalCatalogFromDexie(query?: string, categoryId?: stri
   lastSync: string | null;
 }> {
   try {
+    await purgeDummyData();
+
     let prods = await db.products.toArray();
     let cats = await db.categories.toArray();
-
-    // Si Dexie está vacío, auto-poblar con catálogo inicial
-    if (prods.length === 0) {
-      await ensureLocalCatalogInitialized();
-      prods = await db.products.toArray();
-      cats = await db.categories.toArray();
-    }
-
-    // Purgar productos ficticios/dummy si ya existen productos reales del backend en Dexie
-    const dummyProductIds = DEFAULT_OFFLINE_PRODUCTS.map((p) => p.id);
-    const hasRealProducts = prods.some((p) => !dummyProductIds.includes(p.id));
-    if (hasRealProducts) {
-      const dummyFound = prods.filter((p) => dummyProductIds.includes(p.id));
-      if (dummyFound.length > 0) {
-        await db.products.where('id').anyOf(dummyProductIds).delete();
-        prods = await db.products.toArray();
-      }
-
-      const dummyCategoryIds = DEFAULT_OFFLINE_CATEGORIES.map((c) => c.id);
-      const dummyCatsFound = cats.filter((c) => dummyCategoryIds.includes(c.id));
-      if (dummyCatsFound.length > 0) {
-        await db.categories.where('id').anyOf(dummyCategoryIds).delete();
-        cats = await db.categories.toArray();
-      }
-    }
 
     const meta = await db.metadata.get('lastCatalogSync');
 
@@ -397,26 +270,35 @@ export async function getLocalCatalogFromDexie(query?: string, categoryId?: stri
   } catch (err) {
     console.error('[SyncService] Error leyendo Dexie local:', err);
     return {
-      products: DEFAULT_OFFLINE_PRODUCTS,
-      categories: DEFAULT_OFFLINE_CATEGORIES,
-      lastSync: new Date().toISOString(),
+      products: [],
+      categories: [],
+      lastSync: null,
     };
   }
 }
 
 /**
- * Refrescar catálogo en segundo plano desde el servidor
+ * Refrescar catálogo completo desde el servidor (reemplazo total)
+ * Se llama al volver a estar online y periódicamente.
  */
 export async function refreshCatalogInBackground(): Promise<void> {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
   try {
-    const [pRes, cRes] = await Promise.all([
-      apiFetch<LocalProduct[]>('/products?includeInactive=false'),
+    const [pRes, cRes, sRes] = await Promise.all([
+      apiFetch<LocalProduct[]>('/products?includeInactive=false&all=true'),
       apiFetch<LocalCategory[]>('/categories'),
+      apiFetch<LocalSupplier[]>('/suppliers'),
     ]);
+
     if (pRes.success && pRes.data && pRes.data.length > 0) {
-      await cacheCatalogLocally(pRes.data, cRes.data || [], true);
+      await cacheCatalogLocally(pRes.data, cRes.data || []);
     }
+
+    if (sRes.success && sRes.data && sRes.data.length > 0) {
+      await cacheSuppliersLocally(sRes.data);
+    }
+
+    console.log('[SyncService] Catálogo refrescado desde el servidor.');
   } catch (e) {
     // Silencioso en segundo plano
   }
@@ -428,8 +310,8 @@ export async function refreshCatalogInBackground(): Promise<void> {
 export function initSyncManager() {
   if (typeof window === 'undefined') return;
 
-  // Garantizar catálogo base local de inmediato
-  ensureLocalCatalogInitialized();
+  // Al arrancar: purgar datos ficticios que pudieran quedar
+  purgeDummyData();
 
   // Escuchar cuando el navegador recupera la conexión a internet
   window.addEventListener('online', () => {
@@ -438,7 +320,7 @@ export function initSyncManager() {
     syncPendingSales();
   });
 
-  // Disparar sincronización periódica cada 20 segundos si hay pendientes
+  // Sincronización periódica cada 20 segundos si hay ventas pendientes
   setInterval(async () => {
     if (navigator.onLine) {
       const pendingCount = await db.offlineSales

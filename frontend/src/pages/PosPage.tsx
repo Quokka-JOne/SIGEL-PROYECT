@@ -143,7 +143,7 @@ export const PosPage: React.FC = () => {
       setLastSyncTime(local.lastSync);
 
       if (local.products.length === 0) {
-        setErrorMessage(prodRes.message || 'Sin conexión y no se encontraron productos en caché local.');
+        setErrorMessage('Sin conexión a Internet. Conéctate una vez para sincronizar y descargar el catálogo de productos.');
       }
     }
 
@@ -541,8 +541,14 @@ export const PosPage: React.FC = () => {
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-20 text-gray-500">
-                <span className="material-symbols-outlined text-5xl mb-2 text-gray-600">search_off</span>
-                <p className="text-sm">No se encontraron productos disponibles en el catálogo.</p>
+                <span className="material-symbols-outlined text-5xl mb-2 text-gray-600">
+                  {isOfflineMode ? 'wifi_off' : 'search_off'}
+                </span>
+                <p className="text-sm font-medium">
+                  {isOfflineMode
+                    ? 'Modo sin conexión: no hay productos en la memoria local. Conéctate a Internet para sincronizar el catálogo.'
+                    : 'No se encontraron productos disponibles en el catálogo.'}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
