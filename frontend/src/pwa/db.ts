@@ -83,6 +83,22 @@ export interface LocalMetadata {
   value: string;
 }
 
+export type SyncEntity = 'CATEGORY' | 'PRODUCT' | 'SUPPLIER';
+export type SyncOperationStatus = 'PENDING' | 'SYNCING' | 'ERROR';
+export interface LocalSyncOperation {
+  operationId: string;
+  entity: SyncEntity;
+  action: 'CREATE';
+  localId: string;
+  payload: Record<string, unknown>;
+  status: SyncOperationStatus;
+  attempts: number;
+  nextAttemptAt: string;
+  lastError?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Ventas del servidor cacheadas localmente para acceso offline */
 export interface LocalSale {
   id: string;
@@ -129,6 +145,7 @@ export class JINStockDB extends Dexie {
   metadata!: Table<LocalMetadata>;
   localSales!: Table<LocalSale>;
   localUsers!: Table<LocalUser>;
+  syncQueue!: Table<LocalSyncOperation>;
 
   constructor() {
     super('JINStockDB');
@@ -212,6 +229,42 @@ export class JINStockDB extends Dexie {
         await tx.table('metadata').put({ key: 'dummyDataCleaned', value: 'v6' });
         console.log('[JINStockDB v6] Purgados datos locales obsoletos y ficticios.');
       });
+
+    // Versión 7: outbox durable para altas offline reintentables.
+    this.version(7).stores({
+      products: 'id, codigoBarras, sku, nombre, categoriaId, estado, stock',
+      categories: 'id, nombre, estado',
+      offlineSales: '++id, offlineId, numeroComprobante, estado, synced, fecha',
+      metadata: 'key',
+      suppliers: 'id, nombre, ruc, estado',
+      purchases: 'id, numeroFactura, proveedorId, fecha, estado',
+      localSales: 'id, numeroComprobante, fecha, estado, cachedAt',
+      localUsers: 'id, nombre, rol, estado, cachedAt',
+      syncQueue: 'operationId, entity, status, localId, nextAttemptAt, createdAt',
+    }).upgrade(async (tx) => {
+      const now = new Date().toISOString();
+      const [products, suppliers, categories] = await Promise.all([
+        tx.table('products').filter((item: LocalProduct) => item.id.startsWith('prod-local-')).toArray(),
+        tx.table('suppliers').filter((item: LocalSupplier) => item.id.startsWith('prov-local-')).toArray(),
+        tx.table('categories').filter((item: LocalCategory) => item.id.startsWith('cat-local-')).toArray(),
+      ]);
+      const operations = [
+        ...categories.map((item: LocalCategory) => ({ entity: 'CATEGORY' as const, localId: item.id, payload: { nombre: item.nombre, descripcion: item.descripcion || undefined } })),
+        ...suppliers.map((item: LocalSupplier) => ({ entity: 'SUPPLIER' as const, localId: item.id, payload: { nombre: item.nombre, ruc: item.ruc, telefono: item.telefono, email: item.email, direccion: item.direccion } })),
+        ...products.map((item: LocalProduct) => ({ entity: 'PRODUCT' as const, localId: item.id, payload: { nombre: item.nombre, codigoBarras: item.codigoBarras, sku: item.sku, descripcion: item.descripcion, imagenUrl: item.imagenUrl, categoriaId: item.categoriaId, precioVenta: item.precioVenta, costo: item.costo, stock: item.stock, stockMinimo: item.stockMinimo, unidadMedida: item.unidadMedida } })),
+      ];
+      await tx.table('syncQueue').bulkPut(operations.map((item) => ({
+        ...item,
+        operationId: `migrated-${item.localId}`,
+        action: 'CREATE' as const,
+        status: 'PENDING' as const,
+        attempts: 0,
+        nextAttemptAt: now,
+        lastError: null,
+        createdAt: now,
+        updatedAt: now,
+      })));
+    });
   }
 }
 

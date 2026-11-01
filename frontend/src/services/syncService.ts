@@ -1,13 +1,15 @@
 import {
   db,
+  type LocalCategory,
   DUMMY_PRODUCT_IDS,
   DUMMY_CATEGORY_IDS,
   DUMMY_SUPPLIER_IDS,
   type LocalProduct,
-  type LocalCategory,
   type LocalSupplier,
   type LocalSale,
   type LocalUser,
+  type LocalSyncOperation,
+  type SyncEntity,
 } from '../pwa/db';
 import { apiFetch } from './api';
 
@@ -32,6 +34,202 @@ const notifyListeners = () => {
 };
 
 let isSyncing = false;
+let isSyncingCreates = false;
+
+const newOperationId = (): string => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
+  return `op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+/** Guarda la entidad visible y su operación en la outbox en una sola transacción. */
+export async function enqueueLocalCreate(
+  entity: SyncEntity,
+  record: LocalCategory | LocalProduct | LocalSupplier,
+  payload: Record<string, unknown>,
+  operationId = newOperationId(),
+): Promise<string> {
+  const now = new Date().toISOString();
+  const operation: LocalSyncOperation = {
+    operationId,
+    entity,
+    action: 'CREATE',
+    localId: record.id,
+    payload,
+    status: 'PENDING',
+    attempts: 0,
+    nextAttemptAt: now,
+    lastError: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  if (entity === 'CATEGORY') {
+    await db.transaction('rw', db.categories, db.syncQueue, async () => {
+      await db.categories.put(record as LocalCategory);
+      await db.syncQueue.put(operation);
+    });
+  } else if (entity === 'PRODUCT') {
+    await db.transaction('rw', db.products, db.syncQueue, async () => {
+      await db.products.put(record as LocalProduct);
+      await db.syncQueue.put(operation);
+    });
+  } else {
+    await db.transaction('rw', db.suppliers, db.syncQueue, async () => {
+      await db.suppliers.put(record as LocalSupplier);
+      await db.syncQueue.put(operation);
+    });
+  }
+  notifyListeners();
+  return operation.operationId;
+}
+
+const retryDelayMs = (attempt: number): number => Math.min(15 * 60_000, 2_000 * (2 ** Math.min(attempt, 9)));
+
+async function replaceLocalProductReferences(localId: string, serverId: string, serverProduct: any): Promise<void> {
+  await db.transaction('rw', db.products, db.offlineSales, db.purchases, async () => {
+    const localProduct = await db.products.get(localId);
+    if (localProduct) {
+      await db.products.delete(localId);
+      await db.products.put({ ...localProduct, ...serverProduct, id: serverId } as LocalProduct);
+    }
+    await db.offlineSales.toCollection().modify((sale) => {
+      sale.detalles = sale.detalles.map((detail) => detail.productoId === localId
+        ? { ...detail, productoId: serverId }
+        : detail);
+    });
+    await db.purchases.toCollection().modify((purchase) => {
+      purchase.detalles = (purchase.detalles || []).map((detail) => detail.productoId === localId
+        ? { ...detail, productoId: serverId }
+        : detail);
+    });
+  });
+}
+
+async function replaceLocalSupplierReferences(localId: string, serverId: string): Promise<void> {
+  await db.transaction('rw', db.suppliers, db.purchases, async () => {
+    await db.suppliers.delete(localId);
+    await db.purchases.toCollection().modify((purchase) => {
+      if (purchase.proveedorId === localId) purchase.proveedorId = serverId;
+    });
+  });
+}
+
+async function replaceLocalCategoryReferences(localId: string, serverId: string): Promise<void> {
+  await db.transaction('rw', db.categories, db.products, db.syncQueue, async () => {
+    const category = await db.categories.get(localId);
+    if (category) {
+      await db.categories.delete(localId);
+      await db.categories.put({ ...category, id: serverId });
+    }
+    await db.products.where('categoriaId').equals(localId).modify({ categoriaId: serverId });
+    const dependentOps = await db.syncQueue.where('entity').equals('PRODUCT').toArray();
+    for (const op of dependentOps) {
+      if (op.payload.categoriaId === localId) {
+        await db.syncQueue.update(op.operationId, {
+          payload: { ...op.payload, categoriaId: serverId },
+          status: 'PENDING',
+          nextAttemptAt: new Date().toISOString(),
+          lastError: null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+  });
+}
+
+/** Reintenta la outbox en orden seguro; 4xx permanecen visibles como ERROR y no se descartan. */
+export async function syncPendingCreates(): Promise<{ processed: number; synced: number; errors: number }> {
+  if (isSyncingCreates || typeof navigator !== 'undefined' && !navigator.onLine) {
+    return { processed: 0, synced: 0, errors: 0 };
+  }
+  isSyncingCreates = true;
+  let processed = 0;
+  let synced = 0;
+  let errors = 0;
+  try {
+    const now = Date.now();
+    const queue = await db.syncQueue.orderBy('createdAt').toArray();
+    // Recuperar operaciones interrumpidas por cierre de pestaña o apagado.
+    for (const stale of queue.filter((op) => op.status === 'SYNCING')) {
+      await db.syncQueue.update(stale.operationId, { status: 'PENDING', updatedAt: new Date().toISOString() });
+    }
+    // Categorías primero por ser prerequisito de productos.
+    const priority = { CATEGORY: 0, SUPPLIER: 1, PRODUCT: 2 };
+    queue.sort((a, b) => priority[a.entity] - priority[b.entity] || a.createdAt.localeCompare(b.createdAt));
+    for (const queuedOp of queue) {
+      const op = await db.syncQueue.get(queuedOp.operationId);
+      if (!op) continue;
+      if (op.status !== 'PENDING' && op.status !== 'SYNCING') continue;
+      if (Date.parse(op.nextAttemptAt) > now) continue;
+      const payload = op.payload as Record<string, any>;
+      if (op.entity === 'PRODUCT' && String(payload.categoriaId || '').startsWith('cat-local-')) {
+        await db.syncQueue.update(op.operationId, {
+          status: 'ERROR',
+          lastError: 'La categoría local aún no existe en el servidor; sincronice primero la categoría.',
+          updatedAt: new Date().toISOString(),
+        });
+        errors++;
+        continue;
+      }
+      processed++;
+      await db.syncQueue.update(op.operationId, { status: 'SYNCING', updatedAt: new Date().toISOString() });
+      const endpoint = op.entity === 'CATEGORY' ? '/categories' : op.entity === 'PRODUCT' ? '/products' : '/suppliers';
+      const res = await apiFetch<any>(endpoint, {
+        method: 'POST',
+        headers: { 'Idempotency-Key': op.operationId },
+        body: JSON.stringify(payload),
+      });
+      if (res.success && res.data?.id) {
+        if (op.entity === 'CATEGORY') {
+          await replaceLocalCategoryReferences(op.localId, String(res.data.id));
+        } else if (op.entity === 'PRODUCT') {
+          await replaceLocalProductReferences(op.localId, String(res.data.id), res.data);
+        } else if (op.entity === 'SUPPLIER') {
+          await replaceLocalSupplierReferences(op.localId, String(res.data.id));
+          await db.suppliers.put({ ...payload, ...res.data, id: String(res.data.id) } as LocalSupplier);
+        }
+        await db.syncQueue.delete(op.operationId);
+        synced++;
+      } else if (res.networkError || (res.status || 0) >= 500) {
+        const attempts = op.attempts + 1;
+        await db.syncQueue.update(op.operationId, {
+          status: 'PENDING',
+          attempts,
+          nextAttemptAt: new Date(Date.now() + retryDelayMs(attempts)).toISOString(),
+          lastError: res.message || 'No se pudo contactar al servidor.',
+          updatedAt: new Date().toISOString(),
+        });
+        errors++;
+      } else {
+        await db.syncQueue.update(op.operationId, {
+          status: 'ERROR',
+          attempts: op.attempts + 1,
+          lastError: res.message || 'El servidor rechazó la operación.',
+          updatedAt: new Date().toISOString(),
+        });
+        errors++;
+      }
+    }
+  } catch (err) {
+    console.error('[SyncService] Error procesando altas offline:', err);
+  } finally {
+    isSyncingCreates = false;
+    notifyListeners();
+  }
+  return { processed, synced, errors };
+}
+
+export async function retryFailedCreates(): Promise<void> {
+  const now = new Date().toISOString();
+  await db.syncQueue.toCollection().modify((operation) => {
+    if (operation.status !== 'SYNCING') {
+      operation.status = 'PENDING';
+      operation.nextAttemptAt = now;
+      operation.lastError = null;
+      operation.updatedAt = now;
+    }
+  });
+  notifyListeners();
+}
 
 /**
  * C-01 & F-01: Procesa las ventas offline en cola (PENDIENTE o ERROR)
@@ -55,6 +253,10 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
       .toArray();
 
     for (const sale of pendingSales) {
+      if (sale.detalles.some((detail) => detail.productoId.startsWith('prod-local-'))) {
+        // No marcar ERROR: el procesador de altas sustituirá esos IDs y luego se reintentará.
+        continue;
+      }
       processed++;
       await db.offlineSales.update(sale.id!, {
         estado: 'SINCRONIZANDO',
@@ -153,34 +355,27 @@ export async function purgeDummyData(): Promise<void> {
 export async function cacheCatalogLocally(
   products: LocalProduct[],
   categories: LocalCategory[],
-  clearExisting: boolean = true,
+  clearExisting: boolean = false,
 ): Promise<void> {
   try {
-    if (categories && categories.length > 0) {
-      await db.transaction('rw', db.categories, async () => {
-        if (clearExisting) {
-          await db.categories.clear();
-        }
-        await db.categories.bulkPut(categories);
-      });
-    }
-
-    if (products && products.length > 0) {
-      await db.transaction('rw', db.products, async () => {
-        // Preservar productos creados localmente en modo offline que aún no han subido a Neon
-        const pendingLocal = await db.products.filter((p) => p.id.startsWith('prod-local-')).toArray();
-        if (clearExisting) {
-          await db.products.clear();
-        }
-        await db.products.bulkPut([...products, ...pendingLocal]);
-      });
-    }
-
-    await db.metadata.put({
-      key: 'lastCatalogSync',
-      value: new Date().toISOString(),
+    // Las búsquedas/filtros son parciales: solo se mezclan. Una descarga total
+    // reemplaza también si el servidor devuelve [], evitando conservar datos borrados.
+    await db.transaction('rw', db.products, db.categories, db.metadata, async () => {
+      const pendingLocal = clearExisting
+        ? await db.products.filter((p) => p.id.startsWith('prod-local-')).toArray()
+        : [];
+      const pendingCategories = clearExisting
+        ? await db.categories.filter((category) => category.id.startsWith('cat-local-')).toArray()
+        : [];
+      if (clearExisting) {
+        await db.products.clear();
+        await db.categories.clear();
+      }
+      if (products) await db.products.bulkPut([...products, ...pendingLocal]);
+      if (categories) await db.categories.bulkPut([...categories, ...pendingCategories]);
+      await db.metadata.put({ key: 'lastCatalogSync', value: new Date().toISOString() });
+      await db.metadata.put({ key: 'dummyDataCleaned', value: 'v6' });
     });
-    await db.metadata.put({ key: 'dummyDataCleaned', value: 'v6' });
 
     console.log(`[SyncService] Catálogo sincronizado en Dexie (clearExisting=${clearExisting}): ${products.length} productos, ${categories.length} categorías.`);
   } catch (err) {
@@ -193,16 +388,13 @@ export async function cacheCatalogLocally(
  */
 export async function cacheSuppliersLocally(suppliers: LocalSupplier[]): Promise<void> {
   try {
-    if (suppliers && suppliers.length > 0) {
-      await db.transaction('rw', db.suppliers, async () => {
-        // Preservar proveedores creados localmente en modo offline
-        const pendingLocal = await db.suppliers.filter((s) => s.id.startsWith('prov-local-')).toArray();
-        await db.suppliers.clear();
-        await db.suppliers.bulkPut([...suppliers, ...pendingLocal]);
-      });
+    await db.transaction('rw', db.suppliers, db.metadata, async () => {
+      const pendingLocal = await db.suppliers.filter((s) => s.id.startsWith('prov-local-')).toArray();
+      await db.suppliers.clear();
+      await db.suppliers.bulkPut([...suppliers, ...pendingLocal]);
       await db.metadata.put({ key: 'lastSuppliersSync', value: new Date().toISOString() });
-      console.log(`[SyncService] ${suppliers.length} proveedores sincronizados en Dexie.`);
-    }
+    });
+    console.log(`[SyncService] ${suppliers.length} proveedores sincronizados en Dexie.`);
   } catch (err) {
     console.warn('[SyncService] Error cacheando proveedores:', err);
   }
@@ -292,11 +484,11 @@ export async function refreshCatalogInBackground(): Promise<void> {
       apiFetch<LocalSupplier[]>('/suppliers'),
     ]);
 
-    if (pRes.success && pRes.data && pRes.data.length > 0) {
-      await cacheCatalogLocally(pRes.data, cRes.data || []);
+    if (pRes.success && Array.isArray(pRes.data) && cRes.success && Array.isArray(cRes.data)) {
+      await cacheCatalogLocally(pRes.data, cRes.data, true);
     }
 
-    if (sRes.success && sRes.data && sRes.data.length > 0) {
+    if (sRes.success && Array.isArray(sRes.data)) {
       await cacheSuppliersLocally(sRes.data);
     }
 
@@ -323,18 +515,23 @@ export function initSyncManager() {
   window.addEventListener('online', () => {
     console.log('🌐 [SyncManager] Conexión a Internet detectada. Sincronizando catálogo completo y ventas...');
     syncAllFromServer().catch(() => {});
-    syncPendingSales();
   });
 
-  // Sincronización periódica cada 20 segundos si hay ventas pendientes
+  // Reintentar altas con backoff y luego ventas dependientes cada 20 segundos.
   setInterval(async () => {
     if (navigator.onLine) {
-      const pendingCount = await db.offlineSales
+      const [pendingCount, queue] = await Promise.all([
+        db.offlineSales
         .where('estado')
         .anyOf('PENDIENTE')
-        .count();
-
-      if (pendingCount > 0) {
+        .count(),
+        db.syncQueue.toArray(),
+      ]);
+      const hasDueCreates = queue.some((op) => op.status === 'PENDING' && Date.parse(op.nextAttemptAt) <= Date.now());
+      if (hasDueCreates) {
+        await syncPendingCreates();
+        syncPendingSales();
+      } else if (pendingCount > 0) {
         syncPendingSales();
       }
     }
@@ -474,51 +671,8 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
   try {
     await purgeDummyData();
 
-    // 1. Subir a Neon los proveedores creados localmente en offline
-    const pendingSupps = await db.suppliers.filter((s) => s.id.startsWith('prov-local-')).toArray();
-    for (const sup of pendingSupps) {
-      try {
-        const res = await apiFetch<any>('/suppliers', {
-          method: 'POST',
-          body: JSON.stringify({
-            nombre: sup.nombre,
-            ruc: sup.ruc || undefined,
-            telefono: sup.telefono || undefined,
-            email: sup.email || undefined,
-            direccion: sup.direccion || undefined,
-          }),
-        });
-        if (res.success) {
-          await db.suppliers.delete(sup.id);
-        }
-      } catch {}
-    }
-
-    // 2. Subir a Neon los productos creados localmente en offline
-    const pendingProds = await db.products.filter((p) => p.id.startsWith('prod-local-')).toArray();
-    for (const prod of pendingProds) {
-      try {
-        const res = await apiFetch<any>('/products', {
-          method: 'POST',
-          body: JSON.stringify({
-            nombre: prod.nombre,
-            codigoBarras: prod.codigoBarras || undefined,
-            sku: prod.sku || undefined,
-            descripcion: prod.descripcion || undefined,
-            imagenUrl: prod.imagenUrl || undefined,
-            categoriaId: prod.categoriaId,
-            precioVenta: prod.precioVenta,
-            costo: prod.costo,
-            stock: prod.stock,
-            stockMinimo: prod.stockMinimo,
-            unidadMedida: prod.unidadMedida || 'Unidad',
-          }),
-        });
-        if (res.success) {
-          await db.products.delete(prod.id);
-        }
-      } catch {}
-    }
+    const createSync = await syncPendingCreates();
+    await syncPendingSales();
 
     const [pRes, cRes, sRes, uRes, salesRes, purRes] = await Promise.all([
       apiFetch<LocalProduct[]>('/products?includeInactive=false&all=true'),
@@ -533,12 +687,12 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
     let suppCount = 0;
     let userCount = 0;
 
-    if (pRes.success && pRes.data) {
+    if (pRes.success && Array.isArray(pRes.data) && cRes.success && Array.isArray(cRes.data)) {
       await cacheCatalogLocally(pRes.data, cRes.data || [], true);
       prodCount = pRes.data.length;
     }
 
-    if (sRes.success && sRes.data) {
+    if (sRes.success && Array.isArray(sRes.data)) {
       await cacheSuppliersLocally(sRes.data);
       suppCount = sRes.data.length;
     }
@@ -560,8 +714,8 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
 
     return {
       success: true,
-      message: `Sincronización completa con Neon: ${prodCount} productos, ${suppCount} proveedores, ${userCount} usuarios.`,
-      details: { prodCount, suppCount, userCount },
+      message: `Sincronización con Neon: ${prodCount} productos, ${suppCount} proveedores, ${userCount} usuarios; ${createSync.synced} altas offline confirmadas${createSync.errors ? `, ${createSync.errors} pendientes o con error` : ''}.`,
+      details: { prodCount, suppCount, userCount, ...createSync },
     };
   } catch (err: any) {
     console.error('[SyncService] Error en syncAllFromServer:', err);

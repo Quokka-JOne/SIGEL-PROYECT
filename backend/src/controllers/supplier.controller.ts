@@ -29,6 +29,14 @@ export const getSuppliers = async (req: Request, res: Response, next: NextFuncti
 
 export const createSupplier = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const clientMutationId = req.header('Idempotency-Key')?.trim();
+    if (clientMutationId) {
+      const previous = await prisma.proveedor.findUnique({ where: { clientMutationId } });
+      if (previous) {
+        res.json({ success: true, data: previous, message: 'Proveedor ya registrado para esta operación.' });
+        return;
+      }
+    }
     const { nombre, ruc, telefono, email, direccion } = req.body;
 
     if (!nombre || !nombre.trim()) {
@@ -42,6 +50,7 @@ export const createSupplier = async (req: Request, res: Response, next: NextFunc
         telefono: telefono ? telefono.trim() : null,
         email: email ? email.trim().toLowerCase() : null,
         direccion: direccion ? direccion.trim() : null,
+        ...(clientMutationId ? { clientMutationId } : {}),
         estado: true,
       },
     });

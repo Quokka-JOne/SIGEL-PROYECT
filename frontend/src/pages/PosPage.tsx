@@ -5,6 +5,8 @@ import { db, type LocalOfflineSale } from '../pwa/db';
 import {
   cacheCatalogLocally,
   getLocalCatalogFromDexie,
+  syncPendingCreates,
+  retryFailedCreates,
   syncPendingSales,
   onSyncChange,
 } from '../services/syncService';
@@ -62,6 +64,7 @@ export const PosPage: React.FC = () => {
 
   // Offline queue modal
   const [pendingSalesCount, setPendingSalesCount] = useState<number>(0);
+  const [pendingCreatesCount, setPendingCreatesCount] = useState<number>(0);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState<boolean>(false);
   const [offlineSalesList, setOfflineSalesList] = useState<LocalOfflineSale[]>([]);
   const [isSyncingNow, setIsSyncingNow] = useState<boolean>(false);
@@ -73,6 +76,7 @@ export const PosPage: React.FC = () => {
         .anyOf('PENDIENTE', 'SINCRONIZANDO', 'ERROR', 'REVISION')
         .count();
       setPendingSalesCount(count);
+      setPendingCreatesCount(await db.syncQueue.count());
 
       const allOffline = await db.offlineSales.orderBy('id').reverse().toArray();
       setOfflineSalesList(allOffline);
@@ -387,6 +391,8 @@ export const PosPage: React.FC = () => {
 
   const handleManualSync = async () => {
     setIsSyncingNow(true);
+    await retryFailedCreates();
+    await syncPendingCreates();
     await syncPendingSales();
     await refreshPendingCount();
     setIsSyncingNow(false);
@@ -425,6 +431,16 @@ export const PosPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <span className={`text-xs ${pendingCreatesCount > 0 ? 'text-amber-300' : 'text-gray-400'}`}>
+            Altas por sincronizar: <strong>{pendingCreatesCount}</strong>
+          </span>
+          <button
+            onClick={handleManualSync}
+            disabled={isSyncingNow || isOfflineMode}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-purple-500/30 bg-purple-500/10 text-purple-200 disabled:opacity-50"
+          >
+            {isSyncingNow ? 'Sincronizando…' : 'Sincronizar ahora'}
+          </button>
           {/* Cola de ventas offline */}
           <button
             onClick={() => setIsQueueModalOpen(true)}

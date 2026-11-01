@@ -29,6 +29,14 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const clientMutationId = req.header('Idempotency-Key')?.trim();
+    if (clientMutationId) {
+      const previous = await prisma.categoria.findUnique({ where: { clientMutationId } });
+      if (previous) {
+        res.json({ success: true, data: previous, message: 'Categoría ya registrada para esta operación.' });
+        return;
+      }
+    }
     const { nombre, descripcion } = req.body;
 
     if (!nombre || !nombre.trim()) {
@@ -46,6 +54,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
       data: {
         nombre: cleanNombre,
         descripcion: descripcion ? descripcion.trim() : null,
+        ...(clientMutationId ? { clientMutationId } : {}),
         estado: true,
       },
     });

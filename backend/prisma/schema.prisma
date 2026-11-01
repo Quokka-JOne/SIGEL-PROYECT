@@ -52,6 +52,7 @@ model Usuario {
 
 model Categoria {
   id          String   @id @default(uuid())
+  clientMutationId String? @unique
   nombre      String   @unique
   descripcion String?
   estado      Boolean  @default(true)
@@ -63,6 +64,7 @@ model Categoria {
 
 model Producto {
   id           String   @id @default(uuid())
+  clientMutationId String? @unique
   codigoBarras String?  @unique
   sku          String?  @unique
   nombre       String
@@ -90,6 +92,7 @@ model Producto {
 
 model Proveedor {
   id        String   @id @default(uuid())
+  clientMutationId String? @unique
   nombre    String
   ruc       String?
   telefono  String?

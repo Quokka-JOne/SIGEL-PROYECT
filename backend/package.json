@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "prisma generate && tsc",
-    "start": "node dist/server.js",
+    "start": "prisma migrate deploy && node dist/server.js",
     "seed": "ts-node-dev seedData.ts",
     "seed:admin": "ts-node-dev src/scripts/seedAdmin.ts",
     "test": "vitest run",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "keywords": [
     "jinstock",

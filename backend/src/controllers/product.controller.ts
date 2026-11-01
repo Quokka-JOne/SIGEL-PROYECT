@@ -164,6 +164,14 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
 
 export const createProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const clientMutationId = req.header('Idempotency-Key')?.trim();
+    if (clientMutationId) {
+      const previous = await prisma.producto.findUnique({ where: { clientMutationId } });
+      if (previous) {
+        res.json({ success: true, data: previous, message: 'Producto ya registrado para esta operación.' });
+        return;
+      }
+    }
     const {
       nombre,
       codigoBarras,
@@ -203,6 +211,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
           stock: initialStock,
           stockMinimo: minStock,
           unidadMedida: unidadMedida || 'Unidad',
+          ...(clientMutationId ? { clientMutationId } : {}),
           estado: true,
         },
       });

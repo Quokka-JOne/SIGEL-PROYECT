@@ -7,6 +7,7 @@ import {
   getLocalCatalogFromDexie,
   cacheSuppliersLocally,
   cachePurchasesLocally,
+  enqueueLocalCreate,
 } from '../services/syncService';
 import { nowISOStringNI } from '../utils/dateNI';
 
@@ -327,9 +328,21 @@ export const PurchasesPage: React.FC = () => {
     e.preventDefault();
     if (!newSuppData.nombre.trim()) return;
 
+    const localId = `prov-local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const operationId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const supplierPayload = {
+      nombre: newSuppData.nombre.trim(),
+      ruc: newSuppData.ruc.trim() || undefined,
+      telefono: newSuppData.telefono.trim() || undefined,
+      email: newSuppData.email.trim() || undefined,
+      direccion: newSuppData.direccion.trim() || undefined,
+    };
+
     if (!navigator.onLine) {
       const localSupp: SupplierItem = {
-        id: `prov-local-${Date.now()}`,
+        id: localId,
         nombre: newSuppData.nombre.trim(),
         ruc: newSuppData.ruc.trim() || undefined,
         telefono: newSuppData.telefono.trim() || undefined,
@@ -337,7 +350,7 @@ export const PurchasesPage: React.FC = () => {
         direccion: newSuppData.direccion.trim() || undefined,
         estado: true,
       };
-      await db.suppliers.put(localSupp);
+      await enqueueLocalCreate('SUPPLIER', localSupp, supplierPayload, operationId);
       setIsSupplierModalOpen(false);
       setNewSuppData({ nombre: '', ruc: '', telefono: '', email: '', direccion: '' });
       setMessage({ type: 'success', text: 'Proveedor registrado localmente en modo offline.' });
@@ -347,7 +360,8 @@ export const PurchasesPage: React.FC = () => {
 
     const res = await apiFetch<SupplierItem>('/suppliers', {
       method: 'POST',
-      body: JSON.stringify(newSuppData),
+      headers: { 'Idempotency-Key': operationId },
+      body: JSON.stringify(supplierPayload),
     });
 
     if (res.success && res.data) {
@@ -357,7 +371,7 @@ export const PurchasesPage: React.FC = () => {
       fetchData();
     } else if (res.networkError) {
       const localSupp: SupplierItem = {
-        id: `prov-local-${Date.now()}`,
+        id: localId,
         nombre: newSuppData.nombre.trim(),
         ruc: newSuppData.ruc.trim() || undefined,
         telefono: newSuppData.telefono.trim() || undefined,
@@ -365,7 +379,7 @@ export const PurchasesPage: React.FC = () => {
         direccion: newSuppData.direccion.trim() || undefined,
         estado: true,
       };
-      await db.suppliers.put(localSupp);
+      await enqueueLocalCreate('SUPPLIER', localSupp, supplierPayload, operationId);
       setIsSupplierModalOpen(false);
       setNewSuppData({ nombre: '', ruc: '', telefono: '', email: '', direccion: '' });
       setMessage({ type: 'success', text: 'Servidor no disponible. Proveedor guardado localmente.' });

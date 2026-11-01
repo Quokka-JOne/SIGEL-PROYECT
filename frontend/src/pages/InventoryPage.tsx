@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../pwa/db';
-import { getLocalCatalogFromDexie, cacheCatalogLocally } from '../services/syncService';
+import { getLocalCatalogFromDexie, cacheCatalogLocally, enqueueLocalCreate } from '../services/syncService';
 
 export interface ProductItem {
   id: string;
@@ -225,17 +225,22 @@ export const InventoryPage: React.FC = () => {
 
     const endpoint = editingProduct ? `/products/${editingProduct.id}` : '/products';
     const method = editingProduct ? 'PUT' : 'POST';
+    const localId = editingProduct?.id || `prod-local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const operationId = !editingProduct && typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     if (!navigator.onLine) {
       const catObj = categories.find((c) => c.id === formData.categoriaId);
       const localProd: ProductItem = {
-        id: editingProduct ? editingProduct.id : `prod-local-${Date.now()}`,
+        id: localId,
         ...payload,
         stock: editingProduct ? editingProduct.stock : (payload.stock || 0),
         estado: editingProduct ? editingProduct.estado : true,
         categoriaNombre: catObj?.nombre || 'General',
       };
-      await db.products.put(localProd as any);
+      if (editingProduct) await db.products.put(localProd as any);
+      else await enqueueLocalCreate('PRODUCT', localProd, payload, operationId);
       setIsModalOpen(false);
       setActionMessage({ type: 'success', text: `Producto ${editingProduct ? 'actualizado' : 'creado'} localmente (modo offline).` });
       fetchProducts();
@@ -245,6 +250,7 @@ export const InventoryPage: React.FC = () => {
 
     const res = await apiFetch(endpoint, {
       method,
+      ...(!editingProduct ? { headers: { 'Idempotency-Key': operationId } } : {}),
       body: JSON.stringify(payload),
     });
 
@@ -255,13 +261,14 @@ export const InventoryPage: React.FC = () => {
     } else if (res.networkError) {
       const catObj = categories.find((c) => c.id === formData.categoriaId);
       const localProd: ProductItem = {
-        id: editingProduct ? editingProduct.id : `prod-local-${Date.now()}`,
+        id: localId,
         ...payload,
         stock: editingProduct ? editingProduct.stock : (payload.stock || 0),
         estado: editingProduct ? editingProduct.estado : true,
         categoriaNombre: catObj?.nombre || 'General',
       };
-      await db.products.put(localProd as any);
+      if (editingProduct) await db.products.put(localProd as any);
+      else await enqueueLocalCreate('PRODUCT', localProd, payload, operationId);
       setIsModalOpen(false);
       setActionMessage({ type: 'success', text: `Sin conexión al servidor. Producto ${editingProduct ? 'actualizado' : 'creado'} en memoria local.` });
       fetchProducts();
@@ -377,15 +384,20 @@ export const InventoryPage: React.FC = () => {
     e.preventDefault();
     if (!newCatNombre.trim()) return;
     setCatError(null);
+    const localId = `cat-local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const operationId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const categoryPayload = { nombre: newCatNombre.trim(), descripcion: newCatDesc.trim() || undefined };
 
     if (!navigator.onLine) {
       const newCat: CategoryItem = {
-        id: `cat-local-${Date.now()}`,
+        id: localId,
         nombre: newCatNombre.trim(),
         descripcion: newCatDesc.trim() || null,
         estado: true,
       };
-      await db.categories.put(newCat as any);
+      await enqueueLocalCreate('CATEGORY', newCat, categoryPayload, operationId);
       setNewCatNombre('');
       setNewCatDesc('');
       fetchCategories();
@@ -394,7 +406,8 @@ export const InventoryPage: React.FC = () => {
 
     const res = await apiFetch<CategoryItem>('/categories', {
       method: 'POST',
-      body: JSON.stringify({ nombre: newCatNombre.trim(), descripcion: newCatDesc.trim() || undefined }),
+      headers: { 'Idempotency-Key': operationId },
+      body: JSON.stringify(categoryPayload),
     });
 
     if (res.success && res.data) {
@@ -404,12 +417,12 @@ export const InventoryPage: React.FC = () => {
       fetchCategories();
     } else if (res.networkError) {
       const newCat: CategoryItem = {
-        id: `cat-local-${Date.now()}`,
+        id: localId,
         nombre: newCatNombre.trim(),
         descripcion: newCatDesc.trim() || null,
         estado: true,
       };
-      await db.categories.put(newCat as any);
+      await enqueueLocalCreate('CATEGORY', newCat, categoryPayload, operationId);
       setNewCatNombre('');
       setNewCatDesc('');
       fetchCategories();

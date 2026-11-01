@@ -36,56 +36,75 @@ export const ReportsPage: React.FC = () => {
   const [topProductsReport, setTopProductsReport] = useState<any[]>([]);
   const [cashClosingReport, setCashClosingReport] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
 
   const fetchCurrentReport = async () => {
     setLoading(true);
+    setReportError(null);
     const online = navigator.onLine;
     setIsOffline(!online);
-
-    if (activeTab === 'SALES') {
-      const cacheKey = `sales_${desde}_${hasta}`;
-      if (!online) {
-        const cached = loadReportCache(cacheKey);
-        if (cached) setSalesReport(cached);
-        else setSalesReport(null);
-      } else {
-        const res = await apiFetch(`/reports/sales?desde=${desde}&hasta=${hasta}`);
-        if (res.success) { setSalesReport(res.data); saveReportCache(cacheKey, res.data); }
+    try {
+      if (activeTab === 'SALES') {
+        const cacheKey = `sales_${desde}_${hasta}`;
+        if (!online) {
+          const cached = loadReportCache(cacheKey);
+          setSalesReport(cached);
+        } else {
+          const res = await apiFetch(`/reports/sales?desde=${desde}&hasta=${hasta}`);
+          if (res.success) { setSalesReport(res.data); saveReportCache(cacheKey, res.data); }
+          else { setSalesReport(loadReportCache(cacheKey)); setReportError(res.message || 'No se pudo cargar el reporte de ventas.'); }
+        }
+      } else if (activeTab === 'PURCHASES') {
+        const cacheKey = `purchases_${desde}_${hasta}`;
+        if (!online) {
+          setPurchasesReport(loadReportCache(cacheKey));
+        } else {
+          const res = await apiFetch(`/reports/purchases?desde=${desde}&hasta=${hasta}`);
+          if (res.success) { setPurchasesReport(res.data); saveReportCache(cacheKey, res.data); }
+          else { setPurchasesReport(loadReportCache(cacheKey)); setReportError(res.message || 'No se pudo cargar el reporte de compras.'); }
+        }
+      } else if (activeTab === 'TOP_PRODUCTS') {
+        const cacheKey = `top_${desde}_${hasta}`;
+        if (!online) {
+          setTopProductsReport(loadReportCache(cacheKey) || []);
+        } else {
+          const res = await apiFetch(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
+          if (res.success) { setTopProductsReport(res.data || []); saveReportCache(cacheKey, res.data || []); }
+          else { setTopProductsReport(loadReportCache(cacheKey) || []); setReportError(res.message || 'No se pudo cargar el ranking de productos.'); }
+        }
+      } else if (activeTab === 'CASH_CLOSING') {
+        const cacheKey = `closing_${closingDate}`;
+        const normalize = (data: any) => data ? ({
+          ...data,
+          ventasCount: Number(data.ventasCount) || 0,
+          totalGeneral: Number(data.totalGeneral) || 0,
+          efectivoEsperadoNIO: Number(data.efectivoEsperadoNIO) || 0,
+          efectivoEsperadoUSD: Number(data.efectivoEsperadoUSD) || 0,
+          totalTarjeta: Number(data.totalTarjeta) || 0,
+          totalTransferencia: Number(data.totalTransferencia) || 0,
+        }) : null;
+        if (!online) {
+          setCashClosingReport(normalize(loadReportCache(cacheKey)));
+        } else {
+          const res = await apiFetch(`/reports/cash-closing?fecha=${closingDate}`);
+          if (res.success && res.data) {
+            const report = normalize(res.data);
+            setCashClosingReport(report);
+            saveReportCache(cacheKey, report);
+          } else {
+            setCashClosingReport(normalize(loadReportCache(cacheKey)));
+            setReportError(res.message || 'No se pudo cargar el cierre de caja.');
+          }
+        }
       }
-    } else if (activeTab === 'PURCHASES') {
-      const cacheKey = `purchases_${desde}_${hasta}`;
-      if (!online) {
-        const cached = loadReportCache(cacheKey);
-        if (cached) setPurchasesReport(cached);
-        else setPurchasesReport(null);
-      } else {
-        const res = await apiFetch(`/reports/purchases?desde=${desde}&hasta=${hasta}`);
-        if (res.success) { setPurchasesReport(res.data); saveReportCache(cacheKey, res.data); }
-      }
-    } else if (activeTab === 'TOP_PRODUCTS') {
-      const cacheKey = `top_${desde}_${hasta}`;
-      if (!online) {
-        const cached = loadReportCache(cacheKey);
-        if (cached) setTopProductsReport(cached);
-        else setTopProductsReport([]);
-      } else {
-        const res = await apiFetch(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
-        if (res.success) { setTopProductsReport(res.data || []); saveReportCache(cacheKey, res.data || []); }
-      }
-    } else if (activeTab === 'CASH_CLOSING') {
-      const cacheKey = `closing_${closingDate}`;
-      if (!online) {
-        const cached = loadReportCache(cacheKey);
-        if (cached) setCashClosingReport(cached);
-        else setCashClosingReport(null);
-      } else {
-        const res = await apiFetch(`/reports/cash-closing?fecha=${closingDate}`);
-        if (res.success) { setCashClosingReport(res.data); saveReportCache(cacheKey, res.data); }
-      }
+    } catch (error) {
+      console.error('[ReportsPage] Error cargando reporte:', error);
+      setReportError('Ocurrió un error al generar el reporte. Intente actualizarlo.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -235,6 +254,11 @@ export const ReportsPage: React.FC = () => {
         </div>
       ) : (
         <>
+          {reportError && (
+            <div role="alert" className="p-3 rounded-xl border border-rose-500/30 bg-rose-950/40 text-rose-200 text-sm">
+              {reportError}
+            </div>
+          )}
           {/* TAB 1: SALES REPORT */}
           {activeTab === 'SALES' && (
             <div className="flex flex-col gap-4">
@@ -479,6 +503,26 @@ export const ReportsPage: React.FC = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+          {activeTab === 'CASH_CLOSING' && !cashClosingReport && (
+            <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl p-8 text-center">
+              <span className="material-symbols-outlined text-4xl text-purple-400">account_balance_wallet</span>
+              <h3 className="text-base font-bold text-white mt-3">
+                {reportError ? 'No fue posible generar el cierre' : 'No hay un cierre disponible para esta fecha'}
+              </h3>
+              <p className="text-sm text-gray-400 mt-2">
+                {isOffline
+                  ? 'No existe un cierre guardado localmente para esta fecha. Conéctese a internet y vuelva a intentarlo.'
+                  : 'Verifique la fecha o actualice el reporte. Si el problema continúa, revise la conexión con el servidor.'}
+              </p>
+              <button
+                type="button"
+                onClick={fetchCurrentReport}
+                className="mt-4 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold"
+              >
+                Actualizar cierre
+              </button>
             </div>
           )}
         </>

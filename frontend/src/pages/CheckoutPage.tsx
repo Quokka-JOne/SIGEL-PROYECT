@@ -535,14 +535,7 @@ export const CheckoutPage: React.FC = () => {
             </div>
 
             {/* Grid: Left Form & Right Summary */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 0.9fr)',
-                gap: 32,
-                alignItems: 'start',
-              }}
-            >
+            <div className="checkout-main-grid">
               {/* LEFT COLUMN: Steps & Options */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {/* STEP 1: Select Plan */}
@@ -626,7 +619,7 @@ export const CheckoutPage: React.FC = () => {
                   </div>
 
                   {/* 3 Plans selectable cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                  <div className="checkout-plan-grid">
                     {Object.values(CHECKOUT_PLANS).map((p) => {
                       const isSelected = selectedPlanId === p.id;
                       const price = billingCycle === 'annual' ? p.annualPrice : p.monthlyPrice;
