@@ -441,15 +441,6 @@ export const AuthPage: React.FC = () => {
                       </span>
                     </button>
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', userSelect: 'none' }}>
-                    <input
-                      type="checkbox"
-                      checked={showRegPassword}
-                      onChange={e => setShowRegPassword(e.target.checked)}
-                      style={{ accentColor: '#8b5cf6', width: 16, height: 16, cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: 13, color: '#9ca3af' }}>Mostrar contraseña</span>
-                  </label>
                 </div>
 
                 <div style={{ background: 'rgba(167, 136, 244, 0.08)', border: '1px solid rgba(167, 136, 244, 0.2)', padding: '12px 16px', borderRadius: 12, fontSize: 13, color: '#c4b5fd' }}>
