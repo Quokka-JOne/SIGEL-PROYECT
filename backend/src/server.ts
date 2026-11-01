@@ -63,33 +63,54 @@ app.use(express.json());
 // CP-01 & FASE 3: Health check con chequeo ligero de base de datos (SELECT 1 con timeout de 2s).
 // El resultado saludable se reutiliza unos segundos para que el monitoreo concurrente
 // no abra una consulta independiente a PostgreSQL por cada sonda.
+const configuredHealthCacheTtlMs = process.env.HEALTH_CACHE_TTL_MS === undefined
+  ? 15000
+  : Number(process.env.HEALTH_CACHE_TTL_MS);
 const healthCacheTtlMs = process.env.NODE_ENV === 'test'
   ? 0
-  : Math.max(0, Number(process.env.HEALTH_CACHE_TTL_MS) || 15000);
+  : Number.isFinite(configuredHealthCacheTtlMs) && configuredHealthCacheTtlMs >= 0
+    ? configuredHealthCacheTtlMs
+    : 15000;
 let lastHealthyCheckAt = 0;
-let healthCheckInFlight: Promise<void> | null = null;
-const checkDatabaseHealth = async (): Promise<void> => {
+let healthCheckInFlight: Promise<number> | null = null;
+const checkDatabaseHealth = async (): Promise<number> => {
   if (!healthCheckInFlight) {
+    const startedAt = process.hrtime.bigint();
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000);
+    });
     healthCheckInFlight = Promise.race([
       prisma.$queryRaw`SELECT 1`,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2000)),
+      timeoutPromise,
     ])
       .then(() => {
         lastHealthyCheckAt = Date.now();
+        return Number(process.hrtime.bigint() - startedAt) / 1e6;
       })
       .finally(() => {
+        if (timeoutHandle) clearTimeout(timeoutHandle);
         healthCheckInFlight = null;
       });
   }
-  await healthCheckInFlight;
+  return healthCheckInFlight;
 };
 const healthHandler = async (req: Request, res: Response) => {
   const now = Date.now();
-  if (healthCacheTtlMs === 0 || now - lastHealthyCheckAt >= healthCacheTtlMs) {
+  const shouldCheckDatabase = healthCacheTtlMs === 0 || now - lastHealthyCheckAt >= healthCacheTtlMs;
+  const handlerStartedAt = process.hrtime.bigint();
+  let databaseDurationMs = 0;
+  res.set('Cache-Control', 'no-store');
+
+  if (shouldCheckDatabase) {
+    const databaseCheckStartedAt = process.hrtime.bigint();
     try {
-      await checkDatabaseHealth();
+      databaseDurationMs = await checkDatabaseHealth();
     } catch (err: any) {
+      databaseDurationMs = Number(process.hrtime.bigint() - databaseCheckStartedAt) / 1e6;
       logger.warn('Health check: Base de datos no disponible o demoró más de 2 segundos', { error: err.message });
+      const handlerDurationMs = Number(process.hrtime.bigint() - handlerStartedAt) / 1e6;
+      res.set('Server-Timing', `db;dur=${databaseDurationMs.toFixed(2)};desc="failed", app;dur=${handlerDurationMs.toFixed(2)}`);
       res.status(503).json({
         success: false,
         status: 'unhealthy',
@@ -100,7 +121,9 @@ const healthHandler = async (req: Request, res: Response) => {
     }
   }
 
-  res.set('Cache-Control', 'no-store');
+  const handlerDurationMs = Number(process.hrtime.bigint() - handlerStartedAt) / 1e6;
+  const databaseDescription = shouldCheckDatabase ? 'checked' : 'cached';
+  res.set('Server-Timing', `db;dur=${databaseDurationMs.toFixed(2)};desc="${databaseDescription}", app;dur=${handlerDurationMs.toFixed(2)}`);
   res.status(200).json({
     success: true,
     message: 'Servidor JINStock Backend operativo',

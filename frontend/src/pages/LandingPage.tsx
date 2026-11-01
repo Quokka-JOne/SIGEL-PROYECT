@@ -784,9 +784,15 @@ export const LandingPage: React.FC = () => {
               </p>
             </div>
             <div style={{ flexShrink: 0 }}>
-              <a className="landing-btn landing-btn-sky" href="#precios">
+              <button
+                className="landing-btn landing-btn-sky"
+                style={{ border: 'none', cursor: 'pointer' }}
+                onClick={() => {
+                  document.getElementById('precios')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+              >
                 Comenzar ahora — es gratis
-              </a>
+              </button>
             </div>
           </div>
         </section>
