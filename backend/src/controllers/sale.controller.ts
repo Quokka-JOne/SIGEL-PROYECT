@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma';
 import { StockInsuficienteError, ValidationError, NotFoundError, ForbiddenError } from '../utils/errors';
+import { getDashboardDateBoundsUTC } from '../utils/timezone';
 
 let sequenceEnsured = false;
 async function ensureSequenceReady() {
@@ -382,9 +383,7 @@ export const anularSale = async (req: Request, res: Response, next: NextFunction
 // M-06: Indicadores agregados del Dashboard calculados en base de datos
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const { todayStart, monthStart } = getDashboardDateBoundsUTC();
 
     const [todayAgg, monthAgg, totalProducts, lowStockProducts, outOfStockProducts, topDetails] =
       await Promise.all([

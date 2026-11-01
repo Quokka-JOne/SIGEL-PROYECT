@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma';
+import { dayStartUTC, dayEndUTC, todayStringInManagua } from '../utils/timezone';
 
 export const getSalesReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -8,12 +9,9 @@ export const getSalesReport = async (req: Request, res: Response, next: NextFunc
     const where: any = { estado: 'COMPLETADA' };
     if (desde || hasta) {
       where.fecha = {};
-      if (desde) where.fecha.gte = new Date(String(desde));
-      if (hasta) {
-        const hastaDate = new Date(String(hasta));
-        hastaDate.setHours(23, 59, 59, 999);
-        where.fecha.lte = hastaDate;
-      }
+      // Interpret date strings as Nicaragua calendar dates (not UTC midnight)
+      if (desde) where.fecha.gte = dayStartUTC(String(desde));
+      if (hasta) where.fecha.lte = dayEndUTC(String(hasta));
     }
 
     const sales = await prisma.venta.findMany({
@@ -56,20 +54,15 @@ export const getPurchasesReport = async (req: Request, res: Response, next: Next
     const where: any = { estado: 'CONFIRMADA' };
     if (desde || hasta) {
       where.fecha = {};
-      if (desde) where.fecha.gte = new Date(String(desde));
-      if (hasta) {
-        const hastaDate = new Date(String(hasta));
-        hastaDate.setHours(23, 59, 59, 999);
-        where.fecha.lte = hastaDate;
-      }
+      if (desde) where.fecha.gte = dayStartUTC(String(desde));
+      if (hasta) where.fecha.lte = dayEndUTC(String(hasta));
     }
 
     const purchases = await prisma.compra.findMany({
       where,
       orderBy: { fecha: 'asc' },
       include: {
-        proveedor: { select: { id: true, nombre: true, ruc: true } },
-        usuario: { select: { nombre: true } },
+        proveedor: { select: { nombre: true } },
         detalles: {
           include: { producto: { select: { nombre: true, sku: true } } },
         },
@@ -78,29 +71,11 @@ export const getPurchasesReport = async (req: Request, res: Response, next: Next
 
     const totalComprado = purchases.reduce((acc, p) => acc + p.total, 0);
 
-    // Agrupación por proveedor
-    const porProveedorMap = new Map<string, { proveedorNombre: string; total: number; facturasCount: number }>();
-    for (const p of purchases) {
-      const suppName = p.proveedor.nombre;
-      const current = porProveedorMap.get(p.proveedorId) || {
-        proveedorNombre: suppName,
-        total: 0,
-        facturasCount: 0,
-      };
-      current.total += p.total;
-      current.facturasCount += 1;
-      porProveedorMap.set(p.proveedorId, current);
-    }
-
     res.json({
       success: true,
       data: {
         totalCompras: purchases.length,
         montoTotal: Number(totalComprado.toFixed(2)),
-        porProveedor: Array.from(porProveedorMap.values()).map((p) => ({
-          ...p,
-          total: Number(p.total.toFixed(2)),
-        })),
         compras: purchases,
       },
       message: 'Reporte de compras generado correctamente.',
@@ -112,61 +87,52 @@ export const getPurchasesReport = async (req: Request, res: Response, next: Next
 
 export const getTopProductsReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { desde, hasta, limit = '10' } = req.query;
-    const limitNum = Math.min(50, Math.max(1, parseInt(String(limit), 10) || 10));
+    const { desde, hasta } = req.query;
 
-    const whereVenta: any = { estado: 'COMPLETADA' };
+    const ventaWhere: any = { estado: 'COMPLETADA' };
     if (desde || hasta) {
-      whereVenta.fecha = {};
-      if (desde) whereVenta.fecha.gte = new Date(String(desde));
-      if (hasta) {
-        const hastaDate = new Date(String(hasta));
-        hastaDate.setHours(23, 59, 59, 999);
-        whereVenta.fecha.lte = hastaDate;
-      }
+      ventaWhere.fecha = {};
+      if (desde) ventaWhere.fecha.gte = dayStartUTC(String(desde));
+      if (hasta) ventaWhere.fecha.lte = dayEndUTC(String(hasta));
     }
 
-    // Buscar ventas en rango y agregar detalles
-    const topGroup = await prisma.detalleVenta.groupBy({
+    const whereVenta: any = {};
+    if (desde || hasta) {
+      whereVenta.fecha = {};
+      if (desde) whereVenta.fecha.gte = dayStartUTC(String(desde));
+      if (hasta) whereVenta.fecha.lte = dayEndUTC(String(hasta));
+    }
+
+    const topDetails = await prisma.detalleVenta.groupBy({
       by: ['productoId'],
-      where: {
-        venta: whereVenta,
-      },
-      _sum: {
-        cantidad: true,
-        subtotal: true,
-      },
-      orderBy: {
-        _sum: {
-          cantidad: 'desc',
-        },
-      },
-      take: limitNum,
+      _sum: { cantidad: true, subtotal: true },
+      where: { venta: { ...ventaWhere, estado: 'COMPLETADA' } },
+      orderBy: { _sum: { cantidad: 'desc' } },
+      take: 20,
     });
 
-    const productIds = topGroup.map((t) => t.productoId);
+    const productIds = topDetails.map((d) => d.productoId);
     const products = await prisma.producto.findMany({
       where: { id: { in: productIds } },
-      select: { id: true, nombre: true, sku: true, categoria: { select: { nombre: true } } },
+      select: { id: true, nombre: true, sku: true, categoriaId: true, categoria: { select: { nombre: true } } },
     });
-    const prodMap = new Map(products.map((p) => [p.id, p]));
 
-    const result = topGroup.map((item) => {
-      const prod = prodMap.get(item.productoId);
-      return {
-        productoId: item.productoId,
-        nombre: prod?.nombre || 'Producto desconocido',
-        sku: prod?.sku,
-        categoria: prod?.categoria?.nombre || 'General',
-        cantidadVendida: item._sum.cantidad || 0,
-        ingresoTotal: Number((item._sum.subtotal || 0).toFixed(2)),
-      };
-    });
+    const productMap: Record<string, any> = {};
+    products.forEach((p) => { productMap[p.id] = p; });
+
+    const data = topDetails.map((d) => ({
+      productoId: d.productoId,
+      nombre: productMap[d.productoId]?.nombre || 'Producto eliminado',
+      sku: productMap[d.productoId]?.sku || '',
+      categoria: productMap[d.productoId]?.categoria?.nombre || 'General',
+      totalUnidades: Number(d._sum.cantidad || 0),
+      totalVendido: Number((d._sum.subtotal || 0).toFixed(2)),
+    }));
 
     res.json({
       success: true,
-      data: result,
-      message: 'Reporte de productos más vendidos obtenido correctamente.',
+      data,
+      message: 'Top productos generado correctamente.',
     });
   } catch (error) {
     next(error);
@@ -178,9 +144,10 @@ export const getDailyCashClosing = async (req: Request, res: Response, next: Nex
   try {
     const { fecha, usuarioId } = req.query;
 
-    const targetDate = fecha ? new Date(String(fecha)) : new Date();
-    const dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-    const dayEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
+    // If no date supplied, use today in Nicaragua time
+    const dateStr = fecha ? String(fecha) : todayStringInManagua();
+    const dayStart = dayStartUTC(dateStr);
+    const dayEnd = dayEndUTC(dateStr);
 
     const where: any = {
       fecha: { gte: dayStart, lte: dayEnd },
@@ -232,7 +199,7 @@ export const getDailyCashClosing = async (req: Request, res: Response, next: Nex
     res.json({
       success: true,
       data: {
-        fecha: dayStart.toISOString().split('T')[0],
+        fecha: dateStr,
         ventasCount: sales.length,
         totalGeneral: Number(totalGeneral.toFixed(2)),
         efectivoEsperadoNIO: Number(totalEfectivoNIO.toFixed(2)),

@@ -421,7 +421,7 @@ export const UsersPage: React.FC = () => {
                         <div>
                           <p className="font-bold text-white leading-tight">{usr.nombre}</p>
                           <span className="text-[10px] text-gray-500">
-                            Registrado: {usr.createdAt ? new Date(usr.createdAt).toLocaleDateString() : 'N/A'}
+                            Registrado: {usr.createdAt ? new Date(usr.createdAt).toLocaleDateString('es-NI', { timeZone: 'America/Managua' }) : 'N/A'}
                           </span>
                         </div>
                       </div>

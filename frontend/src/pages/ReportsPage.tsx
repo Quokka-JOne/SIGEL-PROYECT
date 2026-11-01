@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
+import { localDateString, localDateStringDaysAgo } from '../utils/dateNI';
 
 const CACHE_KEY = 'jinstock_reports_cache';
 
@@ -21,16 +22,12 @@ function loadReportCache(key: string): any | null {
 export const ReportsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'SALES' | 'PURCHASES' | 'TOP_PRODUCTS' | 'CASH_CLOSING'>('SALES');
 
-  // Date filters
-  const [desde, setDesde] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d.toISOString().split('T')[0];
-  });
-  const [hasta, setHasta] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  // Date filters — usa fecha local de Nicaragua (no UTC)
+  const [desde, setDesde] = useState<string>(() => localDateStringDaysAgo(30));
+  const [hasta, setHasta] = useState<string>(() => localDateString());
 
   // Daily cash closing date filter
-  const [closingDate, setClosingDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [closingDate, setClosingDate] = useState<string>(() => localDateString());
   const [countedCash, setCountedCash] = useState<string>('');
 
   // Report data states
@@ -98,7 +95,7 @@ export const ReportsPage: React.FC = () => {
   // CSV Export utility (F-04 / F-14)
   const exportToCSV = () => {
     let csvContent = 'data:text/csv;charset=utf-8,';
-    let filename = `reporte-${activeTab.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`;
+    let filename = `reporte-${activeTab.toLowerCase()}-${localDateString()}.csv`;
 
     if (activeTab === 'SALES' && salesReport?.ventas) {
       csvContent += 'Comprobante,Fecha,Cajero,Metodo,Total NIO\n';

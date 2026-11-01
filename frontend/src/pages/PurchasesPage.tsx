@@ -687,7 +687,7 @@ export const PurchasesPage: React.FC = () => {
               {purchasesHistory.map((p) => (
                 <tr key={p.id} className="hover:bg-white/5 transition-colors">
                   <td className="py-3 px-4 font-bold text-white">{p.numeroFactura || p.id}</td>
-                  <td className="py-3 px-4 text-gray-300">{new Date(p.fecha).toLocaleDateString()}</td>
+                  <td className="py-3 px-4 text-gray-300">{new Date(p.fecha).toLocaleDateString('es-NI', { timeZone: 'America/Managua' })}</td>
                   <td className="py-3 px-4 text-gray-300 font-semibold">{p.proveedor?.nombre}</td>
                   <td className="py-3 px-4 text-center text-gray-400">{p.detalles?.length || 0}</td>
                   <td className="py-3 px-4 text-right font-bold text-emerald-400 text-sm">
