@@ -146,7 +146,6 @@ export async function syncPendingCreates(): Promise<{ processed: number; synced:
   let synced = 0;
   let errors = 0;
   try {
-    const now = Date.now();
     const queue = await db.syncQueue.orderBy('createdAt').toArray();
     // Recuperar operaciones interrumpidas por cierre de pestaña o apagado.
     for (const stale of queue.filter((op) => op.status === 'SYNCING')) {
@@ -159,7 +158,7 @@ export async function syncPendingCreates(): Promise<{ processed: number; synced:
       const op = await db.syncQueue.get(queuedOp.operationId);
       if (!op) continue;
       if (op.status !== 'PENDING' && op.status !== 'SYNCING') continue;
-      if (Date.parse(op.nextAttemptAt) > now) continue;
+      if (Date.parse(op.nextAttemptAt) > Date.now()) continue;
       const payload = op.payload as Record<string, any>;
       if (op.entity === 'PRODUCT' && String(payload.categoriaId || '').startsWith('cat-local-')) {
         await db.syncQueue.update(op.operationId, {
