@@ -151,8 +151,14 @@ export const ReportsPage: React.FC = () => {
   };
 
   const printCashClosing = () => {
+    const printable = document.getElementById('cash-closing-printable');
+    if (!printable) return;
+
+    const printClone = printable.cloneNode(true) as HTMLElement;
+    document.body.appendChild(printClone);
     document.body.classList.add('printing-cash-closing');
     window.addEventListener('afterprint', () => {
+      printClone.remove();
       document.body.classList.remove('printing-cash-closing');
     }, { once: true });
     window.print();

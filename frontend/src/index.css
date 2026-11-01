@@ -175,6 +175,30 @@
 /* Print CSS to isolate thermal receipt ticket without headers or URLs */
 /* Print CSS to isolate thermal receipt ticket without headers or URLs */
 @media print {
+  body.printing-receipt #root {
+    display: none !important;
+  }
+
+  body.printing-receipt .receipt-copy-label,
+  body.printing-receipt .receipt-print-actions {
+    display: none !important;
+  }
+
+  body.printing-receipt #receipt-ticket-printable {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  body.printing-receipt .receipt-cutter-line {
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    break-before: auto !important;
+    break-after: auto !important;
+  }
+
   @page {
     margin: 3mm;
     size: auto;
@@ -232,12 +256,12 @@
   }
 
   .receipt-cutter-line {
-    page-break-after: always !important;
-    break-after: page !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
     display: block !important;
     text-align: center !important;
-    margin: 6mm 0 !important;
-    padding-top: 3mm !important;
+    margin: 2mm 0 !important;
+    padding-top: 1mm !important;
     border-top: 1px dashed #666 !important;
     color: #666 !important;
     font-size: 10px !important;
@@ -246,6 +270,10 @@
 
 /* Modo de impresión del acta: el bloque global anterior solo autoriza tickets térmicos. */
 @media print {
+  body.printing-cash-closing #root {
+    display: none !important;
+  }
+
   body.printing-cash-closing * {
     visibility: hidden !important;
   }
@@ -264,7 +292,8 @@
     inset: 0 auto auto 0 !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) !important;
-    gap: 12px !important;
+    align-items: start !important;
+    gap: 8px !important;
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
@@ -273,6 +302,14 @@
     color: #111 !important;
     transform: none !important;
     overflow: visible !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  body.printing-cash-closing #cash-closing-printable > div:not(.cash-closing-print-heading),
+  body.printing-cash-closing #cash-closing-printable > div:not(.cash-closing-print-heading) > div {
+    page-break-inside: avoid !important;
+    break-inside: avoid-page !important;
   }
 
   body.printing-cash-closing #cash-closing-printable div {

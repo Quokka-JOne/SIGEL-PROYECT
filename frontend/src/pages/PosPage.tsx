@@ -401,6 +401,20 @@ export const PosPage: React.FC = () => {
   const iva = Number((totalNIO * 0.15).toFixed(2));
   const subtotalBeforeIva = Number((totalNIO - iva).toFixed(2));
 
+  const printReceipt = () => {
+    const receipt = document.getElementById('receipt-ticket-printable');
+    if (!receipt) return;
+
+    const printClone = receipt.cloneNode(true) as HTMLElement;
+    document.body.appendChild(printClone);
+    document.body.classList.add('printing-receipt');
+    window.addEventListener('afterprint', () => {
+      printClone.remove();
+      document.body.classList.remove('printing-receipt');
+    }, { once: true });
+    window.print();
+  };
+
   return (
     <div className="flex flex-col w-full font-body">
       {/* Main POS Interface (Hidden during printing to avoid blank extra pages) */}
@@ -963,7 +977,7 @@ export const PosPage: React.FC = () => {
                   <p className="text-[11px] text-gray-400 print:text-gray-600">Librería & Papelería OS</p>
                   
                   {/* Badge Copia Cliente */}
-                  <div className="mt-1.5 inline-block border border-purple-400/40 bg-purple-500/10 text-purple-300 px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase print:border-black print:bg-transparent print:text-black">
+                  <div className="receipt-copy-label mt-1.5 inline-block border border-purple-400/40 bg-purple-500/10 text-purple-300 px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase print:hidden">
                     *** ORIGINAL: CLIENTE ***
                   </div>
 
@@ -1044,7 +1058,7 @@ export const PosPage: React.FC = () => {
                   <p className="text-[11px] text-gray-400 print:text-gray-600">Librería & Papelería OS</p>
                   
                   {/* Badge Copia Librería */}
-                  <div className="mt-1.5 inline-block border border-blue-400/40 bg-blue-500/10 text-blue-300 px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase print:border-black print:bg-transparent print:text-black">
+                  <div className="receipt-copy-label mt-1.5 inline-block border border-blue-400/40 bg-blue-500/10 text-blue-300 px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase print:hidden">
                     *** COPIA: LIBRERÍA / CAJA ***
                   </div>
 
@@ -1100,9 +1114,9 @@ export const PosPage: React.FC = () => {
             </div>
 
             {/* Actions (Hidden when printing) */}
-            <div className="pt-2 flex gap-3 print:hidden border-t border-white/10">
+            <div className="receipt-print-actions pt-2 flex gap-3 print:hidden border-t border-white/10">
               <button
-                onClick={() => window.print()}
+                onClick={printReceipt}
                 className="flex-1 py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors shadow-lg shadow-purple-900/30 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">print</span>
