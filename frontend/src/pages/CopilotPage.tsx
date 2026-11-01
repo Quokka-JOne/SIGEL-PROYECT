@@ -10,6 +10,13 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+const renderCopilotText = (text: string) =>
+  text.split(/(\*\*.+?\*\*)/gs).map((part, index) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={index} className="font-bold text-white">{part.slice(2, -2)}</strong>
+      : part
+  );
+
 interface ProductAnalysis {
   id: string;
   nombre: string;
@@ -372,7 +379,7 @@ ${outOfStock.map((p) => `• ${p.nombre}`).join('\n')}`;
                       : 'bg-[#100f14] text-gray-200 border border-[#2d2c35] rounded-tl-sm'
                   }`}
                 >
-                  {m.text}
+                  {m.sender === 'copilot' ? renderCopilotText(m.text) : m.text}
                 </div>
                 <span className="text-[10px] text-gray-500 mt-1 px-1">{m.timestamp}</span>
               </div>
