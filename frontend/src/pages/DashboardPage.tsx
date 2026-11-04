@@ -6,7 +6,6 @@ import {
   ensureLocalCatalogInitialized,
   getCachedSales,
   cacheSalesLocally,
-  syncAllFromServer,
 } from '../services/syncService';
 import { localDateString } from '../utils/dateNI';
 
