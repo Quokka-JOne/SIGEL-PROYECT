@@ -44,8 +44,10 @@ JINStock resuelve la problemática de interrupciones operativas (cortes de energ
 | `INITIAL_ADMIN_NAME` | String | No | Nombre del administrador inicial (`Administrador JINStock`). |
 | `ENABLE_KEEP_ALIVE` | Boolean | No | `true` activa un ping `SELECT 1` cada 3 min para evitar sleep en Neon Free Tier. |
 | `KEEP_ALIVE_INTERVAL_MS`| Número | No | Intervalo de ping en milisegundos (por defecto `180000`). |
-| `SMTP_HOST`, `SMTP_PORT`| String | No | Configuración SMTP para envío de correos (opcional). |
-| `SMTP_USER`, `SMTP_PASS`| String | No | Credenciales SMTP (opcional). |
+| `SMTP_HOST` | String | No | Servidor SMTP; por defecto `smtp.gmail.com`. |
+| `SMTP_PORT` | Número | No | Puerto SMTP; por defecto `587` (STARTTLS), o `465` (TLS). |
+| `SMTP_USER`, `SMTP_PASS` | String | No | Cuenta Gmail y contraseña de aplicación de Google. No uses la contraseña normal de Gmail. |
+| `SMTP_FROM_EMAIL` | String | No | Dirección Gmail remitente; normalmente coincide con `SMTP_USER`. |
 
 ### Frontend (`frontend/.env` o variables en Cloudflare Pages)
 

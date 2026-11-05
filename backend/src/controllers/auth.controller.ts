@@ -104,9 +104,11 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const assignedRol = 'CAJERO';
 
     const isTest = process.env.NODE_ENV === 'test';
-    const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS) && !isTest;
-    // Si estamos en testing o no hay SMTP configurado en el entorno de desarrollo, auto-verificar para permitir uso fluido
-    const shouldAutoVerify = !hasSmtpConfigured;
+    const hasSmtpConfigured = Boolean(
+      process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM_EMAIL,
+    ) && !isTest;
+    // Solo auto-verificar en pruebas o desarrollo; producción siempre debe enviar el código.
+    const shouldAutoVerify = isTest || (!hasSmtpConfigured && process.env.NODE_ENV !== 'production');
 
     const newUser = await prisma.usuario.create({
       data: {
@@ -121,7 +123,17 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     });
 
     if (!shouldAutoVerify) {
-      await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
+      const emailSent = await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
+      if (!emailSent) {
+        // Permite que el usuario vuelva a registrarse después de corregir la configuración SMTP.
+        await prisma.usuario.delete({ where: { id: newUser.id } });
+        res.status(502).json({
+          success: false,
+          code: 'EMAIL_DELIVERY_FAILED',
+          message: 'No se pudo enviar el código de verificación. Intente nuevamente más tarde.',
+        });
+        return;
+      }
       res.status(201).json({
         success: true,
         message: 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',

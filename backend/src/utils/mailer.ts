@@ -12,7 +12,9 @@ function getTransporter() {
     }
 
     _transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: Number(process.env.SMTP_PORT || 587) === 465,
       auth: { user, pass },
     });
   }
@@ -22,8 +24,9 @@ function getTransporter() {
 export const sendConfirmationEmail = async (to: string, code: string): Promise<boolean> => {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
+  const fromEmail = process.env.SMTP_FROM_EMAIL;
 
-  if (!smtpUser || !smtpPass) {
+  if (!smtpUser || !smtpPass || !fromEmail) {
     // Si no hay SMTP configurado, registrar advertencia limpia sin exponer detalles sensibles
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[Mailer DEV] SMTP no configurado. Código generado para ${to}: ${code}`);
@@ -32,7 +35,7 @@ export const sendConfirmationEmail = async (to: string, code: string): Promise<b
   }
 
   const mailOptions = {
-    from: `"JINStock App" <${smtpUser}>`,
+    from: `"JINStock App" <${fromEmail}>`,
     to,
     subject: 'Código de Confirmación - JINStock',
     html: `
