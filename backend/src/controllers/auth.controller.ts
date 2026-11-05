@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
 import { sendConfirmationEmail } from '../utils/mailer';
-import { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, ValidationError } from '../utils/errors';
+import { AppError, ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, ValidationError } from '../utils/errors';
 
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
@@ -105,8 +105,18 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     const isTest = process.env.NODE_ENV === 'test';
     const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS) && !isTest;
-    // Si estamos en testing o no hay SMTP configurado en el entorno de desarrollo, auto-verificar para permitir uso fluido
-    const shouldAutoVerify = !hasSmtpConfigured;
+    // En desarrollo/test se permite el flujo local; en producción siempre se exige entrega real del código.
+    const shouldAutoVerify = isTest || (!hasSmtpConfigured && process.env.NODE_ENV !== 'production');
+    if (!shouldAutoVerify) {
+      const emailSent = await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
+      if (!emailSent) {
+        throw new AppError(
+          'No se pudo enviar el código de confirmación. Verifique la configuración SMTP e intente nuevamente.',
+          503,
+          'EMAIL_DELIVERY_FAILED'
+        );
+      }
+    }
 
     const newUser = await prisma.usuario.create({
       data: {
@@ -121,7 +131,6 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     });
 
     if (!shouldAutoVerify) {
-      await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
       res.status(201).json({
         success: true,
         message: 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',

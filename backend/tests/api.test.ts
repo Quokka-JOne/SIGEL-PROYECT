@@ -52,6 +52,7 @@ vi.mock('../src/utils/mailer', () => ({
 import app from '../src/server';
 import { prisma } from '../src/config/prisma';
 import { sanitizeLogData } from '../src/utils/logger';
+import { sendConfirmationEmail } from '../src/utils/mailer';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-test-jwt-key-minimum-32-chars-long';
 
@@ -305,6 +306,27 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
     expect(res.body.success).toBe(true);
     // El controlador fuerza el rol a CAJERO y no otorga ADMINISTRADOR a registros públicos
     expect(res.body.data.usuario.rol).toBe('CAJERO');
+  });
+
+  it('No confirma el registro si SMTP falla en producción y no crea la cuenta', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SMTP_USER', 'sender@gmail.com');
+    vi.stubEnv('SMTP_PASS', 'test-app-password');
+    vi.mocked(sendConfirmationEmail).mockResolvedValue(false);
+    (prisma.usuario.findUnique as any).mockResolvedValue(null);
+
+    try {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ nombre: 'Usuario QA', email: 'qa@example.com', password: 'Password123!' });
+
+      expect(res.status).toBe(503);
+      expect(res.body.code).toBe('EMAIL_DELIVERY_FAILED');
+      expect(prisma.usuario.create).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+      vi.mocked(sendConfirmationEmail).mockResolvedValue(true);
+    }
   });
 
   describe('FASE 0: Verificaciones del Parche de Seguridad y Resiliencia', () => {

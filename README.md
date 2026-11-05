@@ -46,6 +46,7 @@ JINStock resuelve la problemática de interrupciones operativas (cortes de energ
 | `KEEP_ALIVE_INTERVAL_MS`| Número | No | Intervalo de ping en milisegundos (por defecto `180000`). |
 | `SMTP_HOST`, `SMTP_PORT`| String | No | Configuración SMTP para envío de correos (opcional). |
 | `SMTP_USER`, `SMTP_PASS`| String | No | Credenciales SMTP (opcional). |
+| `SMTP_FROM` | String | No | Remitente visible; por defecto usa la cuenta `SMTP_USER`. |
 
 ### Frontend (`frontend/.env` o variables en Cloudflare Pages)
 
@@ -278,9 +279,16 @@ El motor de logs filtra y reemplaza recursivamente por `[REDACTED]` cualquier cl
    - `INITIAL_ADMIN_PASSWORD`: Contraseña segura del administrador inicial
    - `INITIAL_ADMIN_NAME`: Nombre del administrador
    - `ENABLE_KEEP_ALIVE`: `true`
+   - `SMTP_HOST`: `smtp.gmail.com`
+   - `SMTP_PORT`: `587`
+   - `SMTP_USER`: dirección Gmail que enviará los mensajes
+   - `SMTP_PASS`: contraseña de aplicación de Google (no la contraseña normal de Gmail)
 3. **Migración de Base de Datos:**
-   - El script `npm run build` compila TypeScript (`tsc`).
-   - Para aplicar el schema: `npx prisma db push` o ejecutar `npx prisma generate` (ya incluido en el ciclo de build).
+   - El build genera Prisma Client y compila TypeScript. Al iniciar, `npm start` ejecuta `prisma migrate deploy` antes del servidor.
+   - Si Prisma devuelve `P3005` («The database schema is not empty»), la base ya contiene tablas pero no tiene historial de migraciones de Prisma. **No ejecutes `db push`, no borres la base y no marques migraciones como aplicadas sin verificar el esquema.** Haz un respaldo y compara las tablas/columnas de Neon con `backend/prisma/schema.prisma` y `backend/prisma/migrations/20261031213200_add_offline_create_idempotency/migration.sql`.
+   - Solo si verificas que la migración `20261031213200_add_offline_create_idempotency` ya está aplicada en la base (existen las tres columnas `clientMutationId` y sus índices únicos), desde `backend` y usando la conexión de producción ejecuta una vez: `npx prisma migrate resolve --applied 20261031213200_add_offline_create_idempotency`. Luego vuelve a desplegar. Si esos cambios no existen o el esquema difiere, no uses ese comando: hay que crear y registrar un baseline que represente el esquema real antes de aplicar migraciones pendientes.
+   - Si la base es nueva y vacía, `prisma migrate deploy` aplica las migraciones versionadas automáticamente.
+4. **Gmail:** Para `SMTP_PASS`, genera una contraseña de aplicación en la cuenta Google remitente (requiere verificación en dos pasos). En Render guarda las variables como secretos y reinicia el servicio. Los errores se registran como `EMAIL_DELIVERY_FAILED` y con datos técnicos SMTP no sensibles; revisa también Spam/Promociones del destinatario.
 
 ### Despliegue en Cloudflare Pages (Frontend)
 1. **Crear Proyecto en Cloudflare Pages:**
