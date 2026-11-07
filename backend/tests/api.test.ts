@@ -25,6 +25,7 @@ vi.mock('../src/config/prisma', () => {
         findUnique: vi.fn(),
         findFirst: vi.fn(),
         create: vi.fn(),
+        update: vi.fn(),
         findMany: vi.fn(),
       },
       movimientoInventario: {
@@ -685,6 +686,138 @@ describe('Suite de Pruebas Automáticas del Backend (Sección 6 del Informe Téc
       expect(sanitized.nested.authorization).toBe('[REDACTED]');
       expect(sanitized.nested.cookie).toBe('[REDACTED]');
       expect(sanitized.nested.normalData).toBe(42);
+    });
+  });
+
+  describe('FASE 7: Neon Auth, Códigos de Verificación y Redondeo de Vueltos en Efectivo', () => {
+    it('POST /api/auth/resend-code genera y despacha un nuevo código de verificación', async () => {
+      (prisma.usuario.findUnique as any).mockResolvedValue({
+        id: 'user-unverified-1',
+        nombre: 'Cajero Pendiente',
+        email: 'cajero.nuevo@libreria.ni',
+        verificado: false,
+        codigoConfirmacion: '111111',
+        updatedAt: new Date(),
+      });
+
+      (prisma.usuario.update as any).mockResolvedValue({
+        id: 'user-unverified-1',
+        email: 'cajero.nuevo@libreria.ni',
+        verificado: false,
+        codigoConfirmacion: '999999',
+      });
+
+      const res = await request(app)
+        .post('/api/auth/resend-code')
+        .send({ email: 'cajero.nuevo@libreria.ni' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.requireVerification).toBe(true);
+      expect(res.body.email).toBe('cajero.nuevo@libreria.ni');
+    });
+
+    it('POST /api/auth/verify verifica correctamente el código y genera sesión', async () => {
+      const now = new Date();
+      (prisma.usuario.findUnique as any).mockResolvedValue({
+        id: 'user-unverified-1',
+        nombre: 'Cajero Pendiente',
+        email: 'cajero.nuevo@libreria.ni',
+        verificado: false,
+        codigoConfirmacion: '654321',
+        updatedAt: now,
+        rol: 'CAJERO',
+      });
+
+      (prisma.usuario.update as any).mockResolvedValue({
+        id: 'user-unverified-1',
+        nombre: 'Cajero Pendiente',
+        email: 'cajero.nuevo@libreria.ni',
+        verificado: true,
+        codigoConfirmacion: null,
+        rol: 'CAJERO',
+      });
+
+      const res = await request(app)
+        .post('/api/auth/verify')
+        .send({
+          email: 'cajero.nuevo@libreria.ni',
+          code: '654321',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.token).toBeDefined();
+      expect(res.body.data.usuario.email).toBe('cajero.nuevo@libreria.ni');
+    });
+
+    it('POST /api/auth/verify rechaza códigos expirados (>15 minutos)', async () => {
+      const expiredDate = new Date(Date.now() - 20 * 60 * 1000); // 20 min atrás
+      (prisma.usuario.findUnique as any).mockResolvedValue({
+        id: 'user-unverified-2',
+        nombre: 'Cajero Expirado',
+        email: 'cajero.exp@libreria.ni',
+        verificado: false,
+        codigoConfirmacion: '654321',
+        updatedAt: expiredDate,
+        rol: 'CAJERO',
+      });
+
+      const res = await request(app)
+        .post('/api/auth/verify')
+        .send({
+          email: 'cajero.exp@libreria.ni',
+          code: '654321',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toContain('expirado');
+    });
+
+    it('POST /api/sales registra venta con redondeo de vuelto comercial (redondeoNIO)', async () => {
+      const mockProd = { id: 'prod-001', nombre: 'Cuaderno Loro 100 Hojas', stock: 50, precioVenta: 75.36, estado: true };
+      (prisma.producto.findMany as any).mockResolvedValue([mockProd]);
+      (prisma.venta.findUnique as any).mockResolvedValue(null);
+
+      (prisma.$transaction as any).mockImplementation(async (cb: any) => {
+        return cb({
+          $executeRawUnsafe: vi.fn(),
+          $queryRaw: vi.fn().mockResolvedValue([{ nextval: 1001 }]),
+          producto: {
+            findMany: vi.fn().mockResolvedValue([mockProd]),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+          },
+          movimientoInventario: { create: vi.fn().mockResolvedValue({}) },
+          venta: {
+            count: vi.fn().mockResolvedValue(10),
+            create: vi.fn().mockResolvedValue({
+              id: 'v-round-1',
+              numeroComprobante: 'FAC-00001001',
+              total: 75.36,
+              metodoPago: 'EFECTIVO',
+              montoPagadoNIO: 100.0,
+              cambioNIO: 24.5, // Redondeado a 0.50 (exacto: 24.64, redondeo: -0.14)
+              detalles: [],
+            }),
+          },
+        });
+      });
+
+      const res = await request(app)
+        .post('/api/sales')
+        .set('Authorization', `Bearer ${cajeroToken}`)
+        .send({
+          detalles: [{ productoId: 'prod-001', cantidad: 1 }],
+          metodoPago: 'EFECTIVO',
+          montoPagadoNIO: 100.0,
+          cambioNIO: 24.5,
+          redondeoNIO: -0.14,
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.cambioNIO).toBe(24.5);
     });
   });
 });

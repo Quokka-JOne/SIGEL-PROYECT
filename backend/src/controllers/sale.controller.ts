@@ -23,7 +23,7 @@ async function ensureSequenceReady() {
 export const createSale = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     await ensureSequenceReady();
-    const { detalles, metodoPago, montoPagadoNIO, montoPagadoUSD, cambioNIO, offlineId, fecha } = req.body;
+    const { detalles, metodoPago, montoPagadoNIO, montoPagadoUSD, cambioNIO, redondeoNIO, offlineId, fecha } = req.body;
     const usuarioId = req.user?.id;
 
     if (!usuarioId) {

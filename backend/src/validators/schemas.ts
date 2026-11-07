@@ -22,6 +22,10 @@ export const verifyEmailSchema = z.object({
   code: z.string().trim().min(4, 'Código de verificación inválido'),
 });
 
+export const resendCodeSchema = z.object({
+  email: z.string().trim().email('Correo electrónico no válido'),
+});
+
 // Usuarios
 export const createUserSchema = z
   .object({
@@ -49,6 +53,7 @@ export const createSaleSchema = z.object({
   montoPagadoNIO: z.number().nonnegative().nullable().optional(),
   montoPagadoUSD: z.number().nonnegative().nullable().optional(),
   cambioNIO: z.number().nonnegative().nullable().optional(),
+  redondeoNIO: z.number().nullable().optional(),
   offlineId: z.string().nullable().optional(),
   fecha: z.string().nullable().optional(),
 });

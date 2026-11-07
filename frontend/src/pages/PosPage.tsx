@@ -11,6 +11,10 @@ import {
   onSyncChange,
 } from '../services/syncService';
 import { nowISOStringNI } from '../utils/dateNI';
+import {
+  calculateCashChange,
+  type RoundingMode,
+} from '../utils/currencyRounding';
 
 export interface PosProduct {
   id: string;
@@ -54,6 +58,7 @@ export const PosPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'MULTIDIVISA'>('EFECTIVO');
   const [cashNIO, setCashNIO] = useState<string>('');
   const [cashUSD, setCashUSD] = useState<string>('');
+  const [roundingMode, setRoundingMode] = useState<RoundingMode>('nearest_50');
 
 
   // Checkout process
@@ -259,7 +264,16 @@ export const PosPage: React.FC = () => {
   const paidNIOVal = parseFloat(cashNIO) || 0;
   const paidUSDVal = parseFloat(cashUSD) || 0;
   const effectivePaidInNIO = paidNIOVal + (paidUSDVal * EXCHANGE_RATE_USD_NIO);
-  const changeNIO = effectivePaidInNIO > totalNIO ? Number((effectivePaidInNIO - totalNIO).toFixed(2)) : 0;
+
+  // Redondeo de vueltos en efectivo para monedas físicas reales de Nicaragua
+  const cashChangeCalc = calculateCashChange(
+    effectivePaidInNIO,
+    totalNIO,
+    paymentMethod === 'EFECTIVO' || paymentMethod === 'MULTIDIVISA' ? roundingMode : 'exact'
+  );
+  const changeNIO = cashChangeCalc.roundedChange;
+  const rawChangeNIO = cashChangeCalc.rawChange;
+  const roundingDiffNIO = cashChangeCalc.roundingDifference;
 
   // Función dedicada para persistir venta fuera de línea en Dexie
   const saveOfflineSale = async () => {
@@ -277,6 +291,7 @@ export const PosPage: React.FC = () => {
       montoPagadoNIO: paidNIOVal > 0 ? paidNIOVal : totalNIO,
       montoPagadoUSD: paidUSDVal > 0 ? paidUSDVal : null,
       cambioNIO: changeNIO,
+      redondeoNIO: roundingDiffNIO,
       detalles: cart.map((i) => ({
         productoId: i.producto.id,
         cantidad: i.cantidad,
@@ -311,6 +326,7 @@ export const PosPage: React.FC = () => {
     setCompletedSale({
       ...offlineRecord,
       isOffline: true,
+      redondeoNIO: roundingDiffNIO,
       detalles: cart.map((c) => ({
         producto: { nombre: c.producto.nombre, sku: c.producto.sku },
         cantidad: c.cantidad,
@@ -357,6 +373,7 @@ export const PosPage: React.FC = () => {
       montoPagadoNIO: paidNIOVal > 0 ? paidNIOVal : totalNIO,
       montoPagadoUSD: paidUSDVal > 0 ? paidUSDVal : null,
       cambioNIO: changeNIO,
+      redondeoNIO: roundingDiffNIO,
     };
 
     try {
@@ -367,7 +384,10 @@ export const PosPage: React.FC = () => {
 
       if (res.success && res.data) {
         // Venta procesada en línea en el servidor exitosamente
-        setCompletedSale(res.data);
+        setCompletedSale({
+          ...res.data,
+          redondeoNIO: roundingDiffNIO,
+        });
         setIsReceiptModalOpen(true);
         clearCart();
         fetchCatalog();
@@ -772,9 +792,40 @@ export const PosPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-white/5">
-                  <span className="text-emerald-400 font-bold">Cambio a Entregar:</span>
-                  <span className="text-sm font-extrabold text-emerald-400">C$ {changeNIO.toFixed(2)}</span>
+                {/* Configuración de redondeo comercial de efectivo en Nicaragua */}
+                <div className="pt-2 border-t border-white/5 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-gray-400 font-medium">Redondeo físico:</span>
+                    <select
+                      value={roundingMode}
+                      onChange={(e) => setRoundingMode(e.target.value as RoundingMode)}
+                      className="bg-[#1c1b22] text-purple-300 text-[10px] rounded px-2 py-1 border border-white/10 focus:outline-none focus:border-purple-500 font-semibold cursor-pointer"
+                    >
+                      <option value="nearest_50">Al C$ 0.50 (Moneda mín. Nicaragua)</option>
+                      <option value="nearest_100">Al C$ 1.00 entero</option>
+                      <option value="favor_cliente">A favor del cliente (50¢)</option>
+                      <option value="exact">Sin redondeo (Exacto)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-white/5">
+                    <div>
+                      <span className="text-emerald-400 font-bold block">Cambio a Entregar:</span>
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        {roundingMode !== 'exact' ? 'Redondeado para efectivo' : 'Centavos exactos'}
+                      </span>
+                    </div>
+                    <span className="text-base font-extrabold text-emerald-400">C$ {changeNIO.toFixed(2)}</span>
+                  </div>
+
+                  {roundingDiffNIO !== 0 && effectivePaidInNIO > totalNIO && (
+                    <div className="flex items-center justify-between text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded">
+                      <span>Exacto sin redondear: C$ {rawChangeNIO.toFixed(2)}</span>
+                      <span className={roundingDiffNIO > 0 ? 'text-amber-400 font-semibold' : 'text-blue-400 font-semibold'}>
+                        Ajuste: {roundingDiffNIO > 0 ? '+' : ''}{roundingDiffNIO.toFixed(2)} NIO
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -994,7 +1045,7 @@ export const PosPage: React.FC = () => {
                 {/* Date & Cashier info */}
                 <div className="flex justify-between text-[11px] text-gray-400 print:text-gray-700 py-1.5 border-b border-dashed border-gray-600 print:border-gray-400">
                   <span>Cajero: {user?.nombre || 'Caja Central'}</span>
-                  <span>{new Date(completedSale.fecha || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span>{completedSale.fecha ? new Date(completedSale.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                 </div>
 
                 {/* Items Table */}
@@ -1027,9 +1078,17 @@ export const PosPage: React.FC = () => {
                     <span className="text-purple-400 print:text-black font-black">C$ {completedSale.total?.toFixed(2)}</span>
                   </div>
                   {completedSale.cambioNIO > 0 && (
-                    <div className="flex justify-between text-emerald-400 print:text-black text-xs font-bold">
-                      <span>SU CAMBIO:</span>
-                      <span>C$ {completedSale.cambioNIO.toFixed(2)}</span>
+                    <div className="space-y-0.5">
+                      <div className="flex justify-between text-emerald-400 print:text-black text-xs font-bold">
+                        <span>SU CAMBIO (REDONDEADO):</span>
+                        <span>C$ {completedSale.cambioNIO.toFixed(2)}</span>
+                      </div>
+                      {completedSale.redondeoNIO !== undefined && completedSale.redondeoNIO !== 0 && (
+                        <div className="flex justify-between text-gray-400 print:text-gray-600 text-[10px]">
+                          <span>Redondeo de denominación:</span>
+                          <span>{completedSale.redondeoNIO > 0 ? '+' : ''}{completedSale.redondeoNIO.toFixed(2)} NIO</span>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="flex justify-between text-gray-500 text-[10px]">
@@ -1070,7 +1129,7 @@ export const PosPage: React.FC = () => {
                 {/* Date & Cashier info */}
                 <div className="flex justify-between text-[11px] text-gray-400 print:text-gray-700 py-1.5 border-b border-dashed border-gray-600 print:border-gray-400">
                   <span>Cajero: {user?.nombre || 'Caja Central'}</span>
-                  <span>{new Date(completedSale.fecha || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span>{completedSale.fecha ? new Date(completedSale.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                 </div>
 
                 {/* Items Table */}

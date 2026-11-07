@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { login, register, getMe, verifyEmail } from '../controllers/auth.controller';
+import { login, register, getMe, verifyEmail, resendVerificationCode } from '../controllers/auth.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
-import { loginSchema, registerSchema, verifyEmailSchema } from '../validators/schemas';
+import { loginSchema, registerSchema, verifyEmailSchema, resendCodeSchema } from '../validators/schemas';
 
 const router = Router();
 
@@ -22,6 +22,7 @@ const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 20, // 20 intentos por IP
   keyGenerator: getClientIpKey,
+  validate: { keyGeneratorIpFallback: false },
   message: {
     success: false,
     code: 'RATE_LIMIT_EXCEEDED',
@@ -36,6 +37,7 @@ const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
   max: 10, // 10 registros por hora por IP
   keyGenerator: getClientIpKey,
+  validate: { keyGeneratorIpFallback: false },
   message: {
     success: false,
     code: 'RATE_LIMIT_EXCEEDED',
@@ -45,9 +47,25 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limit en reenvío de código para evitar saturación de correo/OTP
+const resendLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutos
+  max: 5, // 5 solicitudes por IP cada 10 min
+  keyGenerator: getClientIpKey,
+  validate: { keyGeneratorIpFallback: false },
+  message: {
+    success: false,
+    code: 'RATE_LIMIT_EXCEEDED',
+    message: 'Demasiadas solicitudes de reenvío de código. Espere unos minutos antes de intentar de nuevo.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.post('/login', loginLimiter, validate(loginSchema), login);
 router.post('/register', registerLimiter, validate(registerSchema), register);
 router.post('/verify', validate(verifyEmailSchema), verifyEmail);
+router.post('/resend-code', resendLimiter, validate(resendCodeSchema), resendVerificationCode);
 router.get('/me', authenticateToken, getMe);
 
 export default router;

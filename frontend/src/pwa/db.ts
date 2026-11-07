@@ -37,6 +37,7 @@ export interface LocalOfflineSale {
   montoPagadoNIO?: number | null;
   montoPagadoUSD?: number | null;
   cambioNIO?: number | null;
+  redondeoNIO?: number | null;
   detalles: Array<{
     productoId: string;
     cantidad: number;
@@ -131,10 +132,10 @@ export interface LocalUser {
   cachedAt: string;
 }
 
-/** IDs de datos ficticios que nunca deben persistir ni mostrarse al usuario */
-export const DUMMY_PRODUCT_IDS = ['prod-001', 'prod-002', 'prod-003', 'prod-004', 'prod-005', 'prod-006', 'prod-007'];
-export const DUMMY_CATEGORY_IDS = ['cat-001', 'cat-002', 'cat-003', 'cat-004', 'cat-005'];
-export const DUMMY_SUPPLIER_IDS = ['prov-001', 'prov-002', 'prov-003'];
+/** IDs de pruebas o mock que no deben persistir */
+export const DUMMY_PRODUCT_IDS: string[] = ['test-mock-prod-000'];
+export const DUMMY_CATEGORY_IDS: string[] = ['test-mock-cat-000'];
+export const DUMMY_SUPPLIER_IDS: string[] = ['test-mock-prov-000'];
 
 export class JINStockDB extends Dexie {
   products!: Table<LocalProduct>;
@@ -204,7 +205,7 @@ export class JINStockDB extends Dexie {
         await tx.table('metadata').put({ key: 'dummyDataCleaned', value: 'v5' });
       });
 
-    // Versión 6: Limpieza profunda y definitiva de todos los datos ficticios y tablas obsoletas en Dexie
+    // Versión 6: Esquema optimizado Dexie
     this.version(6)
       .stores({
         products: 'id, codigoBarras, sku, nombre, categoriaId, estado, stock',
@@ -217,17 +218,12 @@ export class JINStockDB extends Dexie {
         localUsers: 'id, nombre, rol, estado, cachedAt',
       })
       .upgrade(async (tx) => {
-        // Purgar productos ficticios
+        // Purgar únicamente mock IDs si existieran
         await tx.table('products').where('id').anyOf(DUMMY_PRODUCT_IDS).delete();
-        // Purgar categorías ficticias
         await tx.table('categories').where('id').anyOf(DUMMY_CATEGORY_IDS).delete();
-        // Purgar TODOS los proveedores ficticios (prov-001, prov-002, prov-003)
-        await tx.table('suppliers').where('id').anyOf(['prov-001', 'prov-002', 'prov-003']).delete();
-        // Vaciar usuarios y ventas locales cacheadas para forzar recarga limpia desde Neon
-        await tx.table('localUsers').clear();
-        await tx.table('localSales').clear();
+        await tx.table('suppliers').where('id').anyOf(DUMMY_SUPPLIER_IDS).delete();
         await tx.table('metadata').put({ key: 'dummyDataCleaned', value: 'v6' });
-        console.log('[JINStockDB v6] Purgados datos locales obsoletos y ficticios.');
+        console.log('[JINStockDB v6] Base de datos local inicializada.');
       });
 
     // Versión 7: outbox durable para altas offline reintentables.

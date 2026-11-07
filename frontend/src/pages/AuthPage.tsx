@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+const Logo: React.FC<{ centered?: boolean }> = ({ centered }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: centered ? 16 : 32, justifyContent: centered ? 'center' : 'flex-start' }}>
+    <img src="/JINSTOCK.png" alt="JINSTOCK" style={{ height: 42, width: 'auto', objectFit: 'contain' }} />
+    <span style={{ fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: 0.5 }}>JINStock</span>
+  </div>
+);
 
 export const AuthPage: React.FC = () => {
   const { login, register, loginOffline } = useAuth();
@@ -25,10 +32,20 @@ export const AuthPage: React.FC = () => {
   const [regPassword, setRegPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
 
-  // Verificación de correo
+  // Verificación de correo (Neon Auth)
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,8 +84,8 @@ export const AuthPage: React.FC = () => {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (regPassword.length < 6) {
-      setErrorMessage('La contraseña debe tener al menos 6 caracteres.');
+    if (regPassword.length < 8) {
+      setErrorMessage('La contraseña debe tener al menos 8 caracteres.');
       return;
     }
 
@@ -85,9 +102,10 @@ export const AuthPage: React.FC = () => {
 
       if (res.success) {
         if (res.requireVerification) {
-          setSuccessMessage(res.message || 'Código de verificación enviado.');
+          setSuccessMessage(res.message || 'Código de verificación enviado por Neon Auth a su correo.');
           setVerificationEmail(res.email || regEmail);
           setIsVerifying(true);
+          setResendCooldown(60);
         } else {
           setSuccessMessage('¡Cuenta de cajero creada exitosamente! Redirigiendo...');
           setTimeout(() => {
@@ -104,12 +122,31 @@ export const AuthPage: React.FC = () => {
     }
   };
 
-  const Logo = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: activeTab === 'login' ? 16 : 32, justifyContent: activeTab === 'login' ? 'center' : 'flex-start' }}>
-      <img src="/JINSTOCK.png" alt="JINSTOCK" style={{ height: 42, width: 'auto', objectFit: 'contain' }} />
-      <span style={{ fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: 0.5 }}>JINStock</span>
-    </div>
-  );
+  const handleResendCode = async () => {
+    if (resendCooldown > 0 || isResending) return;
+    setIsResending(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000/api'}/auth/resend-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verificationEmail }),
+      });
+      const res = await response.json();
+      if (res.success) {
+        setSuccessMessage(res.message || 'Nuevo código de verificación enviado por Neon Auth.');
+        setResendCooldown(60);
+      } else {
+        setErrorMessage(res.message || 'Error al reenviar el código.');
+      }
+    } catch {
+      setErrorMessage('Error de conexión al solicitar nuevo código.');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,18 +163,21 @@ export const AuthPage: React.FC = () => {
       const res = await response.json();
       
       if (res.success && res.data) {
-        setSuccessMessage('Verificación exitosa. Iniciando sesión...');
-        // Store token and user data
+        setSuccessMessage('Verificación exitosa con Neon Auth. Iniciando sesión...');
         localStorage.setItem('jinstock_token', res.data.token);
         localStorage.setItem('jinstock_user', JSON.stringify(res.data.usuario));
         setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 600);
+          if (res.data.usuario?.rol === 'CAJERO') {
+            navigate('/pos');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 500);
       } else {
         setErrorMessage(res.message || 'Error al verificar el código.');
       }
-    } catch (err) {
-      setErrorMessage('Error de conexión al verificar.');
+    } catch {
+      setErrorMessage('Error de conexión al verificar el código.');
     } finally {
       setLoading(false);
     }
@@ -148,7 +188,7 @@ export const AuthPage: React.FC = () => {
       {activeTab === 'login' && !isVerifying ? (
         // --- LOGIN VIEW ---
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 1 }}>
-          <Logo />
+          <Logo centered />
           <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24, textAlign: 'center' }}>Gestiona tu pasión, escala tu negocio.</p>
           
           <div className="w-full max-w-[420px] bg-[#24232b] border border-[#33323c] rounded-3xl p-6 sm:p-9 shadow-2xl">
@@ -289,25 +329,109 @@ export const AuthPage: React.FC = () => {
 
         </div>
       ) : isVerifying ? (
-        // --- VERIFY VIEW ---
+        // --- VERIFY VIEW (Neon Auth OTP) ---
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 1 }}>
-          <Logo />
-          <div className="w-full max-w-[420px] bg-[#24232b] border border-[#33323c] rounded-3xl p-6 sm:p-9 shadow-2xl">
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Verifica tu correo</h2>
-            <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 20 }}>Hemos enviado un código de 6 dígitos a <strong>{verificationEmail}</strong>.</p>
+          <Logo centered />
+          <div className="w-full max-w-[440px] bg-[#24232b] border border-[#33323c] rounded-3xl p-6 sm:p-9 shadow-2xl">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(147, 51, 234, 0.15)', border: '1px solid rgba(147, 51, 234, 0.3)', color: '#c084fc', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>verified_user</span>
+                <span>Neon Auth OTP</span>
+              </div>
+              <span style={{ fontSize: 11, color: '#9ca3af' }}>Válido 15 min</span>
+            </div>
+
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Verifica tu correo</h2>
+            <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
+              Ingresa el código de 6 dígitos enviado a <strong style={{ color: '#e5e7eb' }}>{verificationEmail}</strong> para activar tu cuenta.
+            </p>
             
-            {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{errorMessage}</div>}
-            {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: 12, borderRadius: 8, fontSize: 14, marginBottom: 16 }}>{successMessage}</div>}
+            {errorMessage && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', padding: 12, borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{errorMessage}</div>}
+            {successMessage && <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e', padding: 12, borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{successMessage}</div>}
 
             <form onSubmit={handleVerifySubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Código de Verificación</label>
-                <input type="text" value={verificationCode} onChange={e => setVerificationCode(e.target.value)} placeholder="123456" maxLength={6} style={{ width: '100%', padding: '14px 16px', background: '#1c1b22', border: '1px solid #33323c', borderRadius: 12, color: '#fff', outline: 'none', fontSize: 24, letterSpacing: 8, textAlign: 'center' }} required />
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Código de Verificación (6 dígitos)</label>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    background: '#1c1b22',
+                    border: '1.5px solid #4A148C',
+                    borderRadius: 12,
+                    color: '#fff',
+                    outline: 'none',
+                    fontSize: 28,
+                    fontWeight: 700,
+                    letterSpacing: 10,
+                    textAlign: 'center',
+                    fontFamily: 'monospace',
+                  }}
+                  required
+                />
               </div>
-              <button disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(90deg, #4A148C, #A788F4)', color: '#fff', fontSize: 16, fontWeight: 600, border: 'none', cursor: 'pointer', marginTop: 8 }}>
-                {loading ? 'Verificando...' : 'Verificar y Entrar'}
+
+              <button
+                disabled={loading || verificationCode.trim().length < 4}
+                style={{
+                  width: '100%',
+                  padding: 15,
+                  borderRadius: 12,
+                  background: loading || verificationCode.trim().length < 4 ? '#33323c' : 'linear-gradient(90deg, #4A148C, #A788F4)',
+                  color: '#fff',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: loading || verificationCode.trim().length < 4 ? 'not-allowed' : 'pointer',
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                {loading ? 'Verificando con Neon Auth...' : 'Verificar y Entrar'}
               </button>
-              <button type="button" onClick={() => setIsVerifying(false)} style={{ background: 'transparent', border: 'none', color: '#9ca3af', fontSize: 14, cursor: 'pointer', marginTop: 8, textDecoration: 'underline' }}>Volver</button>
+
+              {/* Botón de reenvío de código */}
+              <div style={{ textAlign: 'center', paddingTop: 6, borderTop: '1px solid #33323c' }}>
+                <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 8px 0' }}>¿No recibiste el código o expiró?</p>
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={resendCooldown > 0 || isResending}
+                  style={{
+                    background: 'none',
+                    border: '1px solid rgba(167, 139, 250, 0.3)',
+                    borderRadius: 8,
+                    padding: '8px 14px',
+                    color: resendCooldown > 0 ? '#6b7280' : '#c4b5fd',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: resendCooldown > 0 || isResending ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isResending
+                    ? 'Reenviando...'
+                    : resendCooldown > 0
+                    ? `Reenviar nuevo código (${resendCooldown}s)`
+                    : 'Reenviar código de verificación'}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsVerifying(false);
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                style={{ background: 'transparent', border: 'none', color: '#9ca3af', fontSize: 13, cursor: 'pointer', textAlign: 'center', textDecoration: 'underline' }}
+              >
+                ← Regresar al inicio de sesión
+              </button>
             </form>
           </div>
         </div>

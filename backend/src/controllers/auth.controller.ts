@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
-import { sendConfirmationEmail } from '../utils/mailer';
+import { sendVerificationOtp } from '../utils/neonAuth';
 import { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, ValidationError } from '../utils/errors';
 
 const getJwtSecret = (): string => {
@@ -104,11 +104,10 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const assignedRol = 'CAJERO';
 
     const isTest = process.env.NODE_ENV === 'test';
-    const hasSmtpConfigured = Boolean(
-      process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM_EMAIL,
-    ) && !isTest;
-    // Solo auto-verificar en pruebas o desarrollo; producción siempre debe enviar el código.
-    const shouldAutoVerify = isTest || (!hasSmtpConfigured && process.env.NODE_ENV !== 'production');
+    const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS) && !isTest;
+    const hasNeonAuth = Boolean(process.env.NEON_AUTH_URL);
+    // Si hay Neon Auth o SMTP configurado y no es test, exigir verificación
+    const shouldRequireVerification = (hasNeonAuth || hasSmtpConfigured) && !isTest;
 
     const newUser = await prisma.usuario.create({
       data: {
@@ -117,28 +116,37 @@ export const register = async (req: Request, res: Response, next: NextFunction):
         passwordHash,
         rol: assignedRol,
         estado: true,
-        verificado: shouldAutoVerify,
-        codigoConfirmacion: shouldAutoVerify ? null : codigoConfirmacion,
+        verificado: !shouldRequireVerification,
+        codigoConfirmacion: shouldRequireVerification ? codigoConfirmacion : null,
       },
     });
 
-    if (!shouldAutoVerify) {
-      const emailSent = await sendConfirmationEmail(cleanEmail, codigoConfirmacion);
-      if (!emailSent) {
-        // Permite que el usuario vuelva a registrarse después de corregir la configuración SMTP.
+    if (shouldRequireVerification) {
+      const otpRes = await sendVerificationOtp(cleanEmail, codigoConfirmacion);
+      if (!otpRes.success && process.env.NODE_ENV === 'production' && !otpRes.code) {
         await prisma.usuario.delete({ where: { id: newUser.id } });
         res.status(502).json({
           success: false,
           code: 'EMAIL_DELIVERY_FAILED',
-          message: 'No se pudo enviar el código de verificación. Intente nuevamente más tarde.',
+          message: otpRes.message || 'No se pudo enviar el código de verificación. Intente nuevamente más tarde.',
         });
         return;
       }
       res.status(201).json({
         success: true,
-        message: 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',
+        message: otpRes.message || 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',
         requireVerification: true,
         email: newUser.email,
+        ...(otpRes.code ? { devCode: otpRes.code } : {}),
+      });
+      return;
+    }
+      res.status(201).json({
+        success: true,
+        message: otpRes.message || 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',
+        requireVerification: true,
+        email: newUser.email,
+        ...(otpRes.code ? { devCode: otpRes.code } : {}),
       });
       return;
     }
@@ -170,6 +178,55 @@ export const register = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
+export const resendVerificationCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      throw new ValidationError('El correo electrónico es requerido.');
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await prisma.usuario.findUnique({ where: { email: cleanEmail } });
+
+    if (!user) {
+      // Anti-enumeración de usuarios
+      res.json({
+        success: true,
+        message: 'Si la cuenta existe y está pendiente de verificación, se ha enviado un nuevo código.',
+      });
+      return;
+    }
+
+    if (user.verificado) {
+      res.json({
+        success: true,
+        alreadyVerified: true,
+        message: 'Esta cuenta ya está verificada. Puede iniciar sesión directamente.',
+      });
+      return;
+    }
+
+    const nuevoCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await prisma.usuario.update({
+      where: { email: cleanEmail },
+      data: { codigoConfirmacion: nuevoCodigo },
+    });
+
+    const otpRes = await sendVerificationOtp(cleanEmail, nuevoCodigo);
+
+    res.json({
+      success: true,
+      message: otpRes.message || 'Nuevo código de verificación enviado a su correo.',
+      requireVerification: true,
+      email: cleanEmail,
+      ...(otpRes.code ? { devCode: otpRes.code } : {}),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, code } = req.body;
@@ -186,12 +243,38 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
     }
 
     if (user.verificado) {
-      res.json({ success: true, message: 'La cuenta ya ha sido verificada previamente.' });
+      const payload = {
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        rol: user.rol,
+      };
+      const token = jwt.sign(payload, getJwtSecret(), { expiresIn: '24h' });
+      res.json({
+        success: true,
+        data: {
+          token,
+          usuario: {
+            id: user.id,
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.rol,
+          },
+        },
+        message: 'La cuenta ya ha sido verificada previamente. Sesión iniciada.',
+      });
       return;
     }
 
-    if (user.codigoConfirmacion !== code.trim()) {
+    if (!user.codigoConfirmacion || user.codigoConfirmacion !== code.trim()) {
       throw new ValidationError('Código de confirmación incorrecto.');
+    }
+
+    // Comprobar expiración del código (15 minutos)
+    const CODE_EXPIRATION_MS = 15 * 60 * 1000;
+    const timeSinceUpdate = Date.now() - new Date(user.updatedAt).getTime();
+    if (timeSinceUpdate > CODE_EXPIRATION_MS) {
+      throw new ValidationError('El código de verificación ha expirado (validez de 15 minutos). Por favor solicite un nuevo código.');
     }
 
     const updatedUser = await prisma.usuario.update({
