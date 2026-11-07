@@ -78,7 +78,11 @@ export const DashboardPage: React.FC = () => {
 
         // Top productos calculados desde detalles de ventas reales (no datos ficticios)
         const allSalesForTop = [...cachedServerSales, ...offlinePending];
-        const productSalesMap: Record<string, { nombre: string; stock: number; precioVenta: number; unidadesVendidas: number }> = {};
+        // ventas por producto: { unidadesVendidas = suma de cantidades, vecesVendido = nº de transacciones }
+        const productSalesMap: Record<string, {
+          nombre: string; stock: number; precioVenta: number;
+          unidadesVendidas: number; vecesVendido: number;
+        }> = {};
         for (const sale of allSalesForTop) {
           const details = (sale as any).detalles || [];
           for (const d of details) {
@@ -92,16 +96,19 @@ export const DashboardPage: React.FC = () => {
                 stock: localProd?.stock ?? 0,
                 precioVenta: localProd?.precioVenta ?? (d.precioUnitario || 0),
                 unidadesVendidas: 0,
+                vecesVendido: 0,
               };
             }
             productSalesMap[pid].unidadesVendidas += Number(d.cantidad) || 0;
+            productSalesMap[pid].vecesVendido += 1;
           }
         }
+        const MIN_VENTAS = 3; // Un producto solo se considera "más vendido" si tiene al menos 3 unidades vendidas
         const computedTop = Object.entries(productSalesMap)
           .map(([productoId, v]) => ({ productoId, ...v }))
-          .filter((p) => p.unidadesVendidas >= 3)   // mínimo 3 unidades vendidas
+          .filter((p) => p.unidadesVendidas >= MIN_VENTAS)
           .sort((a, b) => b.unidadesVendidas - a.unidadesVendidas)
-          .slice(0, 4);
+          .slice(0, 5);
         setTopProducts(computedTop);
 
         // Ventas recientes: server cache primero, luego pendientes offline
@@ -147,7 +154,9 @@ export const DashboardPage: React.FC = () => {
           lowStockCount: statsRes.data.lowStockCount || 0,
           outOfStockCount: statsRes.data.outOfStockCount || 0,
         });
-        setTopProducts(statsRes.data.topSellingProducts || []);
+        const serverTop = (statsRes.data.topSellingProducts || [])
+          .filter((p: any) => Number(p.unidadesVendidas || 0) >= 3);
+        setTopProducts(serverTop);
       } else {
         await loadFromDexie();
       }
@@ -415,7 +424,7 @@ export const DashboardPage: React.FC = () => {
         <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto">
           {topProducts.length === 0 ? (
             <div className="text-center py-10 text-gray-500 text-xs">
-              Aún no hay suficiente historial de ventas para calcular los productos más vendidos.
+              Aún no hay productos con al menos 3 ventas registradas.
             </div>
           ) : (
             topProducts.map((p, idx) => (

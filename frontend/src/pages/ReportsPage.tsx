@@ -84,6 +84,78 @@ async function buildOfflineSalesReport(desde: string, hasta: string): Promise<an
   }
 }
 
+/**
+ * Calcula los productos más vendidos desde Dexie para funcionamiento offline.
+ * Solo incluye productos con al menos 3 unidades vendidas.
+ */
+async function buildOfflineTopProductsReport(desde: string, hasta: string): Promise<any[]> {
+  try {
+    const desdeTs = new Date(desde + 'T00:00:00').getTime();
+    const hastaTs  = new Date(hasta  + 'T23:59:59').getTime();
+
+    const [allOffline, allLocal, allProducts] = await Promise.all([
+      db.offlineSales.toArray(),
+      db.localSales.toArray(),
+      db.products.toArray(),
+    ]);
+
+    const prodMap = new Map(allProducts.map((p) => [p.id, p]));
+    const syncedOfflineIds = new Set(
+      allOffline.filter((s) => s.estado === 'SINCRONIZADO').map((s) => s.numeroComprobante)
+    );
+    const uniqueLocal = allLocal.filter((s) => !syncedOfflineIds.has(s.numeroComprobante));
+    const allSales = [...allOffline, ...uniqueLocal].filter((s) => {
+      const t = new Date(s.fecha).getTime();
+      return t >= desdeTs && t <= hastaTs;
+    });
+
+    const productSalesMap: Record<string, {
+      productoId: string;
+      nombre: string;
+      sku: string;
+      categoria: string;
+      cantidadVendida: number;
+      ingresoTotal: number;
+    }> = {};
+
+    for (const sale of allSales) {
+      const details = (sale as any).detalles || [];
+      for (const d of details) {
+        const pid = String(d.productoId || d.producto?.id || '');
+        if (!pid) continue;
+        const prod = prodMap.get(pid);
+        const nombre = d.productoNombre || d.producto?.nombre || prod?.nombre || `Producto ${pid}`;
+        const categoria = prod?.categoriaNombre || 'General';
+        const sku = prod?.sku || '';
+        const qty = Number(d.cantidad) || 0;
+        const subtotal = Number(d.subtotal ?? (qty * (d.precioUnitario || prod?.precioVenta || 0))) || 0;
+
+        if (!productSalesMap[pid]) {
+          productSalesMap[pid] = {
+            productoId: pid,
+            nombre,
+            sku,
+            categoria,
+            cantidadVendida: 0,
+            ingresoTotal: 0,
+          };
+        }
+        productSalesMap[pid].cantidadVendida += qty;
+        productSalesMap[pid].ingresoTotal += subtotal;
+      }
+    }
+
+    const MIN_VENTAS = 3; // Mínimo 3 ventas para ser considerado "más vendido"
+    return Object.values(productSalesMap)
+      .filter((p) => p.cantidadVendida >= MIN_VENTAS)
+      .map((p) => ({ ...p, ingresoTotal: Number(p.ingresoTotal.toFixed(2)) }))
+      .sort((a, b) => b.cantidadVendida - a.cantidadVendida);
+  } catch (err) {
+    console.warn('[ReportsPage] Error construyendo top products offline:', err);
+    return [];
+  }
+}
+
 function saveReportCache(key: string, data: any) {
   try {
     const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
@@ -183,11 +255,27 @@ export const ReportsPage: React.FC = () => {
       } else if (activeTab === 'TOP_PRODUCTS') {
         const cacheKey = `top_${desde}_${hasta}`;
         if (!online) {
-          setTopProductsReport(loadReportCache(cacheKey) || []);
+          const offlineTop = await buildOfflineTopProductsReport(desde, hasta);
+          if (offlineTop.length > 0) {
+            setTopProductsReport(offlineTop);
+          } else {
+            const cached = (loadReportCache(cacheKey) || []).filter((p: any) => Number(p.cantidadVendida || 0) >= 3);
+            setTopProductsReport(cached);
+          }
         } else {
           const res = await apiFetch(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
-          if (res.success) { setTopProductsReport(res.data || []); saveReportCache(cacheKey, res.data || []); }
-          else { setTopProductsReport(loadReportCache(cacheKey) || []); setReportError(res.message || 'No se pudo cargar el ranking de productos.'); }
+          if (res.success && Array.isArray(res.data)) {
+            const filtered = res.data.filter((p: any) => Number(p.cantidadVendida || 0) >= 3);
+            setTopProductsReport(filtered);
+            saveReportCache(cacheKey, filtered);
+          } else {
+            const offlineTop = await buildOfflineTopProductsReport(desde, hasta);
+            const fallback = offlineTop.length > 0
+              ? offlineTop
+              : (loadReportCache(cacheKey) || []).filter((p: any) => Number(p.cantidadVendida || 0) >= 3);
+            setTopProductsReport(fallback);
+            if (!res.success) setReportError(res.message || 'No se pudo cargar el ranking de productos.');
+          }
         }
       } else if (activeTab === 'CASH_CLOSING') {
         const cacheKey = `closing_${closingDate}`;
@@ -516,39 +604,49 @@ export const ReportsPage: React.FC = () => {
           {/* TAB 3: TOP PRODUCTS REPORT */}
           {activeTab === 'TOP_PRODUCTS' && (
             <div className="bg-[#1c1b22] border border-[#2d2c35] rounded-2xl overflow-hidden shadow-xl">
-              <div className="p-4 border-b border-white/5">
+              <div className="p-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h3 className="text-sm font-bold text-white">Ranking de Productos Más Vendidos</h3>
+                <span className="text-[11px] text-gray-400">
+                  Criterio: Mínimo 3 unidades vendidas en el período
+                </span>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[620px] text-left text-xs">
-                  <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
-                    <tr>
-                      <th className="py-3 px-4">#</th>
-                      <th className="py-3 px-4">Producto</th>
-                      <th className="py-3 px-4">Categoría</th>
-                      <th className="py-3 px-4 text-center">Unidades Vendidas</th>
-                      <th className="py-3 px-4 text-right">Ingreso Generado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {topProductsReport.map((p, idx) => (
-                      <tr key={p.productoId} className="hover:bg-white/5">
-                        <td className="py-3 px-4 font-bold text-purple-400">{idx + 1}</td>
-                        <td className="py-3 px-4 font-semibold text-white">{p.nombre}</td>
-                        <td className="py-3 px-4 text-gray-400">{p.categoria}</td>
-                        <td className="py-3 px-4 text-center font-bold text-white">
-                          <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full">
-                            {p.cantidadVendida} u.
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right font-extrabold text-emerald-400">
-                          C$ {Number(p.ingresoTotal).toFixed(2)}
-                        </td>
+              {topProductsReport.length === 0 ? (
+                <div className="py-12 text-center text-gray-500 text-xs px-4">
+                  <span className="material-symbols-outlined text-3xl text-gray-600 block mb-2">inventory_2</span>
+                  Aún no hay productos con al menos 3 ventas en el período seleccionado.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[620px] text-left text-xs">
+                    <thead className="bg-[#14131a] text-gray-400 border-b border-white/5 uppercase font-bold text-[11px]">
+                      <tr>
+                        <th className="py-3 px-4">#</th>
+                        <th className="py-3 px-4">Producto</th>
+                        <th className="py-3 px-4">Categoría</th>
+                        <th className="py-3 px-4 text-center">Unidades Vendidas</th>
+                        <th className="py-3 px-4 text-right">Ingreso Generado</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {topProductsReport.map((p, idx) => (
+                        <tr key={p.productoId} className="hover:bg-white/5">
+                          <td className="py-3 px-4 font-bold text-purple-400">{idx + 1}</td>
+                          <td className="py-3 px-4 font-semibold text-white">{p.nombre}</td>
+                          <td className="py-3 px-4 text-gray-400">{p.categoria}</td>
+                          <td className="py-3 px-4 text-center font-bold text-white">
+                            <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full">
+                              {p.cantidadVendida} u.
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-extrabold text-emerald-400">
+                            C$ {Number(p.ingresoTotal).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 

@@ -415,10 +415,14 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         `,
         // Productos agotados (stock = 0)
         prisma.producto.count({ where: { estado: true, stock: 0 } }),
-        // M-06: Agregación real de los más vendidos sobre DetalleVenta
+        // M-06: Agregación real de los más vendidos sobre DetalleVenta (mínimo 3 unidades vendidas)
         prisma.detalleVenta.groupBy({
           by: ['productoId'],
           _sum: { cantidad: true },
+          where: { venta: { estado: 'COMPLETADA' } },
+          having: {
+            cantidad: { _sum: { gte: 3 } },
+          },
           orderBy: { _sum: { cantidad: 'desc' } },
           take: 6,
         }),
@@ -432,7 +436,9 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
     });
     const topProdMap = new Map(topProductRecords.map((p) => [p.id, p]));
 
-    const topSellingProducts = topDetails.map((item) => {
+    const topSellingProducts = topDetails
+      .filter((item) => Number(item._sum.cantidad || 0) >= 3)
+      .map((item) => {
       const prod = topProdMap.get(item.productoId);
       return {
         productoId: item.productoId,
