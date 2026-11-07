@@ -99,6 +99,7 @@ export const DashboardPage: React.FC = () => {
         }
         const computedTop = Object.entries(productSalesMap)
           .map(([productoId, v]) => ({ productoId, ...v }))
+          .filter((p) => p.unidadesVendidas >= 3)   // mínimo 3 unidades vendidas
           .sort((a, b) => b.unidadesVendidas - a.unidadesVendidas)
           .slice(0, 4);
         setTopProducts(computedTop);

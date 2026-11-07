@@ -87,7 +87,11 @@ export const getPurchasesReport = async (req: Request, res: Response, next: Next
 
 export const getTopProductsReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { desde, hasta } = req.query;
+    const { desde, hasta, limit } = req.query;
+    const take = Math.min(Math.max(Number(limit) || 15, 1), 50);
+
+    // Umbral mínimo de ventas para aparecer en el ranking
+    const MIN_VENTAS = 3;
 
     const ventaWhere: any = { estado: 'COMPLETADA' };
     if (desde || hasta) {
@@ -96,19 +100,16 @@ export const getTopProductsReport = async (req: Request, res: Response, next: Ne
       if (hasta) ventaWhere.fecha.lte = dayEndUTC(String(hasta));
     }
 
-    const whereVenta: any = {};
-    if (desde || hasta) {
-      whereVenta.fecha = {};
-      if (desde) whereVenta.fecha.gte = dayStartUTC(String(desde));
-      if (hasta) whereVenta.fecha.lte = dayEndUTC(String(hasta));
-    }
-
     const topDetails = await prisma.detalleVenta.groupBy({
       by: ['productoId'],
       _sum: { cantidad: true, subtotal: true },
-      where: { venta: { ...ventaWhere, estado: 'COMPLETADA' } },
+      where: { venta: { ...ventaWhere } },
       orderBy: { _sum: { cantidad: 'desc' } },
-      take: 20,
+      having: {
+        // Solo productos vendidos al menos MIN_VENTAS unidades en el período
+        cantidad: { _sum: { gte: MIN_VENTAS } },
+      },
+      take,
     });
 
     const productIds = topDetails.map((d) => d.productoId);
@@ -121,18 +122,19 @@ export const getTopProductsReport = async (req: Request, res: Response, next: Ne
     products.forEach((p) => { productMap[p.id] = p; });
 
     const data = topDetails.map((d) => ({
-      productoId: d.productoId,
-      nombre: productMap[d.productoId]?.nombre || 'Producto eliminado',
-      sku: productMap[d.productoId]?.sku || '',
-      categoria: productMap[d.productoId]?.categoria?.nombre || 'General',
-      totalUnidades: Number(d._sum.cantidad || 0),
-      totalVendido: Number((d._sum.subtotal || 0).toFixed(2)),
+      productoId:      d.productoId,
+      nombre:          productMap[d.productoId]?.nombre || 'Producto eliminado',
+      sku:             productMap[d.productoId]?.sku    || '',
+      categoria:       productMap[d.productoId]?.categoria?.nombre || 'General',
+      // Nombres que espera el frontend: cantidadVendida e ingresoTotal
+      cantidadVendida: Number(d._sum.cantidad  || 0),
+      ingresoTotal:    Number((d._sum.subtotal || 0).toFixed(2)),
     }));
 
     res.json({
       success: true,
       data,
-      message: 'Top productos generado correctamente.',
+      message: `Top productos generado — mínimo ${MIN_VENTAS} unidades vendidas.`,
     });
   } catch (error) {
     next(error);

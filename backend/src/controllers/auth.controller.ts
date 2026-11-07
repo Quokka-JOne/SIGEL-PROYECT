@@ -141,15 +141,6 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       });
       return;
     }
-      res.status(201).json({
-        success: true,
-        message: otpRes.message || 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',
-        requireVerification: true,
-        email: newUser.email,
-        ...(otpRes.code ? { devCode: otpRes.code } : {}),
-      });
-      return;
-    }
 
     const payload = {
       id: newUser.id,
