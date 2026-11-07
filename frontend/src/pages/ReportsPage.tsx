@@ -1,8 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
 import { localDateString, localDateStringDaysAgo } from '../utils/dateNI';
+import { db } from '../pwa/db';
 
 const CACHE_KEY = 'jinstock_reports_cache';
+
+/**
+ * Construye un objeto de reporte de ventas a partir de las ventas offline
+ * guardadas en Dexie (offlineSales + localSales), filtradas por rango de fechas.
+ */
+async function buildOfflineSalesReport(desde: string, hasta: string): Promise<any> {
+  try {
+    const desdeTs = new Date(desde + 'T00:00:00').getTime();
+    const hastaTs  = new Date(hasta  + 'T23:59:59').getTime();
+
+    // Ventas generadas offline (pendientes, sincronizando, sincronizadas, error, revisión)
+    const allOffline = await db.offlineSales.toArray();
+    const offlineInRange = allOffline.filter((s) => {
+      const t = new Date(s.fecha).getTime();
+      return t >= desdeTs && t <= hastaTs;
+    });
+
+    // Ventas del servidor cacheadas en Dexie (localSales)
+    const allLocal = await db.localSales.toArray();
+    const localInRange = allLocal.filter((s) => {
+      const t = new Date(s.fecha).getTime();
+      return t >= desdeTs && t <= hastaTs;
+    });
+
+    // Evitar duplicados: si una venta offline ya fue sincronizada, el server
+    // la incluirá en localSales con su propio ID. Usamos offlineId vs id de localSales.
+    const syncedOfflineIds = new Set(
+      offlineInRange.filter((s) => s.estado === 'SINCRONIZADO').map((s) => s.numeroComprobante)
+    );
+
+    const uniqueLocal = localInRange.filter((s) => !syncedOfflineIds.has(s.numeroComprobante));
+
+    // Mapear ventas offline al formato que espera la tabla
+    const offlineRows = offlineInRange.map((s) => ({
+      id:               s.offlineId,
+      numeroComprobante: s.numeroComprobante,
+      fecha:            s.fecha,
+      total:            Number(s.total) || 0,
+      metodoPago:       s.metodoPago,
+      usuario:          { nombre: 'Cajero (Offline)' },
+      _offline:         true,
+      _estado:          s.estado,
+    }));
+
+    // Mapear ventas del servidor cacheadas
+    const serverRows = uniqueLocal.map((s) => ({
+      id:               s.id,
+      numeroComprobante: s.numeroComprobante,
+      fecha:            s.fecha,
+      total:            Number(s.total) || 0,
+      metodoPago:       s.metodoPago,
+      usuario:          { nombre: s.usuarioNombre || 'Cajero' },
+      _offline:         false,
+    }));
+
+    const ventas = [...offlineRows, ...serverRows].sort(
+      (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+    );
+
+    const montoTotal = ventas.reduce((sum, v) => sum + v.total, 0);
+
+    // Desglose por método de pago
+    const porMetodoPago: Record<string, number> = {};
+    for (const v of ventas) {
+      porMetodoPago[v.metodoPago] = (porMetodoPago[v.metodoPago] || 0) + v.total;
+    }
+
+    return {
+      totalVentas:  ventas.length,
+      montoTotal:   Number(montoTotal.toFixed(2)),
+      porMetodoPago,
+      ventas,
+      _fromOfflineCache: true,
+    };
+  } catch (err) {
+    console.warn('[ReportsPage] Error construyendo reporte offline:', err);
+    return null;
+  }
+}
 
 function saveReportCache(key: string, data: any) {
   try {
@@ -50,11 +130,46 @@ export const ReportsPage: React.FC = () => {
         const cacheKey = `sales_${desde}_${hasta}`;
         if (!online) {
           const cached = loadReportCache(cacheKey);
-          setSalesReport(cached);
+          // Siempre combinar con ventas offline de Dexie para garantizar datos completos
+          const offlineReport = await buildOfflineSalesReport(desde, hasta);
+          if (offlineReport && offlineReport.ventas.length > 0) {
+            setSalesReport(offlineReport);
+          } else {
+            setSalesReport(cached);
+          }
         } else {
           const res = await apiFetch(`/reports/sales?desde=${desde}&hasta=${hasta}`);
-          if (res.success) { setSalesReport(res.data); saveReportCache(cacheKey, res.data); }
-          else { setSalesReport(loadReportCache(cacheKey)); setReportError(res.message || 'No se pudo cargar el reporte de ventas.'); }
+          if (res.success) {
+            // Mezclar ventas del servidor con ventas offline pendientes (no sincronizadas aún)
+            const serverData = res.data;
+            const offlineReport = await buildOfflineSalesReport(desde, hasta);
+            const serverComprobantes = new Set((serverData?.ventas || []).map((v: any) => v.numeroComprobante));
+            const pendingOfflineRows = (offlineReport?.ventas || []).filter(
+              (v: any) => v._offline && v._estado !== 'SINCRONIZADO' && !serverComprobantes.has(v.numeroComprobante)
+            );
+            if (pendingOfflineRows.length > 0) {
+              const merged = {
+                ...serverData,
+                ventas: [...pendingOfflineRows, ...(serverData?.ventas || [])].sort(
+                  (a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+                ),
+                totalVentas: (serverData?.totalVentas || 0) + pendingOfflineRows.length,
+                montoTotal: Number(((serverData?.montoTotal || 0) + pendingOfflineRows.reduce((s: number, v: any) => s + v.total, 0)).toFixed(2)),
+                _hasOfflinePending: true,
+              };
+              setSalesReport(merged);
+              saveReportCache(cacheKey, merged);
+            } else {
+              setSalesReport(serverData);
+              saveReportCache(cacheKey, serverData);
+            }
+          }
+          else {
+            // Sin respuesta del servidor: intentar con Dexie
+            const offlineReport = await buildOfflineSalesReport(desde, hasta);
+            setSalesReport(offlineReport || loadReportCache(cacheKey));
+            setReportError(res.message || 'No se pudo cargar el reporte de ventas.');
+          }
         }
       } else if (activeTab === 'PURCHASES') {
         const cacheKey = `purchases_${desde}_${hasta}`;
@@ -200,6 +315,18 @@ export const ReportsPage: React.FC = () => {
           <span>Modo sin conexión — mostrando el último reporte consultado. Los datos no están actualizados.</span>
         </div>
       )}
+      {salesReport?._fromOfflineCache && (
+        <div className="p-3 rounded-xl border bg-blue-950/60 border-blue-500/40 text-blue-200 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">offline_bolt</span>
+          <span>Reporte generado desde datos locales — incluye ventas emitidas en modo offline. Se actualizará automáticamente al sincronizar con el servidor.</span>
+        </div>
+      )}
+      {salesReport?._hasOfflinePending && (
+        <div className="p-3 rounded-xl border bg-amber-950/60 border-amber-500/40 text-amber-200 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">pending_actions</span>
+          <span>Hay ventas emitidas en modo offline pendientes de sincronización. Se muestran con la etiqueta <strong>⏳ Pendiente</strong>.</span>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-white/10 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
@@ -318,8 +445,21 @@ export const ReportsPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {salesReport?.ventas?.map((v: any) => (
-                      <tr key={v.id} className="hover:bg-white/5">
-                        <td className="py-3 px-4 font-bold text-white">{v.numeroComprobante}</td>
+                      <tr key={v.id} className={`hover:bg-white/5 ${v._offline ? 'bg-blue-950/10' : ''}`}>
+                        <td className="py-3 px-4 font-bold text-white">
+                          <span>{v.numeroComprobante}</span>
+                          {v._offline && (
+                            <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                              v._estado === 'SINCRONIZADO'
+                                ? 'bg-emerald-500/20 text-emerald-300'
+                                : v._estado === 'PENDIENTE' || v._estado === 'SINCRONIZANDO'
+                                ? 'bg-amber-500/20 text-amber-300'
+                                : 'bg-rose-500/20 text-rose-300'
+                            }`}>
+                              {v._estado === 'SINCRONIZADO' ? '✓ Sync' : v._estado === 'PENDIENTE' ? '⏳ Pendiente' : v._estado === 'SINCRONIZANDO' ? '↻ Sync...' : '⚠ ' + v._estado}
+                            </span>
+                          )}
+                        </td>
                         <td className="py-3 px-4 text-gray-300">{new Date(v.fecha).toLocaleString()}</td>
                         <td className="py-3 px-4 text-gray-300">{v.usuario?.nombre || 'Cajero'}</td>
                         <td className="py-3 px-4 text-gray-300">{v.metodoPago}</td>
