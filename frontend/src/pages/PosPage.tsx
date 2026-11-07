@@ -294,6 +294,7 @@ export const PosPage: React.FC = () => {
       redondeoNIO: roundingDiffNIO,
       detalles: cart.map((i) => ({
         productoId: i.producto.id,
+        productoNombre: i.producto.nombre,
         cantidad: i.cantidad,
         precioUnitario: i.precioUnitario,
         subtotal: i.subtotal,
@@ -365,6 +366,7 @@ export const PosPage: React.FC = () => {
     const payload = {
       detalles: cart.map((i) => ({
         productoId: i.producto.id,
+        productoNombre: i.producto.nombre,
         cantidad: i.cantidad,
         precioUnitario: i.precioUnitario,
         subtotal: i.subtotal,

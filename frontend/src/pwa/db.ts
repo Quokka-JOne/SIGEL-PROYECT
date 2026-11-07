@@ -40,6 +40,7 @@ export interface LocalOfflineSale {
   redondeoNIO?: number | null;
   detalles: Array<{
     productoId: string;
+    productoNombre?: string;
     cantidad: number;
     precioUnitario: number;
     subtotal: number;
@@ -133,9 +134,30 @@ export interface LocalUser {
 }
 
 /** IDs de pruebas o mock que no deben persistir */
-export const DUMMY_PRODUCT_IDS: string[] = ['test-mock-prod-000'];
-export const DUMMY_CATEGORY_IDS: string[] = ['test-mock-cat-000'];
-export const DUMMY_SUPPLIER_IDS: string[] = ['test-mock-prov-000'];
+export const DUMMY_PRODUCT_IDS: string[] = [
+  'test-mock-prod-000',
+  'prod-001',
+  'prod-002',
+  'prod-003',
+  'prod-004',
+  'prod-005',
+  'prod-006',
+  'prod-007',
+];
+export const DUMMY_CATEGORY_IDS: string[] = [
+  'test-mock-cat-000',
+  'cat-001',
+  'cat-002',
+  'cat-003',
+  'cat-004',
+  'cat-005',
+];
+export const DUMMY_SUPPLIER_IDS: string[] = [
+  'test-mock-prov-000',
+  'prov-001',
+  'prov-002',
+  'prov-003',
+];
 
 export class JINStockDB extends Dexie {
   products!: Table<LocalProduct>;

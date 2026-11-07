@@ -12,6 +12,11 @@ import {
   type SyncEntity,
 } from '../pwa/db';
 import { apiFetch } from './api';
+import {
+  REAL_NEON_CATEGORIES,
+  REAL_NEON_SUPPLIERS,
+  REAL_NEON_PRODUCTS,
+} from '../pwa/realCatalogData';
 
 type SyncListener = () => void;
 const listeners = new Set<SyncListener>();
@@ -322,159 +327,10 @@ export async function syncPendingSales(): Promise<{ processed: number; successCo
   return { processed, successCount, errorsCount };
 }
 
-// ─── Catálogo base de Papelería y Librería precargado para garantizar funcionamiento 100% offline
-export const DEFAULT_OFFLINE_CATEGORIES: LocalCategory[] = [
-  { id: 'cat-001', nombre: 'Cuadernos y Libretas', descripcion: 'Cuadernos engargolados, cosidos, universitarios y de materias', estado: true },
-  { id: 'cat-002', nombre: 'Escritura y Corrección', descripcion: 'Lápices, lapiceros, marcadores, resaltadores y borradores', estado: true },
-  { id: 'cat-003', nombre: 'Papelería y Resmas', descripcion: 'Resmas bond, cartulinas, foamy, papel construcción y de regalo', estado: true },
-  { id: 'cat-004', nombre: 'Mochilas y Estuches', descripcion: 'Mochilas escolares, cartucheras, loncheras y bultos', estado: true },
-  { id: 'cat-005', nombre: 'Arte y Manualidades', descripcion: 'Pinturas acrílicas, acuarelas, pinceles, silicona y plastilina', estado: true },
-];
-
-export const DEFAULT_OFFLINE_SUPPLIERS: LocalSupplier[] = [
-  {
-    id: 'prov-001',
-    nombre: 'Distribuidora Papelera Hispamer S.A.',
-    ruc: 'J0310000123456',
-    telefono: '+505 2278-1234',
-    email: 'ventas@hispamer.com.ni',
-    direccion: 'Managua, Rotonda Rubén Darío 2c abajo',
-    estado: true,
-  },
-  {
-    id: 'prov-002',
-    nombre: 'Papelería y Suministros Castellanos Nicaragua',
-    ruc: 'J0310000987654',
-    telefono: '+505 2250-9988',
-    email: 'pedidos@castellanos.ni',
-    direccion: 'Managua, Plaza España Módulo E-4',
-    estado: true,
-  },
-  {
-    id: 'prov-003',
-    nombre: 'Comercializadora Escolar & Arte Gutenberg',
-    ruc: 'J0310000456789',
-    telefono: '+505 2311-4455',
-    email: 'contacto@gutenberg.com.ni',
-    direccion: 'León, De la Catedral 1c al Norte',
-    estado: true,
-  },
-];
-
-export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = [
-  {
-    id: 'prod-001',
-    nombre: 'Cuaderno Universitario Líder 200 Págs Cosido Rayado',
-    codigoBarras: '7411002230012',
-    sku: 'CUAD-LID-200R',
-    descripcion: 'Cuaderno con pasta dura resistente, papel bond blanco de alta blancura',
-    categoriaId: 'cat-001',
-    categoriaNombre: 'Cuadernos y Libretas',
-    precioVenta: 75.0,
-    costo: 50.0,
-    stock: 120,
-    stockMinimo: 15,
-    unidadMedida: 'Unidad',
-    imagenUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-  {
-    id: 'prod-002',
-    nombre: 'Cuaderno Universitario Líder 200 Págs Cuadriculado',
-    codigoBarras: '7411002230029',
-    sku: 'CUAD-LID-200C',
-    descripcion: 'Cuaderno espiral cuadro grande para matemáticas y cálculo',
-    categoriaId: 'cat-001',
-    categoriaNombre: 'Cuadernos y Libretas',
-    precioVenta: 78.0,
-    costo: 52.0,
-    stock: 95,
-    stockMinimo: 15,
-    unidadMedida: 'Unidad',
-    imagenUrl: 'https://images.unsplash.com/photo-1588702547923-7093a6c3ba33?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-  {
-    id: 'prod-003',
-    nombre: 'Resma Papel Bond Chamex Carta 75g (500 Hojas)',
-    codigoBarras: '7891048035222',
-    sku: 'PAP-CHAM-75C',
-    descripcion: 'Papel bond multiuso para fotocopias e impresiones de nitidez láser',
-    categoriaId: 'cat-003',
-    categoriaNombre: 'Papelería y Resmas',
-    precioVenta: 185.0,
-    costo: 140.0,
-    stock: 45,
-    stockMinimo: 10,
-    unidadMedida: 'Resma',
-    imagenUrl: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-  {
-    id: 'prod-004',
-    nombre: 'Caja Lapiceros Bic Cristal Azul (12 Unidades)',
-    codigoBarras: '070330113884',
-    sku: 'LAP-BIC-AZ12',
-    descripcion: 'Punta media 1.0mm, tinta suave duradera clásica de uso escolar y oficina',
-    categoriaId: 'cat-002',
-    categoriaNombre: 'Escritura y Corrección',
-    precioVenta: 120.0,
-    costo: 85.0,
-    stock: 60,
-    stockMinimo: 10,
-    unidadMedida: 'Caja',
-    imagenUrl: 'https://images.unsplash.com/photo-1585336261026-7756f7ef5bf5?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-  {
-    id: 'prod-005',
-    nombre: 'Caja Lápices de Color Prismacolor Junior 24 Colores',
-    codigoBarras: '7501006528741',
-    sku: 'COL-PRIS-24',
-    descripcion: 'Minas suaves y resistentes de 4mm, colores intensos y mezclables',
-    categoriaId: 'cat-005',
-    categoriaNombre: 'Arte y Manualidades',
-    precioVenta: 260.0,
-    costo: 195.0,
-    stock: 25,
-    stockMinimo: 5,
-    unidadMedida: 'Caja',
-    imagenUrl: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-  {
-    id: 'prod-006',
-    nombre: 'Mochila Escolar Totto Acuarela Resistente',
-    codigoBarras: '7704758362145',
-    sku: 'MOC-TOT-ACU',
-    descripcion: 'Compartimento para laptop 14", lona impermeable y correas ergonómicas',
-    categoriaId: 'cat-004',
-    categoriaNombre: 'Mochilas y Estuches',
-    precioVenta: 950.0,
-    costo: 720.0,
-    stock: 8,
-    stockMinimo: 3,
-    unidadMedida: 'Unidad',
-    imagenUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-  {
-    id: 'prod-007',
-    nombre: 'Borrador de Nata Pelikan Blanco Grande WS-30',
-    codigoBarras: '4012700720444',
-    sku: 'BOR-PEL-WS30',
-    descripcion: 'No mancha ni rompe el papel, libre de látex y residuos suaves',
-    categoriaId: 'cat-002',
-    categoriaNombre: 'Escritura y Corrección',
-    precioVenta: 15.0,
-    costo: 8.5,
-    stock: 80,
-    stockMinimo: 20,
-    unidadMedida: 'Unidad',
-    imagenUrl: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=400&q=80',
-    estado: true,
-  },
-];
+// ─── Catálogo base real de Neon precargado para garantizar funcionamiento 100% idéntico online/offline
+export const DEFAULT_OFFLINE_CATEGORIES: LocalCategory[] = REAL_NEON_CATEGORIES;
+export const DEFAULT_OFFLINE_SUPPLIERS: LocalSupplier[] = REAL_NEON_SUPPLIERS;
+export const DEFAULT_OFFLINE_PRODUCTS: LocalProduct[] = REAL_NEON_PRODUCTS;
 
 /**
  * Purga mock IDs obsoletos de Dexie
@@ -551,10 +407,12 @@ export async function cacheSuppliersLocally(suppliers: LocalSupplier[]): Promise
  */
 export async function ensureLocalCatalogInitialized(): Promise<void> {
   try {
+    await purgeDummyData();
+
     const prodCount = await db.products.count();
     if (prodCount === 0 && DEFAULT_OFFLINE_PRODUCTS.length > 0) {
       await db.products.bulkPut(DEFAULT_OFFLINE_PRODUCTS);
-      console.log('[SyncService] Catálogo inicial de productos cargado para modo offline.');
+      console.log('[SyncService] Catálogo real de Neon cargado para modo offline.');
     }
     const catCount = await db.categories.count();
     if (catCount === 0 && DEFAULT_OFFLINE_CATEGORIES.length > 0) {
@@ -713,9 +571,9 @@ export function initSyncManager() {
 }
 
 /**
- * Cachear ventas del servidor en Dexie para modo offline (reemplazo limpio)
+ * Cachear ventas del servidor en Dexie para modo offline
  */
-export async function cacheSalesLocally(sales: any[]): Promise<void> {
+export async function cacheSalesLocally(sales: any[], clearExisting: boolean = false): Promise<void> {
   try {
     const now = new Date().toISOString();
     const localSales: LocalSale[] = (sales || []).map((s) => ({
@@ -723,7 +581,7 @@ export async function cacheSalesLocally(sales: any[]): Promise<void> {
       numeroComprobante: s.numeroComprobante || '',
       fecha: s.fecha || s.createdAt || now,
       total: Number(s.total) || 0,
-      estado: s.estado || 'COMPLETADO',
+      estado: s.estado || 'COMPLETADA',
       metodoPago: s.metodoPago || '',
       clienteNombre: s.clienteNombre ?? null,
       usuarioNombre: s.usuario?.nombre || s.usuarioNombre || 'Sistema',
@@ -738,14 +596,16 @@ export async function cacheSalesLocally(sales: any[]): Promise<void> {
     }));
 
     await db.transaction('rw', db.localSales, async () => {
-      await db.localSales.clear();
+      if (clearExisting) {
+        await db.localSales.clear();
+      }
       if (localSales.length > 0) {
         await db.localSales.bulkPut(localSales);
       }
     });
 
     await db.metadata.put({ key: 'lastSalesSync', value: now });
-    console.log(`[SyncService] ${localSales.length} ventas cacheadas en Dexie (reemplazo limpio).`);
+    console.log(`[SyncService] ${localSales.length} ventas cacheadas en Dexie.`);
   } catch (err) {
     console.warn('[SyncService] Error cacheando ventas:', err);
   }
@@ -845,7 +705,7 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
       apiFetch<LocalCategory[]>('/categories'),
       apiFetch<LocalSupplier[]>('/suppliers?includeInactive=true'),
       apiFetch<any[]>('/users'),
-      apiFetch<any[]>('/sales?limit=50'),
+      apiFetch<any[]>('/sales?limit=100'),
       apiFetch<any[]>('/purchases'),
     ]);
 
@@ -869,7 +729,7 @@ export async function syncAllFromServer(): Promise<{ success: boolean; message: 
     }
 
     if (salesRes.success && salesRes.data) {
-      await cacheSalesLocally(salesRes.data);
+      await cacheSalesLocally(salesRes.data, true);
     }
 
     if (purRes.success && purRes.data) {

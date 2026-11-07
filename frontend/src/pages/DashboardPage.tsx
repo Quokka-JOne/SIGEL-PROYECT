@@ -145,11 +145,28 @@ export const DashboardPage: React.FC = () => {
       ]);
 
       if (statsRes.success && statsRes.data) {
+        const offlinePending = await db.offlineSales
+          .where('estado')
+          .anyOf('PENDIENTE', 'SINCRONIZANDO', 'ERROR', 'REVISION')
+          .toArray();
+
+        const todayNI = localDateString();
+        const currentMonthYear = todayNI.slice(0, 7);
+        const pendingToday = offlinePending.filter(
+          (s) => s.fecha && localDateString(new Date(s.fecha)) === todayNI
+        );
+        const pendingMonth = offlinePending.filter(
+          (s) => s.fecha && localDateString(new Date(s.fecha)).slice(0, 7) === currentMonthYear
+        );
+
+        const pendingTodayTotal = pendingToday.reduce((a, s) => a + (s.total || 0), 0);
+        const pendingMonthTotal = pendingMonth.reduce((a, s) => a + (s.total || 0), 0);
+
         setMetrics({
-          todaySalesTotal: statsRes.data.todaySalesTotal || 0,
-          todaySalesCount: statsRes.data.todaySalesCount || 0,
-          monthSalesTotal: statsRes.data.monthSalesTotal || 0,
-          monthSalesCount: statsRes.data.monthSalesCount || 0,
+          todaySalesTotal: Number(((statsRes.data.todaySalesTotal || 0) + pendingTodayTotal).toFixed(2)),
+          todaySalesCount: (statsRes.data.todaySalesCount || 0) + pendingToday.length,
+          monthSalesTotal: Number(((statsRes.data.monthSalesTotal || 0) + pendingMonthTotal).toFixed(2)),
+          monthSalesCount: (statsRes.data.monthSalesCount || 0) + pendingMonth.length,
           totalProductsCount: statsRes.data.totalProductsCount || 0,
           lowStockCount: statsRes.data.lowStockCount || 0,
           outOfStockCount: statsRes.data.outOfStockCount || 0,

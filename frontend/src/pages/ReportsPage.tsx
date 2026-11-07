@@ -28,16 +28,14 @@ async function buildOfflineSalesReport(desde: string, hasta: string): Promise<an
       return t >= desdeTs && t <= hastaTs;
     });
 
-    // Evitar duplicados: si una venta offline ya fue sincronizada, el server
-    // la incluirá en localSales con su propio ID. Usamos offlineId vs id de localSales.
-    const syncedOfflineIds = new Set(
-      offlineInRange.filter((s) => s.estado === 'SINCRONIZADO').map((s) => s.numeroComprobante)
+    // Evitar duplicados: solo considerar pendientes offline las que no estén sincronizadas ni en localSales
+    const serverReceipts = new Set(localInRange.map((s) => s.numeroComprobante));
+    const pendingOffline = offlineInRange.filter(
+      (s) => s.estado !== 'SINCRONIZADO' && !serverReceipts.has(s.numeroComprobante)
     );
 
-    const uniqueLocal = localInRange.filter((s) => !syncedOfflineIds.has(s.numeroComprobante));
-
-    // Mapear ventas offline al formato que espera la tabla
-    const offlineRows = offlineInRange.map((s) => ({
+    // Mapear ventas offline pendientes
+    const offlineRows = pendingOffline.map((s) => ({
       id:               s.offlineId,
       numeroComprobante: s.numeroComprobante,
       fecha:            s.fecha,
@@ -49,7 +47,7 @@ async function buildOfflineSalesReport(desde: string, hasta: string): Promise<an
     }));
 
     // Mapear ventas del servidor cacheadas
-    const serverRows = uniqueLocal.map((s) => ({
+    const serverRows = localInRange.map((s) => ({
       id:               s.id,
       numeroComprobante: s.numeroComprobante,
       fecha:            s.fecha,
@@ -118,11 +116,11 @@ async function buildOfflineTopProductsReport(desde: string, hasta: string): Prom
     ]);
 
     const prodMap = new Map(allProducts.map((p) => [p.id, p]));
-    const syncedOfflineIds = new Set(
-      allOffline.filter((s) => s.estado === 'SINCRONIZADO').map((s) => s.numeroComprobante)
+    const serverReceipts = new Set(allLocal.map((s) => s.numeroComprobante));
+    const pendingOffline = allOffline.filter(
+      (s) => s.estado !== 'SINCRONIZADO' && !serverReceipts.has(s.numeroComprobante)
     );
-    const uniqueLocal = allLocal.filter((s) => !syncedOfflineIds.has(s.numeroComprobante));
-    const allSales = [...allOffline, ...uniqueLocal].filter((s) => {
+    const allSales = [...pendingOffline, ...allLocal].filter((s) => {
       if (!s.fecha) return true;
       const t = new Date(s.fecha).getTime();
       if (isNaN(t)) return true;
@@ -173,6 +171,70 @@ async function buildOfflineTopProductsReport(desde: string, hasta: string): Prom
   } catch (err) {
     console.warn('[ReportsPage] Error construyendo top products offline:', err);
     return [];
+  }
+}
+
+/**
+ * Calcula el cierre de caja a partir de las ventas en Dexie para modo offline.
+ */
+async function buildOfflineCashClosing(closingDate: string): Promise<any> {
+  try {
+    const allOffline = await db.offlineSales.toArray();
+    const allLocal = await db.localSales.toArray();
+
+    const serverReceipts = new Set(allLocal.map((s) => s.numeroComprobante));
+    const pendingOffline = allOffline.filter(
+      (s) => s.estado !== 'SINCRONIZADO' && !serverReceipts.has(s.numeroComprobante)
+    );
+
+    // Filtrar por fecha closingDate (formato YYYY-MM-DD en hora local de Nicaragua)
+    const salesOnDate = [...pendingOffline, ...allLocal].filter((s) => {
+      if (!s.fecha) return false;
+      const sDate = localDateString(new Date(s.fecha));
+      return sDate === closingDate;
+    });
+
+    let totalGeneral = 0;
+    let totalEfectivoNIO = 0;
+    let totalEfectivoUSD = 0;
+    let totalTarjeta = 0;
+    let totalTransferencia = 0;
+    let totalCambioNIO = 0;
+
+    for (const s of salesOnDate) {
+      const tot = Number(s.total) || 0;
+      totalGeneral += tot;
+      const paidUSD = Number((s as any).montoPagadoUSD) || 0;
+      if (paidUSD > 0) totalEfectivoUSD += paidUSD;
+      const changeNIO = Number((s as any).cambioNIO) || 0;
+      if (changeNIO > 0) totalCambioNIO += changeNIO;
+
+      const mp = (s.metodoPago || '').toUpperCase();
+      if (mp === 'EFECTIVO') {
+        totalEfectivoNIO += tot;
+      } else if (mp === 'TARJETA') {
+        totalTarjeta += tot;
+      } else if (mp === 'TRANSFERENCIA') {
+        totalTransferencia += tot;
+      } else {
+        totalEfectivoNIO += Number((s as any).montoPagadoNIO) || tot;
+      }
+    }
+
+    return {
+      fecha: closingDate,
+      ventasCount: salesOnDate.length,
+      totalGeneral: Number(totalGeneral.toFixed(2)),
+      efectivoEsperadoNIO: Number(totalEfectivoNIO.toFixed(2)),
+      efectivoEsperadoUSD: Number(totalEfectivoUSD.toFixed(2)),
+      totalTarjeta: Number(totalTarjeta.toFixed(2)),
+      totalTransferencia: Number(totalTransferencia.toFixed(2)),
+      totalCambioEntregadoNIO: Number(totalCambioNIO.toFixed(2)),
+      ventas: salesOnDate,
+    };
+  } catch (err) {
+    console.warn('[ReportsPage] Error calculando cierre de caja offline:', err);
+    return null;
   }
 }
 
@@ -336,7 +398,9 @@ export const ReportsPage: React.FC = () => {
           totalTransferencia: Number(data.totalTransferencia) || 0,
         }) : null;
         if (!online) {
-          setCashClosingReport(normalize(loadReportCache(cacheKey)));
+          const offlineClosing = await buildOfflineCashClosing(closingDate);
+          const cached = normalize(loadReportCache(cacheKey));
+          setCashClosingReport(offlineClosing?.ventasCount ? normalize(offlineClosing) : cached);
         } else {
           const res = await apiFetch(`/reports/cash-closing?fecha=${closingDate}`);
           if (res.success && res.data) {
@@ -344,8 +408,10 @@ export const ReportsPage: React.FC = () => {
             setCashClosingReport(report);
             saveReportCache(cacheKey, report);
           } else {
-            setCashClosingReport(normalize(loadReportCache(cacheKey)));
-            setReportError(res.message || 'No se pudo cargar el cierre de caja.');
+            const offlineClosing = await buildOfflineCashClosing(closingDate);
+            const cached = normalize(loadReportCache(cacheKey));
+            setCashClosingReport(offlineClosing?.ventasCount ? normalize(offlineClosing) : cached);
+            if (!res.success) setReportError(res.message || 'No se pudo cargar el cierre de caja.');
           }
         }
       }
