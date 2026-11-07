@@ -85,6 +85,24 @@ async function buildOfflineSalesReport(desde: string, hasta: string): Promise<an
 }
 
 /**
+ * Normaliza cualquier formato de producto devuelto por el servidor o Dexie,
+ * asegurando que cantidadVendida e ingresoTotal siempre sean numéricos válidos.
+ */
+function normalizeTopProduct(p: any) {
+  const qty = Number(p.cantidadVendida ?? p.totalUnidades ?? p.unidadesVendidas ?? 0);
+  const totalRaw = p.ingresoTotal ?? p.totalVendido ?? 0;
+  const total = Number(totalRaw);
+  return {
+    ...p,
+    nombre: p.nombre || `Producto ${p.productoId || ''}`,
+    categoria: p.categoria?.nombre || p.categoria || 'General',
+    sku: p.sku || '',
+    cantidadVendida: isNaN(qty) ? 0 : qty,
+    ingresoTotal: isNaN(total) ? 0 : total,
+  };
+}
+
+/**
  * Calcula los productos más vendidos desde Dexie para funcionamiento offline.
  * Solo incluye productos con al menos 3 unidades vendidas.
  */
@@ -105,7 +123,9 @@ async function buildOfflineTopProductsReport(desde: string, hasta: string): Prom
     );
     const uniqueLocal = allLocal.filter((s) => !syncedOfflineIds.has(s.numeroComprobante));
     const allSales = [...allOffline, ...uniqueLocal].filter((s) => {
+      if (!s.fecha) return true;
       const t = new Date(s.fecha).getTime();
+      if (isNaN(t)) return true;
       return t >= desdeTs && t <= hastaTs;
     });
 
@@ -125,7 +145,7 @@ async function buildOfflineTopProductsReport(desde: string, hasta: string): Prom
         if (!pid) continue;
         const prod = prodMap.get(pid);
         const nombre = d.productoNombre || d.producto?.nombre || prod?.nombre || `Producto ${pid}`;
-        const categoria = prod?.categoriaNombre || 'General';
+        const categoria = prod?.categoriaNombre || (typeof prod?.categoria === 'object' ? prod.categoria?.nombre : prod?.categoria) || 'General';
         const sku = prod?.sku || '';
         const qty = Number(d.cantidad) || 0;
         const subtotal = Number(d.subtotal ?? (qty * (d.precioUnitario || prod?.precioVenta || 0))) || 0;
@@ -254,27 +274,54 @@ export const ReportsPage: React.FC = () => {
         }
       } else if (activeTab === 'TOP_PRODUCTS') {
         const cacheKey = `top_${desde}_${hasta}`;
-        if (!online) {
-          const offlineTop = await buildOfflineTopProductsReport(desde, hasta);
-          if (offlineTop.length > 0) {
-            setTopProductsReport(offlineTop);
-          } else {
-            const cached = (loadReportCache(cacheKey) || []).filter((p: any) => Number(p.cantidadVendida || 0) >= 3);
-            setTopProductsReport(cached);
+        let serverTop: any[] = [];
+        let serverError: string | null = null;
+
+        if (online) {
+          try {
+            const res = await apiFetch<any[]>(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
+            if (res.success && Array.isArray(res.data)) {
+              serverTop = res.data.map(normalizeTopProduct).filter((p) => p.cantidadVendida >= 3);
+            } else if (!res.success) {
+              serverError = res.message || 'No se pudo cargar el ranking del servidor.';
+            }
+          } catch (e: any) {
+            serverError = e?.message || 'Error consultando ranking al servidor.';
           }
-        } else {
-          const res = await apiFetch(`/reports/top-products?desde=${desde}&hasta=${hasta}&limit=15`);
-          if (res.success && Array.isArray(res.data)) {
-            const filtered = res.data.filter((p: any) => Number(p.cantidadVendida || 0) >= 3);
-            setTopProductsReport(filtered);
-            saveReportCache(cacheKey, filtered);
+        }
+
+        // Siempre obtener el cálculo local de Dexie (cubre ventas offline y caché local)
+        const offlineTop = (await buildOfflineTopProductsReport(desde, hasta)).map(normalizeTopProduct);
+
+        // Combinar datos del servidor y Dexie asegurando que los productos con 3 o más ventas se muestren
+        const combinedMap = new Map<string, any>();
+        for (const p of serverTop) {
+          combinedMap.set(p.productoId, { ...p });
+        }
+        for (const p of offlineTop) {
+          if (combinedMap.has(p.productoId)) {
+            const existing = combinedMap.get(p.productoId)!;
+            if (p.cantidadVendida > existing.cantidadVendida) {
+              existing.cantidadVendida = p.cantidadVendida;
+              existing.ingresoTotal = p.ingresoTotal;
+            }
           } else {
-            const offlineTop = await buildOfflineTopProductsReport(desde, hasta);
-            const fallback = offlineTop.length > 0
-              ? offlineTop
-              : (loadReportCache(cacheKey) || []).filter((p: any) => Number(p.cantidadVendida || 0) >= 3);
-            setTopProductsReport(fallback);
-            if (!res.success) setReportError(res.message || 'No se pudo cargar el ranking de productos.');
+            combinedMap.set(p.productoId, { ...p });
+          }
+        }
+
+        const finalTop = Array.from(combinedMap.values())
+          .filter((p) => p.cantidadVendida >= 3)
+          .sort((a, b) => b.cantidadVendida - a.cantidadVendida);
+
+        if (finalTop.length > 0) {
+          setTopProductsReport(finalTop);
+          saveReportCache(cacheKey, finalTop);
+        } else {
+          const cached = (loadReportCache(cacheKey) || []).map(normalizeTopProduct).filter((p: any) => p.cantidadVendida >= 3);
+          setTopProductsReport(cached);
+          if (serverError && cached.length === 0) {
+            setReportError(serverError);
           }
         }
       } else if (activeTab === 'CASH_CLOSING') {
@@ -635,11 +682,11 @@ export const ReportsPage: React.FC = () => {
                           <td className="py-3 px-4 text-gray-400">{p.categoria}</td>
                           <td className="py-3 px-4 text-center font-bold text-white">
                             <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full">
-                              {p.cantidadVendida} u.
+                              {p.cantidadVendida ?? p.totalUnidades ?? p.unidadesVendidas ?? 0} u.
                             </span>
                           </td>
                           <td className="py-3 px-4 text-right font-extrabold text-emerald-400">
-                            C$ {Number(p.ingresoTotal).toFixed(2)}
+                            C$ {Number(p.ingresoTotal ?? p.totalVendido ?? 0).toFixed(2)}
                           </td>
                         </tr>
                       ))}

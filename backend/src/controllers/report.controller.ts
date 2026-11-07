@@ -121,15 +121,21 @@ export const getTopProductsReport = async (req: Request, res: Response, next: Ne
     const productMap: Record<string, any> = {};
     products.forEach((p) => { productMap[p.id] = p; });
 
-    const data = topDetails.map((d) => ({
-      productoId:      d.productoId,
-      nombre:          productMap[d.productoId]?.nombre || 'Producto eliminado',
-      sku:             productMap[d.productoId]?.sku    || '',
-      categoria:       productMap[d.productoId]?.categoria?.nombre || 'General',
-      // Nombres que espera el frontend: cantidadVendida e ingresoTotal
-      cantidadVendida: Number(d._sum.cantidad  || 0),
-      ingresoTotal:    Number((d._sum.subtotal || 0).toFixed(2)),
-    }));
+    const data = topDetails.map((d) => {
+      const cantidad = Number(d._sum.cantidad || 0);
+      const total = Number((d._sum.subtotal || 0).toFixed(2));
+      return {
+        productoId:       d.productoId,
+        nombre:           productMap[d.productoId]?.nombre || 'Producto eliminado',
+        sku:              productMap[d.productoId]?.sku    || '',
+        categoria:        productMap[d.productoId]?.categoria?.nombre || 'General',
+        cantidadVendida:  cantidad,
+        totalUnidades:    cantidad,
+        unidadesVendidas: cantidad,
+        ingresoTotal:     total,
+        totalVendido:     total,
+      };
+    });
 
     res.json({
       success: true,
