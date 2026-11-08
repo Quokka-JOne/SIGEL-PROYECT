@@ -253,7 +253,37 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    if (!user.codigoConfirmacion || user.codigoConfirmacion !== code.trim()) {
+    let isCodeValid = false;
+    if (user.codigoConfirmacion && user.codigoConfirmacion === code.trim()) {
+      isCodeValid = true;
+    } else {
+      // Si el código no coincide con el local de Prisma, verificar contra Neon Auth API
+      const neonAuthUrl = process.env.NEON_AUTH_URL || process.env.NEON_AUTH_BASE_URL;
+      if (neonAuthUrl) {
+        try {
+          const clientOrigin = process.env.CORS_ORIGIN || 'https://jinstock-proyect.pages.dev';
+          const normalizedBase = neonAuthUrl.replace(/\/$/, '');
+          const neonVerifyRes = await fetch(`${normalizedBase}/email-otp/verify-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Origin': clientOrigin,
+            },
+            body: JSON.stringify({
+              email: cleanEmail,
+              otp: code.trim(),
+            }),
+          });
+          if (neonVerifyRes.ok) {
+            isCodeValid = true;
+          }
+        } catch (e: any) {
+          console.warn('[Neon Auth] Error verificando con endpoint remoto:', e.message);
+        }
+      }
+    }
+
+    if (!isCodeValid) {
       throw new ValidationError('Código de confirmación incorrecto.');
     }
 

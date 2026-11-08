@@ -24,16 +24,17 @@ export async function sendVerificationOtp(email: string, code: string): Promise<
       const timeout = setTimeout(() => controller.abort(), 2500);
 
       const normalizedBase = neonAuthUrl.replace(/\/$/, '');
+      const clientOrigin = process.env.CORS_ORIGIN || 'https://jinstock-proyect.pages.dev';
       const res = await fetch(`${normalizedBase}/email-otp/send-verification-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Origin': clientOrigin,
           ...(process.env.NEON_AUTH_API_KEY ? { Authorization: `Bearer ${process.env.NEON_AUTH_API_KEY}` } : {}),
         },
         body: JSON.stringify({
           email: cleanEmail,
           type: 'email-verification',
-          otp: code,
         }),
         signal: controller.signal,
       });
