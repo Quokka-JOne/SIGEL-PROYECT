@@ -27,7 +27,9 @@ function getTransporter() {
     _transporter = null; // forzar recreación
 
     const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = Number(process.env.SMTP_PORT || 587);
+    // Render bloquea el puerto saliente 587 (STARTTLS) en el plan gratuito para prevenir spam.
+    // Usar el puerto 465 (SSL/TLS directo) es el estándar compatible en Render para Gmail.
+    const port = Number(process.env.SMTP_PORT || 465);
     const secure = port === 465;
 
     console.log(`[Mailer] Creando transporter SMTP: ${host}:${port} (secure=${secure}) user=${user} pass_len=${pass.length}`);
@@ -58,7 +60,7 @@ export async function verifySmtpConnection(): Promise<{ ok: boolean; error?: str
   const pass = rawPass.replace(/\s+/g, '');
   const config = {
     SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
-    SMTP_PORT: process.env.SMTP_PORT || '587',
+    SMTP_PORT: process.env.SMTP_PORT || '465',
     SMTP_USER: user ? `${user.slice(0, 4)}...${user.slice(-4)}` : 'NO CONFIGURADO',
     SMTP_PASS_LEN: String(pass.length),
     NODE_ENV: process.env.NODE_ENV || 'unknown',
