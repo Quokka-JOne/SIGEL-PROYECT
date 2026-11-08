@@ -142,10 +142,20 @@ app.get('/api/health', healthHandler);
 app.get('/health', healthHandler);
 app.get('/status', healthHandler);
 
-// ── Diagnóstico SMTP (solo ADMINISTRADOR) ──────────────────────────────────────
-// GET /api/admin/email-status  → verifica si SMTP está operativo sin enviar correo
-// POST /api/admin/test-email   → envía un correo de prueba a la dirección indicada
+// ── Diagnóstico SMTP ─────────────────────────────────────────────────────────
+// Endpoint público de solo lectura para diagnosticar el estado del correo sin requerir token
 import { verifySmtpConnection, sendConfirmationEmail } from './utils/mailer';
+
+app.get('/api/health/email', async (_req: Request, res: Response) => {
+  const result = await verifySmtpConnection();
+  res.status(result.ok ? 200 : 503).json({
+    success: result.ok,
+    status: result.ok ? 'connected' : 'error',
+    message: result.ok ? 'Servidor SMTP listo para enviar correos' : result.error,
+    diagnostics: result.config,
+    neon_auth_url: process.env.NEON_AUTH_URL ? 'configurado' : 'no configurado',
+  });
+});
 
 app.get('/api/admin/email-status', authenticateToken, requireRole(['ADMINISTRADOR']), async (_req: Request, res: Response) => {
   const result = await verifySmtpConnection();
@@ -360,6 +370,16 @@ if (process.env.NODE_ENV !== 'test') {
     logger.info(`🚀 JINStock Backend activo en http://localhost:${PORT}`, { port: PORT, env: process.env.NODE_ENV || 'development' });
     startNeonKeepAlive();
     await ensureInitialData();
+    // Verificación de conexión SMTP en segundo plano al iniciar
+    verifySmtpConnection().then((smtpRes) => {
+      if (smtpRes.ok) {
+        logger.info('📧 Servicio de correo SMTP verificado y listo para despacho de códigos');
+      } else {
+        logger.warn('⚠️ Servicio de correo SMTP no disponible:', { error: smtpRes.error, config: smtpRes.config });
+      }
+    }).catch((err) => {
+      logger.warn('⚠️ Error al verificar SMTP durante arranque:', { error: err.message });
+    });
     // Mejora de arranque: precalentamiento explícito de 10 conexiones del pool Neon y caché de catálogo
     try {
       await prisma.$connect();
