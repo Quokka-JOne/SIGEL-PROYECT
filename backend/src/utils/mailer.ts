@@ -1,32 +1,76 @@
 import nodemailer from 'nodemailer';
 
 let _transporter: any = null;
+// Invalidar transporter si las variables de entorno cambian entre reinicios
+let _transporterUser: string | undefined;
 
 function getTransporter() {
-  if (!_transporter) {
-    const user = process.env.SMTP_USER?.trim();
-    const rawPass = process.env.SMTP_PASS?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const rawPass = process.env.SMTP_PASS?.trim();
 
-    if (!user || !rawPass) {
-      return null;
-    }
+  if (!user || !rawPass) {
+    console.warn('[Mailer] SMTP_USER o SMTP_PASS no están configurados en las variables de entorno.');
+    return null;
+  }
 
-    // Limpiar espacios de contraseñas de aplicación de Google (e.g. "lrkk tnco evcy zjna" -> "lrkktncoevcyzjna")
-    const pass = rawPass.replace(/\s+/g, '');
+  // Limpiar espacios de contraseñas de aplicación de Google (e.g. "lrkk tnco evcy zjna" -> "lrkktncoevcyzjna")
+  const pass = rawPass.replace(/\s+/g, '');
+
+  if (pass.length < 8) {
+    console.warn(`[Mailer] SMTP_PASS parece inválida (longitud: ${pass.length}). Verifique la App Password en Google Account.`);
+    return null;
+  }
+
+  // Recrear el transporter si cambió el usuario (reinicio de servidor)
+  if (!_transporter || _transporterUser !== user) {
+    _transporterUser = user;
+    _transporter = null; // forzar recreación
+
+    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const port = Number(process.env.SMTP_PORT || 587);
+    const secure = port === 465;
+
+    console.log(`[Mailer] Creando transporter SMTP: ${host}:${port} (secure=${secure}) user=${user} pass_len=${pass.length}`);
 
     _transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: Number(process.env.SMTP_PORT || 587) === 465,
+      host,
+      port,
+      secure,
       auth: { user, pass },
       tls: {
         rejectUnauthorized: false,
       },
-      connectionTimeout: 6000,
-      greetingTimeout: 6000,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
   return _transporter;
+}
+
+/**
+ * Verifica la conexión SMTP y devuelve el resultado.
+ * Útil para diagnóstico en producción.
+ */
+export async function verifySmtpConnection(): Promise<{ ok: boolean; error?: string; config: Record<string, string> }> {
+  const user = process.env.SMTP_USER?.trim() || '';
+  const rawPass = process.env.SMTP_PASS?.trim() || '';
+  const pass = rawPass.replace(/\s+/g, '');
+  const config = {
+    SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+    SMTP_PORT: process.env.SMTP_PORT || '587',
+    SMTP_USER: user ? `${user.slice(0, 4)}...${user.slice(-4)}` : 'NO CONFIGURADO',
+    SMTP_PASS_LEN: String(pass.length),
+    NODE_ENV: process.env.NODE_ENV || 'unknown',
+  };
+  const transporter = getTransporter();
+  if (!transporter) return { ok: false, error: 'Transporter no disponible (credenciales faltantes)', config };
+  try {
+    await transporter.verify();
+    return { ok: true, config };
+  } catch (err: any) {
+    return { ok: false, error: `${err.code || 'ERROR'}: ${err.message}`, config };
+  }
 }
 
 export const sendConfirmationEmail = async (

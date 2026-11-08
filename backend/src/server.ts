@@ -142,6 +142,37 @@ app.get('/api/health', healthHandler);
 app.get('/health', healthHandler);
 app.get('/status', healthHandler);
 
+// ── Diagnóstico SMTP (solo ADMINISTRADOR) ──────────────────────────────────────
+// GET /api/admin/email-status  → verifica si SMTP está operativo sin enviar correo
+// POST /api/admin/test-email   → envía un correo de prueba a la dirección indicada
+import { verifySmtpConnection, sendConfirmationEmail } from './utils/mailer';
+
+app.get('/api/admin/email-status', authenticateToken, requireRole(['ADMINISTRADOR']), async (_req: Request, res: Response) => {
+  const result = await verifySmtpConnection();
+  res.status(result.ok ? 200 : 503).json({
+    success: result.ok,
+    smtp: result.ok ? 'Conexión verificada ✅' : `Error: ${result.error}`,
+    config: result.config,
+    neon_auth_url: process.env.NEON_AUTH_URL ? 'configurado' : 'no configurado',
+  });
+});
+
+app.post('/api/admin/test-email', authenticateToken, requireRole(['ADMINISTRADOR']), async (req: Request, res: Response) => {
+  const { to } = req.body;
+  if (!to) {
+    res.status(400).json({ success: false, message: 'Se requiere el campo "to" (correo destino).' });
+    return;
+  }
+  const testCode = '123456';
+  const result = await sendConfirmationEmail(to.trim().toLowerCase(), testCode);
+  res.status(result.success ? 200 : 502).json({
+    success: result.success,
+    message: result.success
+      ? `Correo de prueba enviado a ${to}. Revisa la bandeja de entrada.`
+      : `No se pudo enviar: ${result.error}`,
+  });
+});
+
 // API root endpoint informativo
 app.get('/api', (req: Request, res: Response) => {
   res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
