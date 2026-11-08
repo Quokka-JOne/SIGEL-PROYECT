@@ -80,10 +80,56 @@ export const sendConfirmationEmail = async (
   to: string,
   code: string
 ): Promise<{ success: boolean; error?: string }> => {
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
   const smtpUser = process.env.SMTP_USER?.trim();
   const smtpPass = process.env.SMTP_PASS?.trim();
-  const fromEmail = process.env.SMTP_FROM_EMAIL?.trim() || smtpUser;
+  const fromEmail = process.env.SMTP_FROM_EMAIL?.trim() || smtpUser || 'soporte@jinstock.ni';
 
+  // 1. Prioridad: Resend HTTP API (Nunca es bloqueado por Render ni requiere puertos SMTP)
+  if (resendApiKey) {
+    try {
+      console.log(`[Mailer] Intentando envío directo vía Resend HTTP API a ${to}...`);
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'JINStock <onboarding@resend.dev>',
+          to: [to],
+          subject: 'Código de Confirmación - JINStock',
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #4A148C; margin: 0;">JINStock - Librería y Papelería</h2>
+                <p style="color: #6b7280; font-size: 14px;">Verificación de cuenta segura</p>
+              </div>
+              <p>Hola,</p>
+              <p>Tu código de confirmación es:</p>
+              <div style="background-color: #f3e8ff; border: 2px dashed #9333ea; padding: 18px; border-radius: 10px; font-size: 32px; font-weight: bold; letter-spacing: 6px; text-align: center; color: #581c87; margin: 24px 0;">
+                ${code}
+              </div>
+              <p style="font-size: 13px; color: #4b5563;">Ingresa este código en la aplicación para activar tu cuenta. Válido por 15 minutos.</p>
+              <p style="font-size: 12px; color: #9ca3af; margin-top: 24px; border-top: 1px solid #f3f4f6; padding-top: 12px;">Equipo JINStock Nicaragua</p>
+            </div>
+          `,
+        }),
+      });
+
+      if (resendResponse.ok) {
+        console.log(`[Mailer] ✅ Correo entregado exitosamente mediante Resend HTTP a ${to}`);
+        return { success: true };
+      } else {
+        const errorBody = await resendResponse.text().catch(() => '');
+        console.warn(`[Mailer] Resend API respondió con error (${resendResponse.status}): ${errorBody}`);
+      }
+    } catch (err: any) {
+      console.warn(`[Mailer] Error contactando Resend API: ${err.message}`);
+    }
+  }
+
+  // 2. Fallback: SMTP clásico (Nodemailer)
   if (!smtpUser || !smtpPass) {
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[Mailer DEV] SMTP no configurado. Código generado para ${to}: ${code}`);
