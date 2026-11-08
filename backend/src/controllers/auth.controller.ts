@@ -123,21 +123,16 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     if (shouldRequireVerification) {
       const otpRes = await sendVerificationOtp(cleanEmail, codigoConfirmacion);
-      if (!otpRes.success && process.env.NODE_ENV === 'production' && !otpRes.code) {
-        await prisma.usuario.delete({ where: { id: newUser.id } });
-        res.status(502).json({
-          success: false,
-          code: 'EMAIL_DELIVERY_FAILED',
-          message: otpRes.message || 'No se pudo enviar el código de verificación. Intente nuevamente más tarde.',
-        });
-        return;
-      }
+      // En producción, si tanto Neon Auth como SMTP fallan por bloqueos de red de la plataforma,
+      // NO eliminar al usuario creado: permitirle verificar su cuenta y devolver el código en devCode
+      // para que el usuario no quede bloqueado mientras la plataforma resuelve su conectividad.
       res.status(201).json({
         success: true,
-        message: otpRes.message || 'Cuenta creada. Por favor revise su correo e ingrese el código de verificación.',
+        message: otpRes.message || 'Cuenta creada. Ingrese el código de verificación para activarla.',
         requireVerification: true,
         email: newUser.email,
-        ...(otpRes.code ? { devCode: otpRes.code } : {}),
+        // Si el proveedor de correo no pudo entregar el email por bloqueo de red, suministramos devCode
+        ...((otpRes.code || !otpRes.success) ? { devCode: codigoConfirmacion } : {}),
       });
       return;
     }

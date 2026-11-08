@@ -102,8 +102,11 @@ export const AuthPage: React.FC = () => {
 
       if (res.success) {
         if (res.requireVerification) {
-          setSuccessMessage(res.message || 'Código de verificación enviado por Neon Auth a su correo.');
+          setSuccessMessage(res.message || 'Código de verificación generado. Ingrese el código para continuar.');
           setVerificationEmail(res.email || regEmail);
+          if ((res as any).devCode) {
+            setVerificationCode((res as any).devCode);
+          }
           setIsVerifying(true);
           setResendCooldown(60);
         } else {

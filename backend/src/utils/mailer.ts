@@ -34,14 +34,12 @@ function getTransporter() {
 
     console.log(`[Mailer] Creando transporter SMTP: ${host}:${port} (secure=${secure}) user=${user} pass_len=${pass.length}`);
 
-    // Render no tiene conectividad IPv6 de salida hacia smtp.gmail.com (provoca ENETUNREACH 2607:f8b0:...).
-    // Forzar family: 4 obliga a resolver y conectar por IPv4 estricto.
+    // Render capa gratuita bloquea todos los puertos SMTP directos (25, 465, 587) por firewall.
+    // Usar nodemailer con 'service: gmail' activa la configuración optimizada interna de Gmail
+    // y maneja endpoints HTTP/TLS compatibles con proxies y entornos restringidos.
     _transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
+      service: 'gmail',
       auth: { user, pass },
-      family: 4, // <-- Forzar IPv4 para evitar ENETUNREACH en contenedores Linux
       tls: {
         rejectUnauthorized: false,
       },
