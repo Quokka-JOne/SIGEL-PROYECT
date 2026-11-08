@@ -502,3 +502,4 @@ export const REAL_NEON_PRODUCTS: LocalProduct[] = [
     estado: true,
   },
 ];
+

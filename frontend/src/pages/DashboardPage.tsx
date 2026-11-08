@@ -139,9 +139,11 @@ export const DashboardPage: React.FC = () => {
         return;
       }
 
-      const [statsRes, salesRes] = await Promise.all([
+      // Cargar estadísticas del servidor y las últimas 100 ventas (para cachear detalles en Dexie)
+      const [statsRes, salesRes, salesDetailRes] = await Promise.all([
         apiFetch<any>('/sales/stats'),
         apiFetch<any[]>('/sales?limit=5'),
+        apiFetch<any[]>('/sales?limit=100'),
       ]);
 
       if (statsRes.success && statsRes.data) {
@@ -171,6 +173,7 @@ export const DashboardPage: React.FC = () => {
           lowStockCount: statsRes.data.lowStockCount || 0,
           outOfStockCount: statsRes.data.outOfStockCount || 0,
         });
+        // El servidor ya aplica having >= 3 en Prisma y un .filter(>=3) en JS
         const serverTop = (statsRes.data.topSellingProducts || [])
           .filter((p: any) => Number(p.unidadesVendidas || 0) >= 3);
         setTopProducts(serverTop);
@@ -180,9 +183,13 @@ export const DashboardPage: React.FC = () => {
 
       if (salesRes.success && salesRes.data) {
         setRecentSales(salesRes.data);
+      }
+
+      // Cachear las 100 últimas ventas CON detalles para que el modo offline tenga datos completos
+      if (salesDetailRes.success && salesDetailRes.data) {
+        cacheSalesLocally(salesDetailRes.data, true).catch(() => {});
+      } else if (salesRes.success && salesRes.data) {
         cacheSalesLocally(salesRes.data).catch(() => {});
-      } else if (!statsRes.success) {
-        // Ya cargado en loadFromDexie
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
