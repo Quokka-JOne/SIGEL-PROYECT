@@ -139,7 +139,10 @@ export const AuthPage: React.FC = () => {
       });
       const res = await response.json();
       if (res.success) {
-        setSuccessMessage(res.message || 'Nuevo código de verificación enviado por Neon Auth.');
+        setSuccessMessage(res.message || 'Nuevo código de verificación generado.');
+        if (res.devCode) {
+          setVerificationCode(res.devCode);
+        }
         setResendCooldown(60);
       } else {
         setErrorMessage(res.message || 'Error al reenviar el código.');

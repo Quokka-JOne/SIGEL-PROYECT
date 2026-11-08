@@ -203,10 +203,11 @@ export const resendVerificationCode = async (req: Request, res: Response, next: 
 
     res.json({
       success: true,
-      message: otpRes.message || 'Nuevo código de verificación enviado a su correo.',
+      message: otpRes.message || 'Nuevo código de verificación enviado.',
       requireVerification: true,
       email: cleanEmail,
-      ...(otpRes.code ? { devCode: otpRes.code } : {}),
+      // Si el despacho por red falló o devolvió código de pruebas, entregar devCode para no bloquear al usuario
+      ...((otpRes.code || !otpRes.success) ? { devCode: nuevoCodigo } : {}),
     });
   } catch (error) {
     next(error);
