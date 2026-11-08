@@ -143,7 +143,7 @@ async function buildOfflineTopProductsReport(desde: string, hasta: string): Prom
         if (!pid) continue;
         const prod = prodMap.get(pid);
         const nombre = d.productoNombre || d.producto?.nombre || prod?.nombre || `Producto ${pid}`;
-        const categoria = prod?.categoriaNombre || (typeof prod?.categoria === 'object' ? prod.categoria?.nombre : prod?.categoria) || 'General';
+        const categoria = prod?.categoriaNombre || 'General';
         const sku = prod?.sku || '';
         const qty = Number(d.cantidad) || 0;
         const subtotal = Number(d.subtotal ?? (qty * (d.precioUnitario || prod?.precioVenta || 0))) || 0;
