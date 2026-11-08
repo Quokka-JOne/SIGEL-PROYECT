@@ -116,7 +116,15 @@ export const sendConfirmationEmail = async (
   try {
     const transporter = getTransporter();
     if (!transporter) return { success: false, error: 'Transporter SMTP no disponible.' };
-    await transporter.sendMail(mailOptions);
+    
+    // Timeout estricto de 3 segundos para el envío de correo. Si Render bloquea el puerto saliente,
+    // abortamos en 3s en vez de colgar la petición HTTP y causar que el frontend aborte a los 8s.
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise<{ success: false; error: string }>((_, reject) =>
+      setTimeout(() => reject(new Error('SMTP_SEND_TIMEOUT')), 3000)
+    );
+
+    await Promise.race([sendPromise, timeoutPromise]);
     console.log(`[Mailer] Correo de verificación enviado exitosamente a ${to}`);
     return { success: true };
   } catch (error: any) {

@@ -75,7 +75,10 @@ export const apiFetch = async <T = any>(
   }
 
   const token = getAuthToken();
-  const { timeoutMs = 8000, ...fetchOptions } = options;
+  // Para autenticación o registro donde se contacta servicios externos de correo,
+  // permitimos hasta 15s si la ruta es /auth, o 8s por defecto para el resto de la app
+  const defaultTimeout = endpoint.startsWith('/auth') ? 15000 : 8000;
+  const { timeoutMs = defaultTimeout, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

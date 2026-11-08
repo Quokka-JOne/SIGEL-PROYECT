@@ -21,7 +21,7 @@ export async function sendVerificationOtp(email: string, code: string): Promise<
     try {
       console.log(`[Neon Auth] Solicitando envío de OTP a ${cleanEmail} vía ${neonAuthUrl}...`);
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
+      const timeout = setTimeout(() => controller.abort(), 2500);
 
       const normalizedBase = neonAuthUrl.replace(/\/$/, '');
       const res = await fetch(`${normalizedBase}/email-otp/send-verification-otp`, {
