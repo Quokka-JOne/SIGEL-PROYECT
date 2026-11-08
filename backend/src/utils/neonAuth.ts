@@ -14,7 +14,7 @@ export interface SendOtpResult {
  */
 export async function sendVerificationOtp(email: string, code: string): Promise<SendOtpResult> {
   const cleanEmail = email.trim().toLowerCase();
-  const neonAuthUrl = process.env.NEON_AUTH_URL;
+  const neonAuthUrl = process.env.NEON_AUTH_URL || process.env.NEON_AUTH_BASE_URL;
 
   // 1. Si Neon Auth está configurado en las variables de entorno, despachar mediante Neon Auth
   if (neonAuthUrl) {
@@ -23,7 +23,8 @@ export async function sendVerificationOtp(email: string, code: string): Promise<
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
 
-      const res = await fetch(`${neonAuthUrl.replace(/\/$/, '')}/email-otp/send-verification-otp`, {
+      const normalizedBase = neonAuthUrl.replace(/\/$/, '');
+      const res = await fetch(`${normalizedBase}/email-otp/send-verification-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

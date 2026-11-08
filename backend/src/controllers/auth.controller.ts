@@ -105,7 +105,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     const isTest = process.env.NODE_ENV === 'test';
     const hasSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS) && !isTest;
-    const hasNeonAuth = Boolean(process.env.NEON_AUTH_URL);
+    const hasNeonAuth = Boolean(process.env.NEON_AUTH_URL || process.env.NEON_AUTH_BASE_URL);
     // Si hay Neon Auth o SMTP configurado y no es test, exigir verificación
     const shouldRequireVerification = (hasNeonAuth || hasSmtpConfigured) && !isTest;
 

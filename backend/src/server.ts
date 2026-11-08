@@ -153,7 +153,7 @@ app.get('/api/health/email', async (_req: Request, res: Response) => {
     status: result.ok ? 'connected' : 'error',
     message: result.ok ? 'Servidor SMTP listo para enviar correos' : result.error,
     diagnostics: result.config,
-    neon_auth_url: process.env.NEON_AUTH_URL ? 'configurado' : 'no configurado',
+    neon_auth_url: (process.env.NEON_AUTH_URL || process.env.NEON_AUTH_BASE_URL) ? 'configurado' : 'no configurado',
   });
 });
 
@@ -163,7 +163,7 @@ app.get('/api/admin/email-status', authenticateToken, requireRole(['ADMINISTRADO
     success: result.ok,
     smtp: result.ok ? 'Conexión verificada ✅' : `Error: ${result.error}`,
     config: result.config,
-    neon_auth_url: process.env.NEON_AUTH_URL ? 'configurado' : 'no configurado',
+    neon_auth_url: (process.env.NEON_AUTH_URL || process.env.NEON_AUTH_BASE_URL) ? 'configurado' : 'no configurado',
   });
 });
 
