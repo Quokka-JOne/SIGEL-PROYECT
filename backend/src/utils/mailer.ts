@@ -34,18 +34,21 @@ function getTransporter() {
 
     console.log(`[Mailer] Creando transporter SMTP: ${host}:${port} (secure=${secure}) user=${user} pass_len=${pass.length}`);
 
+    // Render no tiene conectividad IPv6 de salida hacia smtp.gmail.com (provoca ENETUNREACH 2607:f8b0:...).
+    // Forzar family: 4 obliga a resolver y conectar por IPv4 estricto.
     _transporter = nodemailer.createTransport({
       host,
       port,
       secure,
       auth: { user, pass },
+      family: 4, // <-- Forzar IPv4 para evitar ENETUNREACH en contenedores Linux
       tls: {
         rejectUnauthorized: false,
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
-    });
+    } as any);
   }
   return _transporter;
 }
